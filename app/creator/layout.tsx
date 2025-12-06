@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { CreatorNavbar } from "@/components/creator";
+import CreatorLayoutClient from "@/components/creator/CreatorLayoutClient";
 
 export default async function CreatorLayout({
   children,
@@ -17,12 +17,5 @@ export default async function CreatorLayout({
   //   redirect("/explore");
   // }
 
-  return (
-    <div className="flex min-h-screen bg-background">
-      <CreatorNavbar session={session} />
-      <main className="flex-1">
-        {children}
-      </main>
-    </div>
-  );
+  return <CreatorLayoutClient session={session}>{children}</CreatorLayoutClient>;
 }

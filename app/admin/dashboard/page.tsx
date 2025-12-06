@@ -1,53 +1,186 @@
 "use client";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { Plus, TrendingUp } from "lucide-react";
+import { useMemo, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line as ReLine,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 export default function AdminDashboard() {
+  const { data: session } = useSession();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const getUserInitial = () => {
+    const name = session?.user?.name;
+    const email = session?.user?.email;
+    if (name) return name.charAt(0).toUpperCase();
+    if (email) return email.charAt(0).toUpperCase();
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    return session?.user?.name || session?.user?.email?.split('@')[0] || "User";
+  };
+
+  const chartData = useMemo(
+    () => [
+      { name: "Mon", value: 12 },
+      { name: "Tue", value: 19 },
+      { name: "Wed", value: 14 },
+      { name: "Thu", value: 22 },
+      { name: "Fri", value: 28 },
+      { name: "Sat", value: 25 },
+      { name: "Sun", value: 30 },
+    ],
+    []
+  );
+
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard Overview</h1>
-        <p className="text-muted-foreground">Welcome to your admin dashboard</p>
+    <div className="p-6">
+      {/* Greeting Section */}
+      <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-border/20">
+        <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-2xl shadow-md">
+          {getUserInitial()}
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-foreground">{getGreeting()}, {getUserDisplayName()}!</h2>
+          <p className="text-muted-foreground">Welcome back to your dashboard</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-card p-6 shadow-md border border-border">
-          <h3 className="text-lg font-semibold text-card-foreground mb-2">
-            Total Users
-          </h3>
-          <p className="text-3xl font-bold text-primary">1,234</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-muted-foreground text-lg">Admin overview</h1>
+        </div>
+        <Button className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Create
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        {/* Chart - Full Width */}
+        <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4 px-6">
+            <p className="text-lg font-semibold text-card-foreground">Users Growth</p>
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                <defs>
+                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={isDarkMode ? "#374151" : "#E5E7EB"} strokeDasharray="3 3" vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }} 
+                  axisLine={false} 
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }} 
+                  axisLine={false} 
+                  tickLine={false}
+                />
+                <Tooltip 
+                  cursor={{ stroke: "#3B82F6", strokeWidth: 1 }}
+                  contentStyle={{
+                    backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                    border: `1px solid ${isDarkMode ? '#374151' : '#E5E7EB'}`,
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    color: isDarkMode ? '#F9FAFB' : '#111827'
+                  }}
+                />
+                <ReLine 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#3B82F6" 
+                  strokeWidth={3} 
+                  dot={false}
+                  activeDot={{ r: 5, stroke: "#3B82F6", strokeWidth: 2, fill: isDarkMode ? "#1F2937" : "#ffffff" }}
+                  fill="url(#blueGradient)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="bg-card p-6 shadow-md border border-border">
-          <h3 className="text-lg font-semibold text-card-foreground mb-2">
-            Active Creators
-          </h3>
-          <p className="text-3xl font-bold text-primary">567</p>
-        </div>
+        {/* Stats Cards - 3 in one row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">
+              Total Users
+            </h3>
+            <p className="text-3xl font-bold text-primary">1,234</p>
+            <p className="text-sm text-muted-foreground mt-1">+12% from last month</p>
+          </div>
 
-        <div className="bg-card p-6 shadow-md border border-border">
-          <h3 className="text-lg font-semibold text-card-foreground mb-2">
-            Total Content
-          </h3>
-          <p className="text-3xl font-bold text-primary">8,901</p>
+          <div className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">
+              Active Creators
+            </h3>
+            <p className="text-3xl font-bold text-primary">567</p>
+            <p className="text-sm text-muted-foreground mt-1">+8% from last month</p>
+          </div>
+
+          <div className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">
+              Total Content
+            </h3>
+            <p className="text-3xl font-bold text-primary">8,901</p>
+            <p className="text-sm text-muted-foreground mt-1">+15% from last month</p>
+          </div>
         </div>
       </div>
 
       <div className="mt-8">
-        <div className="bg-card shadow-md border border-border overflow-hidden">
-          <div className="p-6 border-b border-border">
+        <div className="bg-card rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+          <div className="p-6 border-b border-border/20">
             <h3 className="text-lg font-semibold text-card-foreground">
               Recent Activity
             </h3>
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/20">
             {[1, 2, 3, 4, 5].map((item) => (
-              <div key={item} className="p-4 flex items-center justify-between hover:bg-accent transition-colors">
+              <div key={item} className="p-4 flex items-center justify-between hover:bg-accent/50 transition-colors">
                 <div>
                   <p className="font-medium text-foreground">User Activity {item}</p>
                   <p className="text-sm text-muted-foreground">Description of activity</p>
                 </div>
-                <Button variant="destructive" size="sm">
+                <Button variant="destructive" size="sm" className="shadow-sm">
                   Delete
                 </Button>
               </div>

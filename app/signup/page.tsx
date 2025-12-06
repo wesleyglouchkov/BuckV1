@@ -207,7 +207,7 @@ export default function SignupPage() {
                 type="checkbox"
                 id="terms"
                 required
-                className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                className="w-4 h-4 rounded border-border/30 text-primary focus:ring-primary/30"
               />
 
               <div className="mt-1">

@@ -24,7 +24,7 @@ interface SkeletonBoxProps {
 // Card skeleton for content cards
 export function SkeletonCard({ className }: SkeletonCardProps) {
   return (
-    <div className={cn("rounded-xl border border-border p-4 space-y-4", className)}>
+    <div className={cn("rounded-xl border border-border/20 p-4 space-y-4 shadow-sm", className)}>
       <Skeleton className="h-40 w-full rounded-lg" />
       <div className="space-y-2">
         <Skeleton className="h-4 w-3/4" />
@@ -98,7 +98,7 @@ export function SkeletonListItem({ className }: { className?: string }) {
 // Table row skeleton
 export function SkeletonTableRow({ columns = 4, className }: { columns?: number; className?: string }) {
   return (
-    <div className={cn("flex items-center gap-4 p-4 border-b border-border", className)}>
+    <div className={cn("flex items-center gap-4 p-4 border-b border-border/20", className)}>
       {Array.from({ length: columns }).map((_, i) => (
         <Skeleton
           key={i}
@@ -115,7 +115,7 @@ export function SkeletonTableRow({ columns = 4, className }: { columns?: number;
 // Stats card skeleton
 export function SkeletonStats({ className }: { className?: string }) {
   return (
-    <div className={cn("rounded-xl border border-border p-6 space-y-3", className)}>
+    <div className={cn("rounded-xl border border-border/20 p-6 space-y-3 shadow-sm", className)}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-8 w-8 rounded-lg" />

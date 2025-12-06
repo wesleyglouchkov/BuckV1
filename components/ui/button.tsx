@@ -9,13 +9,13 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
-    const baseClasses = "inline-flex items-center justify-center font-semibold transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+    const baseClasses = "inline-flex items-center justify-center font-semibold transition-all cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring/50 disabled:opacity-50 disabled:cursor-not-allowed"
 
     const variants = {
-      default: "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30",
-      destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-      outline: "border border-border bg-card text-foreground hover:bg-accent",
-      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+      default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md transition-shadow",
+      destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md transition-shadow",
+      outline: "border border-border/30 bg-card text-foreground shadow-sm hover:bg-accent hover:shadow-md transition-shadow",
+      secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md transition-shadow"
     }
 
     const sizes = {

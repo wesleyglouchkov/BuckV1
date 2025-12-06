@@ -82,7 +82,7 @@ export default function EmailSentPage() {
             your inbox and follow the instructions.
           </p>
 
-          <div className="bg-card border border-border rounded-2xl p-6 mb-8">
+          <div className="bg-card border border-border/20 rounded-2xl shadow-sm p-6 mb-8">
             <div className="flex items-start gap-4 text-left">
               <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center shrink-0">
                 <Info className="w-5 h-5 text-accent-foreground" />

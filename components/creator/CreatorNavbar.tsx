@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,11 +13,13 @@ import {
   Moon, 
   Sun, 
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Menu
 } from "lucide-react";
 import { Session } from "next-auth";
 import { Switch } from "@/components/ui";
 import { getTheme, setTheme, initTheme } from "@/lib/theme";
+import CreatorSidebar from "./Sidebar";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
@@ -34,11 +36,34 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
   const pathname = usePathname();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const profileWrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     initTheme();
     setIsDarkMode(getTheme() === "dark");
   }, []);
+
+  // Close profile menu when clicking outside or pressing Escape
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!profileWrapperRef.current) return;
+      if (!profileWrapperRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowProfileMenu(false);
+    };
+
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [profileWrapperRef]);
 
   const toggleThemeHandler = () => {
     const newTheme = isDarkMode ? "light" : "dark";
@@ -48,53 +73,30 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
 
   return (
     <>
-      {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
-        <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-bold text-foreground">Creator Studio</h1>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                  isActive
-                    ? "bg-secondary text-secondary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
+      <CreatorSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-      {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Navbar */}
-        <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">
-            {menuItems.find(item => item.href === pathname)?.label || "Dashboard"}
-          </h2>
-          
+      {/* Top Navbar - Full Width Fixed */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-md border-b border-border/50 px-6 z-30 supports-backdrop-filter:bg-background/60">
+        <div className="h-full flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {session?.user?.email}
-            </span>
-            
-            {/* Profile Dropdown */}
-            <div className="relative">
+            {/* Mobile hamburger button */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden flex items-center justify-center w-9 h-9 hover:bg-accent transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <p className="text-xl font-semibold text-foreground">Creator Dashboard</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-muted-foreground hidden md:block">{session?.user?.email}</p>
+            <div className="relative" ref={profileWrapperRef}>
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors"
+                aria-haspopup="menu"
+                aria-expanded={showProfileMenu}
               >
                 <div className="w-8 h-8 bg-primary flex items-center justify-center text-primary-foreground font-semibold">
                   <User className="w-5 h-5" />
@@ -103,34 +105,26 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-card border border-border shadow-lg z-50">
-                  <div className="p-3 border-b border-border">
+                <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-md border border-border/30 shadow-sm z-50 rounded-lg">
+                  <div className="p-3 border-b border-border/50">
                     <p className="text-sm font-medium text-foreground">
                       {session?.user?.name || session?.user?.email}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Creator
-                    </p>
+                    <p className="text-xs text-muted-foreground">Creator</p>
                   </div>
-                  
                   <div className="p-2">
                     <Link
                       href="/creator/profile"
-                      className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors"
                       onClick={() => setShowProfileMenu(false)}
                     >
                       <User className="w-4 h-4" />
-                      View Profile
+                      <p>View Profile</p>
                     </Link>
-                    
                     <div className="flex items-center justify-between px-3 py-2 text-sm">
                       <div className="flex items-center gap-3 text-foreground">
-                        {isDarkMode ? (
-                          <Moon className="w-4 h-4" />
-                        ) : (
-                          <Sun className="w-4 h-4" />
-                        )}
-                        <span>Dark Mode</span>
+                        {isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                        <p>Dark Mode</p>
                       </div>
                       <Switch
                         checked={isDarkMode}
@@ -138,20 +132,19 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
                         className="data-[state=checked]:bg-foreground"
                       />
                     </div>
-                    
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent/50 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      <p>Sign Out</p>
                     </button>
                   </div>
                 </div>
               )}
             </div>
           </div>
-        </header>
+        </div>
       </div>
     </>
   );

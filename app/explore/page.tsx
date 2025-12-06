@@ -8,7 +8,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="bg-card border-b border-border">
+      <nav className="bg-card border-b border-border/20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -49,7 +49,7 @@ export default function ExplorePage() {
           {[1, 2, 3, 4, 5, 6].map((item) => (
             <div
               key={item}
-              className="bg-card rounded-lg shadow-md border border-border overflow-hidden hover:shadow-lg transition-shadow"
+              className="bg-card rounded-lg border border-border/20 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
             >
               <div className="h-48 bg-linear-to-br from-primary to-secondary"></div>
               <div className="p-6">
