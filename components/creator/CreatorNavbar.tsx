@@ -20,6 +20,7 @@ import { Session } from "next-auth";
 import { Switch } from "@/components/ui";
 import { getTheme, setTheme, initTheme } from "@/lib/theme";
 import CreatorSidebar from "./Sidebar";
+import SignOutDialog from "@/components/SignOutDialog";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
@@ -87,7 +88,7 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <p className="text-xl font-semibold text-foreground">Creator Dashboard</p>
+            <p className="text-xl mt-2 font-semibold text-foreground">Creator Dashboard</p>
           </div>
           <div className="flex items-center gap-4">
             <p className="text-sm text-muted-foreground hidden md:block">{session?.user?.email}</p>
@@ -132,13 +133,7 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
                         className="data-[state=checked]:bg-foreground"
                       />
                     </div>
-                    <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent/50 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <p>Sign Out</p>
-                    </button>
+                    <SignOutDialog />
                   </div>
                 </div>
               )}

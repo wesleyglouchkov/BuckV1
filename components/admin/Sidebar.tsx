@@ -113,11 +113,14 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }: {
 			{/* Mobile drawer */}
 			{isMobileOpen && (
 				<div className="md:hidden fixed inset-0 z-50">
-					<div className="absolute inset-0 bg-black/40" onClick={toggleMobile} />
-					<div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm">
+					<div 
+						className="absolute inset-0 bg-black/40 transition-opacity duration-300 ease-out" 
+						onClick={toggleMobile} 
+					/>
+					<div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm transform transition-transform duration-300 ease-out animate-in slide-in-from-left">
 						<div className="flex items-center justify-between px-4 py-4 border-b border-border/20">
 							<p className="text-lg font-bold text-foreground">Admin Panel</p>
-							<button onClick={toggleMobile} className="flex h-8 w-8 items-center justify-center hover:bg-accent">
+							<button onClick={toggleMobile} className="flex h-8 w-8 items-center justify-center hover:bg-accent transition-colors">
 								<ArrowLeftToLine className="h-5 w-5 text-muted-foreground" />
 							</button>
 						</div>

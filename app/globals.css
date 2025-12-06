@@ -168,10 +168,6 @@
   --shadow-2xl: var(--shadow-2xl);
 }
 
-* {
-  border-color: hsl(var(--border) / 0.3);
-}
-
 body {
   font-family: var(--font-sans);
   color: hsl(var(--foreground));
@@ -210,7 +206,7 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
