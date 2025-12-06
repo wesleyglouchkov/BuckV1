@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Info } from "lucide-react";
+import { Button } from "@/components/ui";
 
 export default function EmailSentPage() {
   return (
@@ -103,12 +104,9 @@ export default function EmailSentPage() {
             </div>
           </div>
 
-          <Link
-            href="/login"
-            className="flex items-center justify-center w-full rounded-xl bg-primary px-4 py-3 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 mx-auto"
-          >
-            Back to sign in
-          </Link>
+          <Button className="flex items-center justify-center w-full mx-auto">
+            Back to Login
+          </Button>
 
           <p className="mt-6 text-sm text-muted-foreground text-center">
             Email typically arrives within 1-2 minutes

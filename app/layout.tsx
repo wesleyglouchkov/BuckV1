@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import NextTopLoader from "nextjs-toploader";
+import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,18 +26,20 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased" suppressHydrationWarning>
-        <NextTopLoader 
-          color="hsl(203.8863 88.2845% 53.1373%)"
-          initialPosition={0.08}
-          crawlSpeed={200}
-          height={3}
-          crawl={true}
-          showSpinner={false}
-          easing="ease"
-          speed={200}
-        />
-        {children}
-        <Toaster position="top-right" richColors />
+        <SessionProvider>
+          <NextTopLoader 
+            color="hsl(203.8863 88.2845% 53.1373%)"
+            initialPosition={0.08}
+            crawlSpeed={200}
+            height={3}
+            crawl={true}
+            showSpinner={false}
+            easing="ease"
+            speed={200}
+          />
+          {children}
+          <Toaster position="bottom-right" richColors />
+        </SessionProvider>
       </body>
     </html>
   );

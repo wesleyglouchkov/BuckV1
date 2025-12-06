@@ -1,7 +1,10 @@
-import { auth, signOut } from "@/auth";
+"use client";
 
-export default async function CreatorDashboard() {
-  const session = await auth();
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "@/components/ui";
+
+export default function CreatorDashboard() {
+  const { data: session } = useSession();
 
   return (
     <div className="min-h-screen bg-background">
@@ -18,17 +21,15 @@ export default async function CreatorDashboard() {
                 {session?.user?.email}
               </span>
               <form
-                action={async () => {
-                  "use server";
-                  await signOut();
-                }}
+                action={() => signOut({ callbackUrl: "/" })}
               >
-                <button
+                <Button
+                  variant="destructive"
+                  size="sm"
                   type="submit"
-                  className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90"
                 >
                   Sign out
-                </button>
+                </Button>
               </form>
             </div>
           </div>
@@ -71,9 +72,7 @@ export default async function CreatorDashboard() {
             <h2 className="text-xl font-bold text-card-foreground">
               Your Content
             </h2>
-            <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-              Create New
-            </button>
+            <Button>Create New Post</Button>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-4">
@@ -83,7 +82,9 @@ export default async function CreatorDashboard() {
               </div>
               <div className="flex gap-2">
                 <span className="text-sm text-primary cursor-pointer hover:underline">Edit</span>
-                <span className="text-sm text-destructive cursor-pointer hover:underline">Delete</span>
+                <Button variant="destructive" size="sm">
+                  Delete
+                </Button>
               </div>
             </div>
             <div className="flex items-center justify-between border-b border-border pb-4">
@@ -93,7 +94,9 @@ export default async function CreatorDashboard() {
               </div>
               <div className="flex gap-2">
                 <span className="text-sm text-primary cursor-pointer hover:underline">Edit</span>
-                <span className="text-sm text-destructive cursor-pointer hover:underline">Delete</span>
+                <Button variant="destructive" size="sm">
+                  Delete
+                </Button>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -103,7 +106,9 @@ export default async function CreatorDashboard() {
               </div>
               <div className="flex gap-2">
                 <span className="text-sm text-primary cursor-pointer hover:underline">Edit</span>
-                <span className="text-sm text-destructive cursor-pointer hover:underline">Delete</span>
+                <Button variant="destructive" size="sm">
+                  Delete
+                </Button>
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import Image from "next/image";
+import { Button, Input } from "@/components/ui";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -128,7 +129,7 @@ export default function LoginPage() {
               >
                 Email
               </label>
-              <input
+              <Input
                 id="email"
                 name="email"
                 type="email"
@@ -138,7 +139,6 @@ export default function LoginPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 placeholder="Enter your email"
               />
             </div>
@@ -150,7 +150,7 @@ export default function LoginPage() {
               >
                 Password
               </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
@@ -160,7 +160,6 @@ export default function LoginPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 placeholder="Enter your password"
               />
             </div>
@@ -174,17 +173,17 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center rounded-xl bg-primary px-4 py-3 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
+              className="w-full flex justify-center items-center"
             >
               {isLoading ? (
                 <span className="loader"></span>
               ) : (
                 "Sign in"
               )}
-            </button>
+            </Button>
           </form>
 
           <p className="mt-8 text-center text-muted-foreground">

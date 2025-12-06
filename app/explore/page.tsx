@@ -1,7 +1,10 @@
-import { auth, signOut } from "@/auth";
+"use client";
 
-export default async function ExplorePage() {
-  const session = await auth();
+import { useSession, signOut } from "next-auth/react";
+import { Button, Input } from "@/components/ui";
+
+export default function ExplorePage() {
+  const { data: session } = useSession();
 
   return (
     <div className="min-h-screen bg-background">
@@ -15,18 +18,10 @@ export default async function ExplorePage() {
               <span className="text-sm text-muted-foreground">
                 {session?.user?.email}
               </span>
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut();
-                }}
-              >
-                <button
-                  type="submit"
-                  className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90"
-                >
+              <form action={() => signOut({ callbackUrl: "/" })}>
+                <Button className="bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90">
                   Sign out
-                </button>
+                </Button>
               </form>
             </div>
           </div>
@@ -39,14 +34,14 @@ export default async function ExplorePage() {
             Discover Amazing Content
           </h2>
           <div className="flex gap-2">
-            <input
+            <Input
               type="search"
               placeholder="Search content..."
-              className="flex-1 rounded-lg border border-border bg-input px-4 py-2 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1"
             />
-            <button className="rounded-lg bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            <Button className="bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
               Search
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -56,7 +51,7 @@ export default async function ExplorePage() {
               key={item}
               className="bg-card rounded-lg shadow-md border border-border overflow-hidden hover:shadow-lg transition-shadow"
             >
-              <div className="h-48 bg-gradient-to-br from-primary to-secondary"></div>
+              <div className="h-48 bg-linear-to-br from-primary to-secondary"></div>
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   Content Title {item}
@@ -69,9 +64,9 @@ export default async function ExplorePage() {
                   <span className="text-xs text-muted-foreground">
                     By Creator Name
                   </span>
-                  <button className="text-sm text-primary hover:text-primary/80 font-medium">
+                  <Button className="text-sm text-primary hover:text-primary/80 font-medium">
                     View More
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -79,9 +74,9 @@ export default async function ExplorePage() {
         </div>
 
         <div className="mt-8 flex justify-center">
-          <button className="rounded-lg border border-border bg-card px-6 py-2 text-sm font-semibold text-foreground hover:bg-accent">
+          <Button variant="outline" className="w-full">
             Load More
-          </button>
+          </Button>
         </div>
       </main>
     </div>

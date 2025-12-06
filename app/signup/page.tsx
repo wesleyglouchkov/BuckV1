@@ -6,6 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Check } from "lucide-react";
+import { Button, Input } from "@/components/ui";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -141,7 +142,7 @@ export default function SignupPage() {
               <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
                 Full name
               </label>
-              <input
+              <Input
                 id="name"
                 name="name"
                 type="text"
@@ -149,7 +150,6 @@ export default function SignupPage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 placeholder="John Doe"
               />
             </div>
@@ -158,7 +158,7 @@ export default function SignupPage() {
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                 Email
               </label>
-              <input
+              <Input
                 id="email"
                 name="email"
                 type="email"
@@ -166,7 +166,6 @@ export default function SignupPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 placeholder="you@example.com"
               />
             </div>
@@ -175,7 +174,7 @@ export default function SignupPage() {
               <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                 Password
               </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
@@ -183,7 +182,6 @@ export default function SignupPage() {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 placeholder="Min. 8 characters"
               />
             </div>
@@ -192,7 +190,7 @@ export default function SignupPage() {
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
                 Confirm password
               </label>
-              <input
+              <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
@@ -200,7 +198,6 @@ export default function SignupPage() {
                 required
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                 placeholder="Confirm your password"
               />
             </div>
@@ -223,13 +220,13 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center rounded-xl bg-primary px-4 py-3 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
+              className="w-full flex justify-center items-center"
             >
               {isLoading ? <span className="loader"></span> : "Create account"}
-            </button>
+            </Button>
           </form>
 
 

@@ -1,7 +1,10 @@
-import { auth, signOut } from "@/auth";
+"use client";
 
-export default async function AdminDashboard() {
-  const session = await auth();
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "@/components/ui";
+
+export default function AdminDashboard() {
+  const { data: session } = useSession();
 
   return (
     <div className="min-h-screen bg-background">
@@ -18,17 +21,15 @@ export default async function AdminDashboard() {
                 {session?.user?.email}
               </span>
               <form
-                action={async () => {
-                  "use server";
-                  await signOut();
-                }}
+                action={() => signOut({ callbackUrl: "/" })}
               >
-                <button
+                <Button
                   type="submit"
-                  className="rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90"
+                  variant="destructive"
+                  className="px-4 py-2 text-sm font-semibold"
                 >
                   Sign out
-                </button>
+                </Button>
               </form>
             </div>
           </div>
