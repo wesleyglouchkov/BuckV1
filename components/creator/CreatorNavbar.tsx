@@ -49,6 +49,16 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!profileWrapperRef.current) return;
+      
+      // Check if the click is on a dialog element
+      const target = e.target as Element;
+      const isDialogElement = target.closest('[data-radix-portal]') || 
+                              target.closest('[role="dialog"]') ||
+                              target.closest('[data-state]');
+      
+      // Don't close if clicking on dialog elements
+      if (isDialogElement) return;
+      
       if (!profileWrapperRef.current.contains(e.target as Node)) {
         setShowProfileMenu(false);
       }
@@ -133,7 +143,16 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
                         className="data-[state=checked]:bg-foreground"
                       />
                     </div>
-                    <SignOutDialog />
+                    <button
+                      onClick={async () => {
+                        setShowProfileMenu(false);
+                        await signOut({ callbackUrl: "/login", redirect: true });
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent/50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <p>Sign Out</p>
+                    </button>
                   </div>
                 </div>
               )}
