@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -20,6 +21,21 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.username.trim()) {
+      toast.error("Username is required");
+      return;
+    }
+
+    if (formData.username.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      toast.error("Username can only contain letters, numbers, and underscores");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
@@ -35,7 +51,7 @@ export default function SignupPage() {
 
     try {
       // TODO: Implement your backend API call here
-      // Example: await memberService.signup({ name: formData.name, email: formData.email, password: formData.password });
+      // Example: await memberService.signup({ name: formData.name, username: formData.username, email: formData.email, password: formData.password });
       
       toast.success("Account created successfully");
       router.push("/login");
@@ -151,6 +167,22 @@ export default function SignupPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="John Doe"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
+                Username
+              </label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                placeholder="johndoe"
               />
             </div>
 
