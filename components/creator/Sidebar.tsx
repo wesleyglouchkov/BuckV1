@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, FileText, TrendingUp, Settings, ArrowLeftToLine, ArrowRightFromLine } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const creatorMenu = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
@@ -26,7 +27,7 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
 	const toggleMobile = setMobileOpen ? () => setMobileOpen(!isMobileOpen) : () => setInternalMobileOpen((v) => !v);
 
   return (
-    <>
+    <TooltipProvider>
       {/* Desktop sidebar */}
       <aside
         className={`hidden md:block fixed left-0 top-16 h-[calc(100vh-4rem)] border-r border-border/20 bg-card overflow-hidden shrink-0 transition-[width] duration-300 ease-out z-20 shadow-sm ${
@@ -56,17 +57,32 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
           <ul className="space-y-1">
             {creatorMenu.map(({ icon: Icon, label, href }) => {
               const isActive = pathname === href;
+              const linkContent = (
+                <Link
+                  href={href}
+                  className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 px-2.5'} py-2 transition-colors ${
+                    isActive ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {!collapsed && <p className="text-sm font-medium">{label}</p>}
+                </Link>
+              );
+
               return (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className={`flex items-center gap-2 rounded-none px-2.5 py-2 transition-colors ${
-                      isActive ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {!collapsed && <p className="text-sm font-medium">{label}</p>}
-                  </Link>
+                  {collapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {linkContent}
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={10}>
+                        <p>{label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    linkContent
+                  )}
                 </li>
               );
             })}
@@ -74,13 +90,20 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
         </nav>
 
         {collapsed && (
-          <button
-            aria-label="Open sidebar"
-            onClick={toggle}
-            className="absolute bottom-3 left-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-none hover:bg-accent transition-colors"
-          >
-            <ArrowRightFromLine className="h-5 w-5 text-muted-foreground" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                aria-label="Open sidebar"
+                onClick={toggle}
+                className="absolute bottom-3 left-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-none hover:bg-accent transition-colors"
+              >
+                <ArrowRightFromLine className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={10}>
+              <p>Expand sidebar</p>
+            </TooltipContent>
+          </Tooltip>
         )}
       </aside>
 
@@ -119,6 +142,6 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
           </div>
         </div>
       )}
-    </>
+    </TooltipProvider>
   );
 }
