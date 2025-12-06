@@ -4,6 +4,7 @@ export { Skeleton } from "./skeleton";
 // UI Components
 export { Input } from "./input";
 export { Button } from "./button";
+export { Switch } from "./switch";
 
 // Skeleton variants
 export {

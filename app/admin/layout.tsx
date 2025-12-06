@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { AdminNavbar } from "@/components/admin";
 
 export default async function AdminLayout({
   children,
@@ -12,9 +13,16 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  if (session.user?.role !== "admin") {
-    redirect("/explore");
-  }
+  // if (session.user?.role !== "admin") {
+  //   redirect("/explore");
+  // }
 
-  return <>{children}</>;
+  return (
+    <div className="flex min-h-screen bg-background">
+      <AdminNavbar session={session} />
+      <main className="flex-1">
+        {children}
+      </main>
+    </div>
+  );
 }

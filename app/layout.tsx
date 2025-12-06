@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import NextTopLoader from "nextjs-toploader";
 import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
+import '@vidstack/react/player/styles/base.css';
 
 export const metadata: Metadata = {
   title: "Buck",
@@ -23,6 +24,19 @@ export default function RootLayout({
         <link 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" 
           rel="stylesheet" 
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('buck-theme') || 
+                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              })();
+            `,
+          }}
         />
       </head>
       <body className="antialiased" suppressHydrationWarning>

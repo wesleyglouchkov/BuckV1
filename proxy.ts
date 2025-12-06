@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const session = await auth();
   const { pathname } = request.nextUrl;
 
@@ -32,20 +32,20 @@ export async function proxy(request: NextRequest) {
   const role = session.user?.role;
 
   // Role-based access control
-  if (pathname.startsWith("/admin") && role !== "admin") {
-    return NextResponse.redirect(new URL("/explore", request.url));
-  }
+  // if (pathname.startsWith("/admin") && role !== "admin") {
+  //   return NextResponse.redirect(new URL("/explore", request.url));
+  // }
 
-  if (pathname.startsWith("/creator") && role !== "creator") {
-    return NextResponse.redirect(new URL("/explore", request.url));
-  }
+  // if (pathname.startsWith("/creator") && role !== "creator") {
+  //   return NextResponse.redirect(new URL("/explore", request.url));
+  // }
 
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/admin/:path*",
+    // "/admin/:path*",
     "/creator/:path*",
     "/explore/:path*",
     "/login",
