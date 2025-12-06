@@ -88,12 +88,12 @@ export default function CreatorDashboard() {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Chart - Full Width */}
-        <div className="bg-card rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-          <div className="flex items-center justify-between p-6 border-b border-border/20">
+        <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4 px-6">
             <p className="text-lg font-semibold text-card-foreground">Content Performance</p>
             <TrendingUp className="w-5 h-5 text-primary" />
           </div>
-          <div className="h-[300px] w-full p-4">
+          <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                 <defs>
