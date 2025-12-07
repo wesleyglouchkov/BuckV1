@@ -3,16 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, FileText, Settings, User, ArrowLeftToLine, ArrowRightFromLine } from "lucide-react";
+import { LayoutDashboard, Users, FileText, User, ArrowLeftToLine, ArrowRightFromLine } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const adminMenu = [
 	{ icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
 	{ icon: Users, label: "Users", href: "/admin/users" },
-	{ icon: FileText, label: "Content", href: "/admin/content" },
+	{ icon: FileText, label: "Content & Moderation", href: "/admin/content" },
 	{ icon: User, label: "Profile", href: "/admin/profile" },
-	{ icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
 
 export default function AdminSidebar({ mobileOpen, setMobileOpen }: { 

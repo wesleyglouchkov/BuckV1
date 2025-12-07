@@ -151,7 +151,7 @@ export default function UsersPage() {
                 <SelectTrigger className="dark:text-white w-36 h-9 border-primary/30 bg-background hover:border-primary/50 transition-colors">
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
-                <SelectContent>
+                   <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active Only</SelectItem>
                   <SelectItem value="inactive">Inactive Only</SelectItem>
@@ -365,7 +365,7 @@ function UserTable({ users, isLoading, error, type, onToggleStatus }: UserTableP
                 {user.name}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                @{user.username}
+                {user.username}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {user.email}

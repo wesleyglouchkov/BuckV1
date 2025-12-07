@@ -8,7 +8,6 @@ import {
   LayoutDashboard, 
   Users, 
   FileText, 
-  Settings, 
   User, 
   Moon, 
   Sun, 
@@ -25,8 +24,7 @@ import SignOutDialog from "@/components/SignOutDialog";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
   { icon: Users, label: "Users", href: "/admin/users" },
-  { icon: FileText, label: "Content", href: "/admin/content" },
-  { icon: Settings, label: "Settings", href: "/admin/settings" },
+  { icon: FileText, label: "Content & Moderation", href: "/admin/content" },
 ];
 
 interface AdminNavbarProps {
