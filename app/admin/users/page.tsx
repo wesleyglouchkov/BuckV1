@@ -127,10 +127,10 @@ export default function UsersPage() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-          <TabsTrigger value="creator" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="creator" className=" cursor-pointer data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Creators
           </TabsTrigger>
-          <TabsTrigger value="member" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="member" className="  cursor-pointer data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Members
           </TabsTrigger>
         </TabsList>
