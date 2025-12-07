@@ -461,9 +461,6 @@ export default function AdminDashboard() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl dark:text-white">Creator Profile</DialogTitle>
-            <DialogDescription>
-              {isLoadingProfile ? "Loading creator information..." : selectedCreator ? `Detailed information about ${selectedCreator.name}` : ""}
-            </DialogDescription>
           </DialogHeader>
 
           {isLoadingProfile ? (
