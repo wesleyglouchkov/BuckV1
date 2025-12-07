@@ -59,12 +59,12 @@ export const authService = {
     return result.data;
   },
 
-  verifyEmail: async (token: string) => {
+  verifyToken: async (token: string) => {
     try {
-      const response = await axiosInstance.post('/auth/verify-email', { token });
-      return response.data.data;
+      const response = await axiosInstance.post('/auth/verify-token', { token });
+      return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Email verification failed');
+      throw new Error(error.response?.data?.message || 'Token verification failed');
     }
   },
 
