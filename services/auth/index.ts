@@ -1,5 +1,4 @@
-import { axiosInstance } from "@/utils/axios";
-import { changePasswordAction, logoutAction } from "@/actions/auth-actions";
+import { axiosInstance, createClientAuthInstance } from "@/utils/axios";
 
 export const authService = {
   checkUsername: async (username: string) => {
@@ -21,6 +20,7 @@ export const authService = {
       throw new Error(error.response?.data?.message || 'Signup failed');
     }
   },
+  
   login: async (credentials: { emailOrUsername: string; password: string; }) => {
     try {
       const response = await axiosInstance.post('/auth/login', credentials);
@@ -39,6 +39,15 @@ export const authService = {
     }
   },
 
+  verifyToken: async (token: string) => {
+    try {
+      const response = await axiosInstance.post('/auth/verify-token', { token });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Token verification failed');
+    }
+  },
+
   resetPassword: async (token: string, newPassword: string) => {
     try {
       const response = await axiosInstance.post('/auth/reset-password', { 
@@ -51,23 +60,6 @@ export const authService = {
     }
   },
 
-  changePassword: async (currentPassword: string, newPassword: string) => {
-    const result = await changePasswordAction(currentPassword, newPassword);
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-    return result.data;
-  },
-
-  verifyToken: async (token: string) => {
-    try {
-      const response = await axiosInstance.post('/auth/verify-token', { token });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Token verification failed');
-    }
-  },
-
   refreshToken: async (refreshToken: string) => {
     try {
       const response = await axiosInstance.post('/auth/refresh', { refreshToken });
@@ -77,11 +69,24 @@ export const authService = {
     }
   },
 
-  logout: async () => {
-    const result = await logoutAction();
-    if (!result.success) {
-      throw new Error(result.error);
+  changePassword: async (data: { oldPassword: string; newPassword: string; }, userRole?: string) => {
+    try {
+      const authInstance = await createClientAuthInstance(userRole);
+      const response = await authInstance.post('/auth/change-password', {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Password change failed');
     }
-    return result.data;
   },
+
+  // logout: async () => {
+  //   const result = await logoutAction();
+  //   if (!result.success) {
+  //     throw new Error(result.error);
+  //   }
+  //   return result.data;
+  // },
 };

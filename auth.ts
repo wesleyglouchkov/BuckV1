@@ -54,4 +54,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   secret: process.env.JWT_SECRET,
+  trustHost: true,
 });

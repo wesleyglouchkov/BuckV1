@@ -5,15 +5,18 @@ declare module "next-auth" {
     user: {
       role: "admin" | "creator" | "member";
     } & DefaultSession["user"];
+    accessToken?: string;
   }
 
   interface User {
     role: "admin" | "creator" | "member";
+    accessToken?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     role: "admin" | "creator" | "member";
+    accessToken?: string;
   }
 }

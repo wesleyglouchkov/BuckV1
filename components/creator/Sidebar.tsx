@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, TrendingUp, Settings, ArrowLeftToLine, ArrowRightFromLine } from "lucide-react";
+import { LayoutDashboard, FileText, TrendingUp, Settings, User, ArrowLeftToLine, ArrowRightFromLine } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -11,6 +11,7 @@ const creatorMenu = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
   { icon: FileText, label: "My Content", href: "/creator/content" },
   { icon: TrendingUp, label: "Analytics", href: "/creator/analytics" },
+  { icon: User, label: "Profile", href: "/creator/profile" },
   { icon: Settings, label: "Settings", href: "/creator/settings" },
 ];
 
@@ -49,7 +50,11 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
             onClick={toggle}
             className="ml-auto flex h-8 w-8 items-center justify-center hover:bg-accent transition-colors"
           >
-            <ArrowLeftToLine className="h-5 w-5 text-muted-foreground" />
+            {collapsed ? (
+              <ArrowRightFromLine className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <ArrowLeftToLine className="h-5 w-5 text-muted-foreground" />
+            )}
           </button>
         </div>
 
@@ -115,12 +120,6 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
             onClick={toggleMobile} 
           />
           <div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm transform transition-transform duration-300 ease-out animate-in slide-in-from-left">
-            <div className="flex items-center justify-between px-4 py-4 border-b border-border/20">
-              <p className="text-lg font-bold text-foreground">Creator Studio</p>
-              <button onClick={toggleMobile} className="flex h-8 w-8 items-center justify-center hover:bg-accent transition-colors">
-                <ArrowLeftToLine className="h-5 w-5 text-muted-foreground" />
-              </button>
-            </div>
             <nav className="px-2 py-3">
               <ul className="space-y-1">
                 {creatorMenu.map(({ icon: Icon, label, href }) => {
