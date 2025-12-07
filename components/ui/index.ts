@@ -17,6 +17,18 @@ export {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from "./alert-dialog";
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "./dialog";
 
 // Skeleton variants
 export {

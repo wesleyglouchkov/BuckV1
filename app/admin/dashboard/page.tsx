@@ -2,11 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { SkeletonStats, SkeletonBox } from "@/components/ui/skeleton-variants";
-import { Plus, TrendingUp, UserPlus, DollarSign, Award, Calendar, Mail, Star } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from "@/components/ui";
+import { Plus, TrendingUp, UserPlus, DollarSign, Award, Calendar, Mail, Star, User, FileText, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
-import { adminService } from "@/services/admin";
+import { adminService, CreatorProfile } from "@/services/admin";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -22,6 +29,9 @@ import { useRouter } from "next/navigation";
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedCreator, setSelectedCreator] = useState<CreatorProfile | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const router = useRouter();
   // Single SWR data fetching for dashboard
   const { data: dashboardData, error, isLoading } = useSWR(
@@ -92,6 +102,26 @@ export default function AdminDashboard() {
   };
 
   const averageRevenuePerCreator = "$1,234";
+
+  const handleViewProfile = async (creatorId: string) => {
+    try {
+      setIsLoadingProfile(true);
+      setIsDialogOpen(true);
+      const profileData = await adminService.getCreatorProfile(creatorId);
+      setSelectedCreator(profileData.data);
+    } catch (error: any) {
+      console.error('Failed to fetch creator profile:', error);
+      setIsDialogOpen(false);
+      alert('Failed to fetch creator profile');
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setTimeout(() => setSelectedCreator(null), 200); // Clear after animation
+  };
 
   return (
     <div className="p-6">
@@ -308,7 +338,11 @@ export default function AdminDashboard() {
                         <span className="font-semibold text-green-500">${creator.revenue.toLocaleString()}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewProfile(creator.id)}
+                        >
                           View Profile
                         </Button>
                       </td>
@@ -320,7 +354,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-      
+
       {/* New Features Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Average Revenue Per Creator */}
@@ -421,6 +455,146 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Creator Profile Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl dark:text-white">Creator Profile</DialogTitle>
+            <DialogDescription>
+              {isLoadingProfile ? "Loading creator information..." : selectedCreator ? `Detailed information about ${selectedCreator.name}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          {isLoadingProfile ? (
+            <div className="py-12">
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-muted-foreground">Loading creator profile...</p>
+              </div>
+            </div>
+          ) : selectedCreator ? (
+            <>
+              <div className="space-y-6">
+                {/* Profile Header */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 bg-linear-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-border/30">
+                  <div className="w-24 h-24 bg-linear-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+                    {selectedCreator.name.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-foreground">{selectedCreator.name}</h2>
+                    <p className="text-muted-foreground">@{selectedCreator.username}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">{selectedCreator.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedCreator.isActive 
+                          ? 'bg-green-500/10 text-green-500' 
+                          : 'bg-red-500/10 text-red-500'
+                      }`}>
+                        {selectedCreator.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
+                        {selectedCreator.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                {selectedCreator.bio && (
+                  <div className="p-4 bg-muted/50 rounded-lg border border-border/20">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Bio</h3>
+                    <p className="text-foreground">{selectedCreator.bio}</p>
+                  </div>
+                )}
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-green-500" />
+                      </div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-green-500">${selectedCreator.stats.totalRevenue.toLocaleString()}</p>
+                  </div>
+
+                  <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                        <Star className="w-5 h-5 text-yellow-500" />
+                      </div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Followers</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground">{selectedCreator.stats.followers.toLocaleString()}</p>
+                  </div>
+
+           
+                </div>
+
+                {/* Content Count */}
+                <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Total Content</h3>
+                      <p className="text-xl font-bold text-foreground">{selectedCreator._count.content} posts</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timestamps */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/30 rounded-lg border border-border/20">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <h3 className="text-sm font-medium text-muted-foreground">Joined</h3>
+                    </div>
+                    <p className="text-sm text-foreground">
+                      {new Date(selectedCreator.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-muted/30 rounded-lg border border-border/20">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <h3 className="text-sm font-medium text-muted-foreground">Last Updated</h3>
+                    </div>
+                    <p className="text-sm text-foreground">
+                      {new Date(selectedCreator.updatedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/20">
+                  <Button variant="outline" onClick={handleCloseDialog}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

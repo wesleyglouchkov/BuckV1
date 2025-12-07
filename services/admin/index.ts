@@ -70,6 +70,33 @@ export interface GetDashboardResponse {
   data: DashboardData;
 }
 
+export interface CreatorProfile {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+  bio: string | null;
+  avatar: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    content: number;
+  };
+  stats: {
+    totalRevenue: number;
+    followers: number;
+    avgEngagement: string;
+  };
+}
+
+export interface GetCreatorProfileResponse {
+  success: boolean;
+  data: CreatorProfile;
+}
+
 export const adminService = {
   getUsers: async (params: GetUsersParams): Promise<GetUsersResponse> => {
     try {
@@ -106,6 +133,16 @@ export const adminService = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch dashboard data');
+    }
+  },
+
+  getCreatorProfile: async (creatorId: string): Promise<GetCreatorProfileResponse> => {
+    try {
+      const axios = await createClientAuthInstance('admin');
+      const response = await axios.get(`/admin/get-creater-profile/${creatorId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch creator profile');
     }
   }
 };
