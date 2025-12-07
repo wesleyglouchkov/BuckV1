@@ -1,27 +1,35 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { authService } from "@/services";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
+        emailOrUsername: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        // This will be replaced with actual backend API call
-        // For now, returning mock user data
-        if (credentials?.email && credentials?.password) {
-          // TODO: Replace with actual API call to backend
-          const user = {
-            id: "1",
-            email: credentials.email as string,
-            name: "User",
-            role: "member" as "admin" | "creator" | "member",
-          };
-          return user;
+        try {
+          if (credentials?.emailOrUsername && credentials?.password) {
+            const response = await authService.login({
+              emailOrUsername: credentials.emailOrUsername as string,
+              password: credentials.password as string,
+            });
+
+            if (response && response.user) {
+              return {
+                id: response.user.id,
+                email: response.user.email,
+                name: response.user.name,
+                role: response.user.role || "member",
+              };
+            }
+          }
+          return null;
+        } catch (error) {
+          return null;
         }
-        return null;
       },
     }),
   ],
@@ -41,6 +49,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
   },
   secret: process.env.JWT_SECRET,
 });

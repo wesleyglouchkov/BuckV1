@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { Lock, ArrowLeft } from "lucide-react";
 import { Button, Input } from "@/components/ui";
+import { authService } from "@/services";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -18,13 +19,11 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement your backend API call here
-      // Example: await memberService.forgotPassword(email);
-
-      toast.success("Password reset email sent");
+      await authService.forgotPassword(email);
+      toast.success("Password reset email sent successfully!");
       router.push("/email-sent");
-    } catch (error) {
-      toast.error("An error occurred. Please try again.");
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

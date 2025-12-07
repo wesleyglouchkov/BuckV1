@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import Image from "next/image";
-import { Check } from "lucide-react";
+import { Check, CheckCircle, Loader } from "lucide-react";
 import { Button, Input } from "@/components/ui";
+import { authService } from "@/services";
 
 export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -18,6 +21,42 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
   });
+
+  // Debounced username check
+  const checkUsernameAvailability = useCallback(async (username: string) => {
+    if (!username || username.length < 3) {
+      setUsernameError("");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setUsernameError("Username can only contain letters, numbers, and underscores");
+      return;
+    }
+
+    setIsCheckingUsername(true);
+    setUsernameError("");
+
+    try {
+      const result = await authService.checkUsername(username);
+      if (!result.available) {
+        setUsernameError("Username is already taken");
+      }
+    } catch (error: any) {
+      setUsernameError("Unable to check username availability");
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  }, []);
+
+  // Debounce username check
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      checkUsernameAvailability(formData.username);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.username, checkUsernameAvailability]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +76,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (usernameError) {
+      toast.error("Please fix the username error before submitting");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -50,13 +94,17 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement your backend API call here
-      // Example: await memberService.signup({ name: formData.name, username: formData.username, email: formData.email, password: formData.password });
+      await authService.signup({
+        name: formData.name,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
       
-      toast.success("Account created successfully");
+      toast.success("Account created successfully! Please login to continue.");
       router.push("/login");
-    } catch (error) {
-      toast.error("An error occurred. Please try again.");
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -174,16 +222,47 @@ export default function SignupPage() {
               <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
                 Username
               </label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="johndoe"
-              />
+              <div className="relative">
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="johndoe"
+                  className={`pr-10 ${
+                    usernameError 
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                      : formData.username.length >= 3 && !isCheckingUsername && !usernameError
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500"
+                      : ""
+                  }`}
+                />
+                {/* Loading/Success/Error Icons */}
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  {isCheckingUsername && formData.username.length >= 3 && (
+                    <Loader className="w-5 h-5 animate-spin text-gray-400" />
+                  )}
+                  {!isCheckingUsername && formData.username.length >= 3 && !usernameError && (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  )}
+                  {usernameError && (
+                    <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Error Message */}
+              {usernameError && (
+                <p className="mt-1 text-sm text-red-600">{usernameError}</p>
+              )}
+              {/* Success Message */}
+              {!usernameError && !isCheckingUsername && formData.username.length >= 3 && (
+                <p className="mt-1 text-sm text-green-600">Username is available!</p>
+              )}
             </div>
 
             <div>

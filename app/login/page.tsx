@@ -1,38 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Button, Input } from "@/components/ui";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    emailOrUsername: "",
     password: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+    
     try {
       const result = await signIn("credentials", {
-        email: formData.email,
+        emailOrUsername: formData.emailOrUsername,
         password: formData.password,
-        redirect: false,
+        redirect: false
       });
-
+      
       if (result?.error) {
-        toast.error("Invalid credentials");
+        if (result.error === "CredentialsSignin") {
+          toast.error("Invalid email or password. Please try again.");
+        } else if (result.error === "AccessDenied") {
+          toast.error("Access denied. Please contact support.");
+        } else {
+          toast.error("Authentication failed. Please try again.");
+        }
       } else {
         toast.success("Logged in successfully");
-        
-        router.refresh();
+        router.push("/");
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
@@ -43,12 +48,9 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary via-primary to-secondary relative overflow-hidden">
-        {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.08%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50"></div> */}
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
           <div className="relative">
-            {/* Random organic shapes background */}
             <div className="absolute -inset-8">
               <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
               <div className="absolute bottom-4 right-0 w-32 h-20 bg-white/15 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] rotate-12"></div>
@@ -89,10 +91,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-background">
         <div className="w-full max-w-md">
-          {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <div className="bg-primary/10 rounded-2xl p-4">
               <Image
@@ -124,22 +124,22 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="emailOrUsername"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                Email
+                Email Address
               </label>
               <Input
-                id="email"
-                name="email"
-                type="email"
+                id="emailOrUsername"
+                name="emailOrUsername"
+                type="text"
                 autoComplete="email"
                 required
-                value={formData.email}
+                value={formData.emailOrUsername}
                 onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
+                  setFormData({ ...formData, emailOrUsername: e.target.value })
                 }
-                placeholder="Enter your email"
+                placeholder="Enter your email address"
               />
             </div>
 
