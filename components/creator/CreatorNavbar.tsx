@@ -47,6 +47,8 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
 
   // Close profile menu when clicking outside or pressing Escape
   useEffect(() => {
+    if (!showProfileMenu) return;
+
     const onDocClick = (e: MouseEvent) => {
       if (!profileWrapperRef.current) return;
       
@@ -74,7 +76,7 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [profileWrapperRef]);
+  }, [showProfileMenu]);
 
   const toggleThemeHandler = () => {
     const newTheme = isDarkMode ? "light" : "dark";
@@ -93,7 +95,7 @@ export default function CreatorNavbar({ session }: CreatorNavbarProps) {
             {/* Mobile hamburger button */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden flex items-center justify-center w-9 h-9 hover:bg-accent transition-colors"
+              className="md:hidden dark:text-white flex items-center justify-center w-9 h-9 hover:bg-accent transition-colors"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
