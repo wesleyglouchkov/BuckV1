@@ -13,9 +13,6 @@ export default async function CreatorLayout({
     redirect("/login");
   }
 
-  // if (session.user?.role !== "creator") {
-  //   redirect("/explore");
-  // }
 
   return <CreatorLayoutClient session={session}>{children}</CreatorLayoutClient>;
 }

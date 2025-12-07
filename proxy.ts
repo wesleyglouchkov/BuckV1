@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "./auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -12,12 +12,14 @@ export default async function middleware(request: NextRequest) {
   if (publicRoutes.includes(pathname)) {
     if (session) {
       // Redirect authenticated users based on their role
-      const role = session.user?.role;
+      const role = session.user?.role?.toLowerCase(); // Convert to lowercase for comparison
       if (role === "admin") {
         return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-      } else if (role === "creator") {
+      } 
+      else if (role === "creator") {
         return NextResponse.redirect(new URL("/creator/dashboard", request.url));
-      } else {
+      } 
+      else {
         return NextResponse.redirect(new URL("/explore", request.url));
       }
     }
@@ -29,23 +31,23 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const role = session.user?.role;
+  const role = session.user?.role?.toLowerCase();
 
   // Role-based access control
-  // if (pathname.startsWith("/admin") && role !== "admin") {
-  //   return NextResponse.redirect(new URL("/explore", request.url));
-  // }
+  if (pathname.startsWith("/admin") && role !== "admin") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-  // if (pathname.startsWith("/creator") && role !== "creator") {
-  //   return NextResponse.redirect(new URL("/explore", request.url));
-  // }
+  if (pathname.startsWith("/creator") && role !== "creator") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // "/admin/:path*",
+    "/admin/:path*",
     "/creator/:path*",
     "/explore/:path*",
     "/login",

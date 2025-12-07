@@ -6,15 +6,36 @@ import Link from "next/link";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Button, Input } from "@/components/ui";
-import { signIn } from "next-auth/react";
+import { signIn, getSession, useSession } from "next-auth/react";
+import LoadingSpinner from "../loading";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  console.log('Session data:', session);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     emailOrUsername: "",
     password: "",
   });
+
+
+  // Show loading while checking session
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <LoadingSpinner/>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render login form if user is authenticated
+  if (status === "authenticated") {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +47,7 @@ export default function LoginPage() {
         password: formData.password,
         redirect: false
       });
-      
+      console.log('SignIn result:', result);
       if (result?.error) {
         if (result.error === "CredentialsSignin") {
           toast.error("Invalid email or password. Please try again.");
@@ -37,7 +58,23 @@ export default function LoginPage() {
         }
       } else {
         toast.success("Logged in successfully");
-        router.push("/");
+        
+        // Get the updated session to access user role
+        const session = await getSession();
+        const userRole = session?.user?.role?.toLowerCase();
+        // Navigate based on user role
+        switch (userRole) {
+          case 'admin':
+            window.location.href = "/admin/dashboard";
+            break;
+          case 'creator':
+            window.location.href = "/creator/dashboard";
+            break;
+          case 'member':
+          default:
+            window.location.href = "/explore";
+            break;
+        }
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
