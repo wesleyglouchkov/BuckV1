@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { SkeletonStats, SkeletonCard, SkeletonBox } from "@/components/ui/skeleton-variants";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus, TrendingUp, DollarSign, User } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
@@ -30,12 +30,12 @@ export default function CreatorDashboard() {
     const checkTheme = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -59,15 +59,28 @@ export default function CreatorDashboard() {
   };
 
   // Fallback chart data
-  const fallbackChartData = useMemo(
+  const fallbackFollowersData = useMemo(
     () => [
-      { name: "Mon", value: 8 },
-      { name: "Tue", value: 15 },
-      { name: "Wed", value: 12 },
-      { name: "Thu", value: 18 },
-      { name: "Fri", value: 22 },
-      { name: "Sat", value: 28 },
-      { name: "Sun", value: 25 },
+      { name: "Mon", value: 1050 },
+      { name: "Tue", value: 1100 },
+      { name: "Wed", value: 1150 },
+      { name: "Thu", value: 1200 },
+      { name: "Fri", value: 1350 },
+      { name: "Sat", value: 1400 },
+      { name: "Sun", value: 1550 },
+    ],
+    []
+  );
+
+  const fallbackRevenueData = useMemo(
+    () => [
+      { name: "Mon", value: 240 },
+      { name: "Tue", value: 300 },
+      { name: "Wed", value: 280 },
+      { name: "Thu", value: 450 },
+      { name: "Fri", value: 380 },
+      { name: "Sat", value: 520 },
+      { name: "Sun", value: 600 },
     ],
     []
   );
@@ -96,60 +109,120 @@ export default function CreatorDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {/* Chart - Full Width */}
-        <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4 px-6">
-            <p className="text-lg font-semibold text-card-foreground">Content Performance</p>
-            <TrendingUp className="w-5 h-5 text-primary" />
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Followers Chart */}
+          <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4 px-6">
+              <p className="text-lg font-semibold text-card-foreground">Followers Growth</p>
+              <User className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="h-[300px] w-full">
+              {chartLoading ? (
+                <div className="h-full w-full px-6">
+                  <SkeletonBox height="300px" className="w-full" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={fallbackFollowersData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                    <defs>
+                      <linearGradient id="followersGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke={isDarkMode ? "#374151" : "#E5E7EB"} strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      cursor={{ stroke: "#3B82F6", strokeWidth: 1 }}
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                        border: `1px solid ${isDarkMode ? '#374151' : '#E5E7EB'}`,
+                        borderRadius: '6px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        color: isDarkMode ? '#F9FAFB' : '#111827'
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#3B82F6"
+                      strokeWidth={3}
+                      fill="url(#followersGradient)"
+                      dot={false}
+                      activeDot={{ r: 5, stroke: "#3B82F6", strokeWidth: 2, fill: isDarkMode ? "#1F2937" : "#ffffff" }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-          <div className="h-[300px] w-full">
-            {chartLoading ? (
-              <div className="h-full w-full px-6">
-                <SkeletonBox height="300px" className="w-full" />
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData || fallbackChartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-                  <defs>
-                    <linearGradient id="creatorGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke={isDarkMode ? "#374151" : "#E5E7EB"} strokeDasharray="3 3" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
-                    tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }} 
-                    axisLine={false} 
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }} 
-                    axisLine={false} 
-                    tickLine={false}
-                  />
-                  <Tooltip 
-                    cursor={{ stroke: "#10B981", strokeWidth: 1 }}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#374151' : '#E5E7EB'}`,
-                      borderRadius: '6px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      color: isDarkMode ? '#F9FAFB' : '#111827'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#10B981" 
-                    strokeWidth={3} 
-                    fill="url(#creatorGradient)"
-                    dot={false}
-                    activeDot={{ r: 5, stroke: "#10B981", strokeWidth: 2, fill: isDarkMode ? "#1F2937" : "#ffffff" }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+
+          {/* Revenue Chart */}
+          <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4 px-6">
+              <p className="text-lg font-semibold text-card-foreground">Revenue Trend</p>
+              <DollarSign className="w-5 h-5 text-green-500" />
+            </div>
+            <div className="h-[300px] w-full">
+              {chartLoading ? (
+                <div className="h-full w-full px-6">
+                  <SkeletonBox height="300px" className="w-full" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={fallbackRevenueData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                    <defs>
+                      <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10B981" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke={isDarkMode ? "#374151" : "#E5E7EB"} strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      cursor={{ stroke: "#10B981", strokeWidth: 1 }}
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                        border: `1px solid ${isDarkMode ? '#374151' : '#E5E7EB'}`,
+                        borderRadius: '6px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        color: isDarkMode ? '#F9FAFB' : '#111827'
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#10B981"
+                      strokeWidth={3}
+                      fill="url(#revenueGradient)"
+                      dot={false}
+                      activeDot={{ r: 5, stroke: "#10B981", strokeWidth: 2, fill: isDarkMode ? "#1F2937" : "#ffffff" }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
         </div>
 

@@ -7,16 +7,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import {
-  Search,
-  Menu,
-  LayoutDashboard,
-  Radio,
-  ChevronDown,
-  ChevronRight,
-  ArrowLeftToLine,
-  ArrowRightFromLine
-} from "lucide-react";
+    Search,
+    Menu,
+    LayoutDashboard,
+    Radio,
+    ChevronDown,
+    ChevronRight,
+    ArrowLeftToLine,
+    ArrowRightFromLine,
+    User,
+    Users
+  } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
 import {
   CreativeIcon,
@@ -53,8 +56,8 @@ const liveChannels = [
 
 // Sidebar categories (different from browse categories)
 const sidebarCategories = [
-  { id: 6, name: "HIIT", icon: HIITIcon, count:2323 },
-  { id: 5, name: "Yoga", icon: YogaIcon, count: 312  },
+  { id: 6, name: "HIIT", icon: HIITIcon, count: 2323 },
+  { id: 5, name: "Yoga", icon: YogaIcon, count: 312 },
   { id: 7, name: "Cardio", icon: CardioIcon, count: 1234 },
   { id: 4, name: "Creative", icon: CreativeIcon, count: 698 },
   { id: 8, name: "Group Training", icon: GroupTrainingIcon, count: 856 },
@@ -79,11 +82,19 @@ export default function ExplorePage() {
   const displayedCategories = showAllCategories ? sidebarCategories : sidebarCategories.slice(0, 4);
 
   const getMenuItems = () => {
-    if (session?.user?.role.toLowerCase() === "admin") {
+    const role = session?.user?.role?.toLowerCase();
+
+    if (role === "admin") {
       return [{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }];
     }
-    if (session?.user?.role.toLowerCase() === "creator") {
+    if (role === "creator") {
       return [{ label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard }];
+    }
+    if (role === "member") {
+      return [
+        { label: "View Profile", href: "/profile", icon: User },
+        { label: "My Creators", href: "/my-creators", icon: Users }
+      ];
     }
     return [];
   };
@@ -235,7 +246,7 @@ export default function ExplorePage() {
                 >
                   <div className="w-8 h-8 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
                     <Image
-                    src = "https://static-cdn.jtvnw.net/jtv_user_pictures/a8c959b1-750e-47d2-9cae-d8c2b1327d82-profile_image-70x70.png"
+                      src="https://static-cdn.jtvnw.net/jtv_user_pictures/a8c959b1-750e-47d2-9cae-d8c2b1327d82-profile_image-70x70.png"
                       alt={channel.creator}
                       width={32}
                       height={32}
@@ -244,15 +255,15 @@ export default function ExplorePage() {
                   </div>
                   {!sidebarCollapsed && (
                     <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min min-w-0">
-                     <div>
-                       <p className="text-sm font-medium text-foreground truncate">{channel.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{channel.creator}  </p>
-                     </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground truncate">{channel.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{channel.creator}  </p>
+                      </div>
 
-                     <div className="flex justify-center items-center font-bold gap-1">
-                      <p className="text-red-500 text-4xl pt-2">•</p>
-                      <p className="text-sm">{channel.viewers}</p>
-                     </div>
+                      <div className="flex justify-center items-center font-bold gap-1">
+                        <p className="text-red-500 text-4xl pt-2">•</p>
+                        <p className="text-sm">{channel.viewers}</p>
+                      </div>
                     </div>
                   )}
                 </Link>
@@ -437,20 +448,20 @@ export default function ExplorePage() {
                           </div>
                         </div>
 
-                      {/* Large floating icon */}
-                      <div className="absolute -bottom-6 -right-6 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                        <div className="relative">
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-75 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                          <IconComponent className="text-primary/40 group-hover:text-primary/50 transition-colors duration-500 relative z-10" size={140} />
+                        {/* Large floating icon */}
+                        <div className="absolute -bottom-6 -right-6 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                          <div className="relative">
+                            {/* Glow effect */}
+                            <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-75 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <IconComponent className="text-primary/40 group-hover:text-primary/50 transition-colors duration-500 relative z-10" size={140} />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Small accent icon top right */}
-                      <div className="absolute top-4 right-4 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
-                        <IconComponent className="text-primary/60" size={24} />
-                      </div>
-                    </div>                      {/* Bottom accent line */}
+                        {/* Small accent icon top right */}
+                        <div className="absolute top-4 right-4 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                          <IconComponent className="text-primary/60" size={24} />
+                        </div>
+                      </div>                      {/* Bottom accent line */}
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-primary/0 via-primary to-primary/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                     </div>
                   </Link>

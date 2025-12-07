@@ -21,10 +21,10 @@ export default async function middleware(request: NextRequest) {
       const role = session.user?.role?.toLowerCase(); // Convert to lowercase for comparison
       if (role === "admin") {
         return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-      } 
+      }
       else if (role === "creator") {
         return NextResponse.redirect(new URL("/creator/dashboard", request.url));
-      } 
+      }
       else {
         return NextResponse.redirect(new URL("/explore", request.url));
       }
@@ -59,5 +59,7 @@ export const config = {
     "/signup",
     "/forgot-password",
     "/email-sent",
+    "/profile/:path*",
+    "/my-creators/:path*",
   ],
 };
