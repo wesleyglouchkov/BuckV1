@@ -8,7 +8,13 @@ export default async function middleware(request: NextRequest) {
 
   // Public routes that don't require authentication
   const publicRoutes = ["/login", "/signup", "/forgot-password", "/email-sent"];
-  
+  const alwaysAccessibleRoutes = ["/explore"]; // Routes accessible to everyone (public or authenticated)
+
+  // Allow /explore for everyone without redirect
+  if (alwaysAccessibleRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
+
   if (publicRoutes.includes(pathname)) {
     if (session) {
       // Redirect authenticated users based on their role
@@ -35,11 +41,11 @@ export default async function middleware(request: NextRequest) {
 
   // Role-based access control
   if (pathname.startsWith("/admin") && role !== "admin") {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/explore", request.url));
   }
 
   if (pathname.startsWith("/creator") && role !== "creator") {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/explore", request.url));
   }
 
   return NextResponse.next();
@@ -49,7 +55,6 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/creator/:path*",
-    "/explore/:path*",
     "/login",
     "/signup",
     "/forgot-password",

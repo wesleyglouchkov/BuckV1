@@ -8,9 +8,8 @@ export default async function CreatorLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-
   if (!session) {
-    redirect("/login");
+    redirect("/explore");
   }
 
 

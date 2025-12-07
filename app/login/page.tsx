@@ -12,7 +12,6 @@ import LoadingSpinner from "../loading";
 export default function LoginPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  console.log('Session data:', session);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     emailOrUsername: "",
@@ -56,7 +55,8 @@ export default function LoginPage() {
         } else {
           toast.error("Authentication failed. Please try again.");
         }
-      } else {
+      } 
+      else {
         toast.success("Logged in successfully");
         
         // Get the updated session to access user role

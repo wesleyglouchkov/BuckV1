@@ -8,7 +8,7 @@ export default async function AdminLayout({ children}: {
   const session = await auth();
 
   if (!session) {
-    redirect("/login");
+    redirect("/explore");
   }
 
   return <AdminLayoutClient session={session}>{children}</AdminLayoutClient>;
