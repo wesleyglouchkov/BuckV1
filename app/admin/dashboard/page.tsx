@@ -215,7 +215,7 @@ export default function AdminDashboard() {
                     stroke="#F97316" 
                     strokeWidth={3} 
                     fill="url(#orangeGradient)"
-                    dot={false}
+                    dot={false} 
                     activeDot={{ r: 5, stroke: "#F97316", strokeWidth: 2, fill: isDarkMode ? "#1F2937" : "#ffffff" }}
                     name="Members"
                   />
