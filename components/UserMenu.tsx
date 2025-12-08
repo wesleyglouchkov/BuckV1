@@ -27,7 +27,7 @@ interface UserMenuProps {
     signOutCallbackUrl?: string;
 }
 
-export default function UserMenu({ session, roleLabel, menuItems, signOutCallbackUrl = "/login" }: UserMenuProps) {
+export default function UserMenu({ session, roleLabel, menuItems, signOutCallbackUrl = "/explore" }: UserMenuProps) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const profileWrapperRef = useRef<HTMLDivElement | null>(null);
