@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -73,6 +73,11 @@ export default function ExplorePage() {
   const [isLoadingCreators, setIsLoadingCreators] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const selectedCategory = searchParams.get("category");
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Explore | Buck";
+  }, []);
 
   const filteredCreators = selectedCategory
     ? creators.filter(c => c.category.toLowerCase() === selectedCategory.toLowerCase())
@@ -218,9 +223,9 @@ export default function ExplorePage() {
             className="ml-auto cursor-pointer flex h-8 w-8 items-center justify-center hover:bg-accent transition-colors"
           >
             {sidebarCollapsed ? (
-              <ArrowRightFromLine className="h-5 w-5 text-muted-foreground" />
+              <ArrowRightFromLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
             ) : (
-              <ArrowLeftToLine className="h-5 w-5 text-muted-foreground" />
+              <ArrowLeftToLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
             )}
           </button>
         </div>

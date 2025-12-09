@@ -22,6 +22,11 @@ function ResetPasswordForm() {
 
   const token = searchParams.get("token");
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Reset Password | Buck";
+  }, []);
+
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {

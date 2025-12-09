@@ -22,6 +22,11 @@ export default function SignupPage() {
     confirmPassword: "",
   });
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Sign Up | Buck";
+  }, []);
+
   // Debounced username check
   const checkUsernameAvailability = useCallback(async (username: string) => {
     if (!username || username.length < 3) {

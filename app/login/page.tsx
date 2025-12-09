@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -18,6 +18,10 @@ export default function LoginPage() {
     password: "",
   });
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Login | Buck";
+  }, []);
 
   // Show loading while checking session
   if (status === "loading") {

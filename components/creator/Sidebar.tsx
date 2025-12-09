@@ -51,9 +51,9 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
             className="ml-auto flex h-8 w-8 items-center justify-center hover:bg-accent transition-colors"
           >
             {collapsed ? (
-              <ArrowRightFromLine className="h-5 w-5 text-muted-foreground" />
+              <ArrowRightFromLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
             ) : (
-              <ArrowLeftToLine className="h-5 w-5 text-muted-foreground" />
+              <ArrowLeftToLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
             )}
           </button>
         </div>
@@ -102,7 +102,7 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
                 onClick={toggle}
                 className="absolute bottom-3 left-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-none hover:bg-accent transition-colors"
               >
-                <ArrowRightFromLine className="h-5 w-5 text-muted-foreground" />
+                <ArrowRightFromLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={10}>

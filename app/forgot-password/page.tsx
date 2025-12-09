@@ -1,6 +1,6 @@
  "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -13,6 +13,11 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Forgot Password | Buck";
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +145,7 @@ export default function ForgotPasswordPage() {
               href="/login"
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 cursor-pointer" />
               <span className="mt-1">Back to sign in</span>
             </Link>
           </div>
