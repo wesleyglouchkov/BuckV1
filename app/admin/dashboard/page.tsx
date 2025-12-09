@@ -25,6 +25,7 @@ import {
   Legend,
 } from "recharts";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
@@ -80,7 +81,6 @@ export default function AdminDashboard() {
   const recentSignupsData = dashboardData?.data?.recentSignups?.users || [];
   const recentSignupsCount = dashboardData?.data?.recentSignups?.count || 0;
   const topCreatorsData = dashboardData?.data?.topCreators || [];
-  console.log('Dashboard Data: otherStats', topCreatorsData);
   // Combine creators and members data for the chart
   const combinedChartData = creatorsChartData.map((creator, index) => ({
     name: creator.name,
@@ -127,9 +127,13 @@ export default function AdminDashboard() {
     <div className="p-6">
       {/* Greeting Section */}
       <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-border/20">
-        <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-2xl shadow-md">
-          {getUserInitial()}
-        </div>
+        <Image
+        src="/Wesley.jpg"
+          alt="User Initial"
+          width={100}
+          height={100}
+          className="w-30 h-30 rounded-full object-cover"
+        />
         <div>
           <h2 className="text-xl font-bold text-foreground">{getGreeting()}, {getUserDisplayName()}!</h2>
           <p className="text-muted-foreground">Welcome back to your dashboard</p>

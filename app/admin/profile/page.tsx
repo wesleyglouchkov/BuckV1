@@ -1,16 +1,16 @@
 import UserProfile from "@/components/UserProfile";
+import { User } from "lucide-react";
 
 export default function AdminProfilePage() {
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Admin Profile
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your account settings and change your password
-        </p>
-      </div>
+    <div className="container mx-auto px-6 py-6">
+     <div className="mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                <User className="w-8 h-8 text-blue-500 font-bold " />
+                    <h1 className="text-2xl font-bold text-foreground mt-2">Admin Profile</h1>
+                </div>
+                <p className="text-muted-foreground">Manage creators and members</p>
+            </div>
       <UserProfile />
     </div>
   );
