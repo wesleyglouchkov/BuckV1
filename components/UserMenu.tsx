@@ -80,7 +80,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
         <div className="relative" ref={profileWrapperRef}>
             <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors"
+                className="flex items-center cursor-pointer gap-2 px-3 py-2 hover:bg-accent transition-colors"
                 aria-haspopup="menu"
                 aria-expanded={showProfileMenu}
             >
@@ -127,7 +127,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                                 setShowProfileMenu(false);
                                 await signOut({ callbackUrl: signOutCallbackUrl, redirect: true });
                             }}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent/50 transition-colors"
+                            className="w-full cursor-pointer flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent/50 transition-colors"
                         >
                             <LogOut className="w-4 h-4" />
                             <p>Sign Out</p>
