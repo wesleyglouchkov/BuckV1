@@ -39,7 +39,7 @@ export function RoleSelectionDialog({ open, onRoleSelect }: RoleSelectionDialogP
                                 <Users className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+                                <h3 className="dark:text-white text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
                                     No, I just want to watch
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ export function RoleSelectionDialog({ open, onRoleSelect }: RoleSelectionDialogP
                                 <Video className="h-6 w-6 text-primary" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+                                <h3 className="dark:text-white text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
                                     Yes, I want to host livestreams also
                                 </h3>
                                 <p className="text-sm text-muted-foreground">

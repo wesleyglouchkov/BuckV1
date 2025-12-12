@@ -59,7 +59,7 @@ export default function UserProfile() {
     } catch (error: any) {
       // Handle errors gracefully - only show user-friendly messages in toast
       let errorMessage = "Failed to change password";
-      
+
       if (error.response) {
         // API responded with error status
         errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
@@ -70,12 +70,12 @@ export default function UserProfile() {
         // Something else happened
         errorMessage = "An unexpected error occurred. Please try again.";
       }
-      
+
       // Only log to console in development
       if (process.env.NODE_ENV === 'development') {
         console.error('Change password error:', error);
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsChangingPassword(false);
@@ -100,7 +100,7 @@ export default function UserProfile() {
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
         User Profile
       </h2>
-      
+
       {/* User Information */}
       <div className="space-y-4 mb-8">
         <div>
@@ -111,7 +111,16 @@ export default function UserProfile() {
             {session.user?.name || "Not provided"}
           </div>
         </div>
-        
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Username
+          </label>
+          <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white">
+            @{session.user?.username || "Not provided"}
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Email
@@ -120,7 +129,7 @@ export default function UserProfile() {
             {session.user?.email || "Not provided"}
           </div>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Role

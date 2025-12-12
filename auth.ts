@@ -22,6 +22,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 id: response.user.id,
                 email: response.user.email,
                 name: response.user.name,
+                username: response.user.username,
                 role: response.user.role || "member",
               };
             }
@@ -34,15 +35,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Initial sign in
       if (user) {
+        token.id = user.id;
         token.role = user.role;
+        token.username = user.username;
       }
+
+      // Handle session update
+      if (trigger === "update" && session) {
+        // Update token with new session data
+        if (session.user?.role) {
+          token.role = session.user.role;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        session.user.id = token.id as string;
         session.user.role = token.role as "admin" | "creator" | "member";
+        session.user.username = token.username as string;
       }
       return session;
     },

@@ -1,18 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
     User,
-    Moon, 
+    Moon,
     Sun,
     LogOut,
-    ChevronDown
+    ChevronDown,
+    Video
 } from "lucide-react";
 import { Session } from "next-auth";
 import { Switch } from "@/components/ui";
 import { getTheme, setTheme, initTheme } from "@/lib/theme";
+import { toast } from "sonner";
+import { memberService } from "@/services";
+import { UpgradeToCreatorDialog } from "@/components/UpgradeToCreatorDialog";
+import RedirectingOverlay from "@/components/RedirectingOverlay";
 
 interface MenuItem {
     label: string;
@@ -28,8 +33,12 @@ interface UserMenuProps {
 }
 
 export default function UserMenu({ session, roleLabel, menuItems, signOutCallbackUrl = "/explore" }: UserMenuProps) {
+    const { update } = useSession();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+    const [isUpgrading, setIsUpgrading] = useState(false);
+    const [showRedirecting, setShowRedirecting] = useState(false);
     const profileWrapperRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -76,6 +85,44 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
         setIsDarkMode(newTheme === "dark");
     };
 
+    const handleUpgradeToCreator = async () => {
+        setIsUpgrading(true);
+        try {
+            const userId = session?.user?.id;
+            if (!userId) {
+                toast.error("User ID not found. Please try logging in again.");
+                return;
+            }
+
+            const response = await memberService.upgradeToCreator(userId, session?.user?.role);
+            if (response.success) {
+                // Close dialogs and show success
+                setShowUpgradeDialog(false);
+                setShowProfileMenu(false);
+
+                // Show redirecting overlay
+                setShowRedirecting(true);
+                
+                // Navigate to creator dashboard after 4 seconds
+                setTimeout(async() => {
+                    // Update the session with new role
+                    await update({
+                        user: {
+                            role: 'CREATOR'
+                        }
+                    });
+                    window.location.href = "/creator/dashboard";
+                }, 4000);
+            } else {
+                toast.error(response.message || "Failed to upgrade to creator");
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to upgrade to creator");
+        } finally {
+            setIsUpgrading(false);
+        }
+    };
+
     return (
         <div className="relative" ref={profileWrapperRef}>
             <button
@@ -111,6 +158,20 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                             </Link>
                         ))}
 
+                        {/* Upgrade to Creator button for members */}
+                        {session?.user?.role?.toLowerCase() === 'member' && (
+                            <button
+
+                                onClick={() => {
+                                    setShowUpgradeDialog(true);
+                                }}
+                                className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 text-sm text-primary hover:bg-primary/10 transition-colors rounded-md font-medium"
+                            >
+                                <Video className="w-4 h-4" />
+                                <p>Join as Creator</p>
+                            </button>
+                        )}
+
                         <div className="flex items-center justify-between px-3 py-2 text-sm">
                             <div className="flex items-center gap-3 text-foreground">
                                 {isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
@@ -135,6 +196,17 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                     </div>
                 </div>
             )}
+
+            {/* Upgrade to Creator Dialog */}
+            <UpgradeToCreatorDialog
+                open={showUpgradeDialog}
+                onConfirm={handleUpgradeToCreator}
+                onCancel={() => setShowUpgradeDialog(false)}
+                isLoading={isUpgrading}
+            />
+
+            {/* Redirecting Overlay */}
+            {showRedirecting && <RedirectingOverlay />}
         </div>
     );
 }
