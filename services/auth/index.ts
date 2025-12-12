@@ -12,7 +12,7 @@ export const authService = {
     }
   },
 
-  signup: async (userData: { name: string; username: string; email: string; password: string;}) => {
+  signup: async (userData: { name: string; username: string; email: string; password: string; role?: 'CREATOR' | 'MEMBER' }) => {
     try {
       const response = await axiosInstance.post('/auth/signup', userData);
       return response.data.data;

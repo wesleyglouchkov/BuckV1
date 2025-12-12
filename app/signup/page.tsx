@@ -8,12 +8,14 @@ import Image from "next/image";
 import { Check, CheckCircle, Loader } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { authService } from "@/services";
+import { RoleSelectionDialog } from "@/components/RoleSelectionDialog";
 
 export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameError, setUsernameError] = useState("");
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -96,6 +98,12 @@ export default function SignupPage() {
       return;
     }
 
+    // Show role selection dialog
+    setShowRoleDialog(true);
+  };
+
+  const handleRoleSelect = async (role: 'CREATOR' | 'MEMBER') => {
+    setShowRoleDialog(false);
     setIsLoading(true);
 
     try {
@@ -103,9 +111,10 @@ export default function SignupPage() {
         name: formData.name,
         username: formData.username,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        role: role
       });
-      
+
       toast.success("Account created successfully! Please login to continue.");
       router.push("/login");
     } catch (error: any) {
@@ -237,13 +246,12 @@ export default function SignupPage() {
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="johndoe"
-                  className={`pr-10 ${
-                    usernameError 
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
-                      : formData.username.length >= 3 && !isCheckingUsername && !usernameError
+                  className={`pr-10 ${usernameError
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : formData.username.length >= 3 && !isCheckingUsername && !usernameError
                       ? "border-green-500 focus:border-green-500 focus:ring-green-500"
                       : ""
-                  }`}
+                    }`}
                 />
                 {/* Loading/Success/Error Icons */}
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -327,12 +335,12 @@ export default function SignupPage() {
               />
 
               <div className="mt-1">
-              <label htmlFor="terms" className="text-sm text-muted-foreground">
-                I agree to the{" "}
-                <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-              </label>
+                <label htmlFor="terms" className="text-sm text-muted-foreground">
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+                </label>
               </div>
             </div>
 
@@ -345,7 +353,11 @@ export default function SignupPage() {
             </Button>
           </form>
 
-
+          {/* Role Selection Dialog */}
+          <RoleSelectionDialog
+            open={showRoleDialog}
+            onRoleSelect={handleRoleSelect}
+          />
         </div>
       </div>
     </div>
