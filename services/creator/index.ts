@@ -8,7 +8,7 @@ export const creatorService = {
   createStripeAccountLink: async (userId: string) => {
     try {
       const axios = await createClientAuthInstance('creator');
-      const response = await axios.post('/stripe/connect/create-account-link', {
+      const response = await axios.post('/creator/stripe/connect/create-account-link', {
         userId,
       });
       return response.data;
@@ -21,7 +21,7 @@ export const creatorService = {
   disconnectStripeAccount: async (userId: string) => {
     try {
       const axios = await createClientAuthInstance('creator');
-      const response = await axios.post('/stripe/connect/disconnect', {
+      const response = await axios.post('/creator/stripe/connect/disconnect', {
         userId,
       });
       return response.data;
@@ -34,10 +34,21 @@ export const creatorService = {
   getStripeAccountStatus: async (userId: string) => {
     try {
       const axios = await createClientAuthInstance('creator');
-      const response = await axios.get(`/stripe/connect/status/${userId}`);
+      const response = await axios.get(`/creator/stripe/connect/status/${userId}`);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch Stripe account status');
+    }
+  },
+
+  // Get User Profile
+  getUserProfile: async (role: string) => {
+    try {
+      const axios = await createClientAuthInstance(role);
+      const response = await axios.get('/users/profile');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch user profile');
     }
   },
 

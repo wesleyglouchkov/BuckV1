@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui";
 import { DollarSign, Unlink, CheckCircle, AlertCircle } from "lucide-react";
 import { creatorService } from "@/services";
+import Loader from "@/components/Loader";
 
 interface StripeConnectSectionProps {
     isCreator: boolean;
@@ -17,10 +18,49 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     const [isDisconnecting, setIsDisconnecting] = useState(false);
     const [stripeConnected, setStripeConnected] = useState(false);
     const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch user profile to get Stripe connection status
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!isCreator || !session?.user?.id) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const profile = await creatorService.getUserProfile('CREATOR');
+                if (profile.success && profile.data) {
+                    setStripeConnected(profile.data.stripeConnected || false);
+                    setStripeAccountId(profile.data.stripeAccountId || null);
+                }
+            } catch (error: any) {
+                console.error('Failed to fetch profile:', error);
+                // Don't show error toast on initial load, just set defaults
+                setStripeConnected(false);
+                setStripeAccountId(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, [isCreator, session?.user?.id]);
 
     // Only show for creators
     if (!isCreator) {
         return null;
+    }
+
+    // Show loading state while fetching profile
+    if (isLoading) {
+        return (
+            <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+                <div className="flex items-center justify-center py-8">
+                    <Loader />
+                </div>
+            </div>
+        );
     }
 
     const handleConnectStripe = async () => {
@@ -110,8 +150,21 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                         size="sm"
                         className="w-full"
                     >
-                        <Unlink className="w-4 h-4 mr-2" />
-                        {isDisconnecting ? "Disconnecting..." : "Disconnect Stripe"}
+                        {isDisconnecting ? (
+
+                            <>
+                                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Disconnecting...
+                            </>
+                        ) : (
+                            <>
+                                <Unlink className="w-4 h-4 mr-2" />
+                                Disconnect Stripe
+                            </>
+                        )}
                     </Button>
                 </div>
             ) : (
@@ -139,9 +192,28 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                         disabled={isConnecting}
                         className="w-full"
                     >
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        {isConnecting ? "Connecting..." : "Connect Stripe Account"}
+                        {isConnecting ? (
+                            <>
+                                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Connecting...
+                            </>
+                        ) : (
+                            <>
+                                <DollarSign className="w-4 h-4 mr-2" />
+                                Connect Stripe Account
+                            </>
+                        )}
                     </Button>
+                </div>
+            )}
+
+            {/* Full-screen loading overlay */}
+            {(isConnecting || isDisconnecting) && (
+                <div className="fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
+                    Connecting to stripe...
                 </div>
             )}
         </div>
