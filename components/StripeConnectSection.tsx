@@ -17,6 +17,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     const [isConnecting, setIsConnecting] = useState(false);
     const [isDisconnecting, setIsDisconnecting] = useState(false);
     const [stripeConnected, setStripeConnected] = useState(false);
+    const [onboardingCompleted, setOnboardingCompleted] = useState(false);
     const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -31,8 +32,9 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
             try {
                 const profile = await creatorService.getUserProfile('CREATOR');
                 if (profile.success && profile.data) {
-                    setStripeConnected(profile.data.stripeConnected || false);
-                    setStripeAccountId(profile.data.stripeAccountId || null);
+                    setStripeConnected(profile.data.stripe_connected || false);
+                    setOnboardingCompleted(profile.data.stripe_onboarding_completed || false);
+                    setStripeAccountId(profile.data.stripe_account_id || null);
                 }
             } catch (error: any) {
                 console.error('Failed to fetch profile:', error);
@@ -94,6 +96,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
 
             if (response.success) {
                 setStripeConnected(false);
+                setOnboardingCompleted(false);
                 setStripeAccountId(null);
                 toast.success("Stripe account disconnected successfully");
             } else {
@@ -123,7 +126,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                 </div>
             </div>
 
-            {stripeConnected ? (
+            {stripeConnected && onboardingCompleted ? (
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                         <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
