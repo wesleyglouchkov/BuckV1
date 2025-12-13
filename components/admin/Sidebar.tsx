@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const adminMenu = [
 	{ icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
 	{ icon: Users, label: "Users", href: "/admin/users" },
-	{ icon: FileText, label: "Content & Moderation", href: "/admin/moderation" },
+	{ icon: FileText, label: "Content Moderation", href: "/admin/moderation" },
 	{ icon: User, label: "Profile", href: "/admin/profile" },
 ];
 

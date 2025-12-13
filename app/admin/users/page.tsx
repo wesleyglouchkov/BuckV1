@@ -32,8 +32,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ChevronLeft, ChevronRight, Users, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Filter, Eye } from "lucide-react";
 import { SkeletonBox } from "@/components/ui/skeleton-variants";
+import { CreatorProfileDialog } from "@/components/admin/CreatorProfileDialog";
+import { TopCreator } from "@/services/admin";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -42,6 +44,8 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedCreator, setSelectedCreator] = useState<TopCreator | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // SWR fetcher
   const fetcher = () => {
@@ -61,13 +65,9 @@ export default function UsersPage() {
     return adminService.getUsers(params);
   };
 
-  const { data, error, isLoading, mutate } = useSWR(
-    `/admin/users?type=${activeTab}&page=${currentPage}&search=${searchQuery}&status=${statusFilter}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    }
-  );
+  const { data, error, isLoading, mutate } = useSWR(`/admin/users?type=${activeTab}&page=${currentPage}&search=${searchQuery}&status=${statusFilter}`, fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const users = data?.data || [];
   const hasNextPage = users.length === ITEMS_PER_PAGE;
@@ -105,6 +105,35 @@ export default function UsersPage() {
     } catch (error: any) {
       toast.error(error.message || 'Failed to update user status');
     }
+  };
+
+  const handleViewProfile = (user: User) => {
+    const topCreator: TopCreator = {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      bio: user.bio,
+      avatar: user.avatar,
+      subscriptionPrice: user.subscriptionPrice,
+      stripeConnected: user.stripeConnected,
+      stripeOnboardingCompleted: user.stripeOnboardingCompleted,
+      warningCount: user.warningCount,
+      joinedAt: user.createdAt,
+      followers: user.followers,
+      subscriberCount: user.subscriberCount,
+      totalStreams: user.totalStreams,
+      revenue: 0, // Not available in User interface
+      rank: 0, // Not applicable here
+    };
+
+    setSelectedCreator(topCreator);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setTimeout(() => setSelectedCreator(null), 200);
   };
 
   const formatDate = (dateString: string) => {
@@ -151,7 +180,7 @@ export default function UsersPage() {
                 <SelectTrigger className="dark:text-white w-36 h-9 border-primary/30 bg-background hover:border-primary/50 transition-colors">
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
-                   <SelectContent>
+                <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active Only</SelectItem>
                   <SelectItem value="inactive">Inactive Only</SelectItem>
@@ -159,12 +188,13 @@ export default function UsersPage() {
               </Select>
             </div>
           </div>
-          <UserTable 
-            users={users} 
-            isLoading={isLoading} 
+          <UserTable
+            users={users}
+            isLoading={isLoading}
             error={error}
             type="creator"
             onToggleStatus={handleToggleUserStatus}
+            onViewProfile={handleViewProfile}
           />
         </TabsContent>
 
@@ -192,12 +222,13 @@ export default function UsersPage() {
               </Select>
             </div>
           </div>
-          <UserTable 
-            users={users} 
-            isLoading={isLoading} 
+          <UserTable
+            users={users}
+            isLoading={isLoading}
             error={error}
             type="member"
             onToggleStatus={handleToggleUserStatus}
+            onViewProfile={handleViewProfile}
           />
         </TabsContent>
       </Tabs>
@@ -242,6 +273,13 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+
+      {/* Creator Profile Dialog */}
+      <CreatorProfileDialog
+        creator={selectedCreator}
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+      />
     </div>
   );
 }
@@ -252,16 +290,17 @@ interface UserTableProps {
   error: any;
   type: 'creator' | 'member';
   onToggleStatus: (userId: string, currentStatus: boolean) => Promise<void>;
+  onViewProfile?: (user: User) => void;
 }
 
-function UserTable({ users, isLoading, error, type, onToggleStatus }: UserTableProps) {
+function UserTable({ users, isLoading, error, type, onToggleStatus, onViewProfile }: UserTableProps) {
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const handleConfirmToggle = async () => {
     if (!selectedUser) return;
-    
+
     setLoadingUserId(selectedUser.id);
     await onToggleStatus(selectedUser.id, selectedUser.isActive);
     setLoadingUserId(null);
@@ -298,8 +337,8 @@ function UserTable({ users, isLoading, error, type, onToggleStatus }: UserTableP
           </TableHeader>
           <TableBody>
             {Array.from({ length: 5 }).map((_, i) => (
-              <TableRow 
-                key={i} 
+              <TableRow
+                key={i}
                 className="border-b border-border/20 last:border-0"
               >
                 <TableCell>
@@ -357,8 +396,8 @@ function UserTable({ users, isLoading, error, type, onToggleStatus }: UserTableP
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow 
-              key={user.id} 
+            <TableRow
+              key={user.id}
               className="hover:bg-accent/50 transition-colors border-b border-border/20 last:border-0"
             >
               <TableCell className="font-medium text-foreground">
@@ -394,21 +433,34 @@ function UserTable({ users, isLoading, error, type, onToggleStatus }: UserTableP
                 })}
               </TableCell>
               <TableCell>
-                <Button
-                  variant={user.isActive ? "destructive" : "default"}
-                  size="sm"
-                  onClick={() => handleOpenDialog(user)}
-                  disabled={loadingUserId === user.id}
-                  className="min-w-20"
-                >
-                  {loadingUserId === user.id ? (
-                    "..."
-                  ) : user.isActive ? (
-                    "Block"
-                  ) : (
-                    "Unblock"
+                <div className="flex items-center gap-2">
+                  {type === 'creator' && onViewProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onViewProfile(user)}
+                      className="min-w-16"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Button>
                   )}
-                </Button>
+                  <Button
+                    variant={user.isActive ? "destructive" : "default"}
+                    size="sm"
+                    onClick={() => handleOpenDialog(user)}
+                    disabled={loadingUserId === user.id}
+                    className="min-w-20"
+                  >
+                    {loadingUserId === user.id ? (
+                      "..."
+                    ) : user.isActive ? (
+                      "Block"
+                    ) : (
+                      "Unblock"
+                    )}
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -425,12 +477,12 @@ function UserTable({ users, isLoading, error, type, onToggleStatus }: UserTableP
             <AlertDialogDescription>
               {selectedUser?.isActive ? (
                 <>
-                  Are you sure you want to block <span className="font-semibold text-foreground">{selectedUser.name}</span>? 
+                  Are you sure you want to block <span className="font-semibold text-foreground">{selectedUser.name}</span>?
                   This will prevent them from accessing their account.
                 </>
               ) : (
                 <>
-                  Are you sure you want to unblock <span className="font-semibold text-foreground">{selectedUser?.name}</span>? 
+                  Are you sure you want to unblock <span className="font-semibold text-foreground">{selectedUser?.name}</span>?
                   This will restore their access to the platform.
                 </>
               )}

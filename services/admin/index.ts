@@ -5,9 +5,18 @@ export interface User {
   name: string;
   username: string;
   email: string;
+  bio: string | null;
+  avatar: string | null;
   createdAt: string;
   role: string;
   isActive: boolean;
+  subscriptionPrice: number | null;
+  stripeConnected: boolean;
+  stripeOnboardingCompleted: boolean;
+  warningCount: number;
+  followers: number;
+  subscriberCount: number;
+  totalStreams: number;
 }
 
 export interface GetUsersResponse {
@@ -50,9 +59,19 @@ export interface TopCreator {
   id: string;
   name: string;
   username: string;
-  rank: number;
+  email: string;
+  bio: string | null;
+  avatar: string | null;
+  subscriptionPrice: number | null;
+  stripeConnected: boolean;
+  stripeOnboardingCompleted: boolean;
+  warningCount: number;
+  joinedAt: string;
   followers: number;
+  subscriberCount: number;
+  totalStreams: number;
   revenue: number;
+  rank: number;
 }
 
 export interface DashboardData {
@@ -80,6 +99,7 @@ export interface CreatorProfile {
   bio: string | null;
   avatar: string | null;
   isActive: boolean;
+  warningCount: number;
   createdAt: string;
   updatedAt: string;
   _count: {
