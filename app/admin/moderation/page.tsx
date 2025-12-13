@@ -8,6 +8,9 @@ import { ModerationTabs } from "@/components/admin/ModerationTabs";
 import { MessageFilters } from "@/components/admin/MessageFilters";
 import { FlaggedMessagesTable } from "@/components/admin/FlaggedMessagesTable";
 import { ContentGrid } from "@/components/admin/ContentGrid";
+import { adminService, type FlaggedMessage, type FlaggedContent } from "@/services/admin";
+import { toast } from "sonner";
+import Loader from "@/components/Loader";
 
 const badWordsFilters = [
     "fuck", "fucking", "motherfucker", "shit", "bitch", "asshole",
@@ -15,102 +18,125 @@ const badWordsFilters = [
     "cunt", "slut", "whore", "pussy", "nigger"
 ];
 
-// Mock data - will be replaced with API data
-const mockMessages = [
-    {
-        id: "1",
-        content: "This is a fucking terrible message",
-        sender: {
-            name: "John Doe",
-            email: "john@example.com",
-            warningCount: 3
-        },
-        timestamp: "2024-12-08T10:30:00Z",
-        flagged: true
-    },
-    {
-        id: "2",
-        content: "You are a motherfucker",
-        sender: {
-            name: "Jane Smith",
-            email: "jane@example.com",
-            warningCount: 1
-        },
-        timestamp: "2024-12-08T09:15:00Z",
-        flagged: true
-    },
-    // Add more mock data as needed
-];
-
-const mockVideos = [
-    {
-        id: "v1",
-        title: "Creator Update #1",
-        thumbnail: "/svgs/buck.svg",
-        creator: { name: "Alice Creator", email: "alice@creator.com", warningCount: 2 },
-        flagged: true
-    },
-    {
-        id: "v2",
-        title: "Behind the Scenes",
-        thumbnail: "/svgs/buck-dark.svg",
-        creator: { name: "Bob Maker", email: "bob@maker.com", warningCount: 0 },
-        flagged: true
-    }
-];
-
 export default function ModerationPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const [messages, setMessages] = useState<any[]>([]);
-    const [selectedMessage, setSelectedMessage] = useState<any>(null);
+    const [messages, setMessages] = useState<FlaggedMessage[]>([]);
+    const [selectedMessage, setSelectedMessage] = useState<FlaggedMessage | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
     // Content moderation state
-    const [videos] = useState<any[]>(mockVideos);
+    const [videos, setVideos] = useState<FlaggedContent[]>([]);
+    const [isLoadingContent, setIsLoadingContent] = useState(true);
     const [warnDialogOpen, setWarnDialogOpen] = useState(false);
-    const [warnTarget, setWarnTarget] = useState<{ name: string; email: string } | null>(null);
+    const [warnTarget, setWarnTarget] = useState<{ id: string; name: string; email: string; userType: 'creator' | 'member' } | null>(null);
     const [customWarnMessage, setCustomWarnMessage] = useState("");
+    const [isWarning, setIsWarning] = useState(false);
 
-    // Tabs state (use provided styles and controlled Tabs)
+    // Pagination state
+    const [messagePage, setMessagePage] = useState(1);
+    const [contentPage, setContentPage] = useState(1);
+    const [messagePagination, setMessagePagination] = useState({ total: 0, totalPages: 0 });
+    const [contentPagination, setContentPagination] = useState({ total: 0, totalPages: 0 });
+
+    // Tabs state
     const [activeTab, setActiveTab] = useState<string>("messages");
     const handleTabChange = (value: string) => setActiveTab(value);
 
     // Set page title
     useEffect(() => {
-        document.title = "Buck | Admin Moderation ";
+        document.title = "Buck | Admin Moderation";
     }, []);
 
-    // Simulate data loading
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setMessages(mockMessages);
+    // Fetch flagged messages
+    const fetchMessages = async () => {
+        setIsLoading(true);
+        try {
+            const response = await adminService.getFlaggedMessages({
+                page: messagePage,
+                limit: 10,
+                search: searchQuery || undefined,
+                badWords: activeFilters.length > 0 ? activeFilters : undefined,
+            });
+
+            if (response.success) {
+                setMessages(response.data.messages);
+                setMessagePagination({
+                    total: response.data.pagination.total,
+                    totalPages: response.data.pagination.totalPages,
+                });
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch messages:', error);
+            toast.error(error.message || 'Failed to load flagged messages');
+        } finally {
             setIsLoading(false);
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, []);
+        }
+    };
+
+    // Fetch flagged content
+    const fetchContent = async () => {
+        setIsLoadingContent(true);
+        try {
+            const response = await adminService.getFlaggedContent({
+                page: contentPage,
+                limit: 10,
+            });
+
+            if (response.success) {
+                setVideos(response.data.content);
+                setContentPagination({
+                    total: response.data.pagination.total,
+                    totalPages: response.data.pagination.totalPages,
+                });
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch content:', error);
+            toast.error(error.message || 'Failed to load flagged content');
+        } finally {
+            setIsLoadingContent(false);
+        }
+    };
+
+    // Fetch messages when filters change
+    useEffect(() => {
+        if (activeTab === "messages") {
+            fetchMessages();
+        }
+    }, [messagePage, searchQuery, activeFilters, activeTab]);
+
+    // Fetch content when tab changes
+    useEffect(() => {
+        if (activeTab === "content") {
+            fetchContent();
+        }
+    }, [contentPage, activeTab]);
 
     const handleBadWordClick = (word: string) => {
         if (!activeFilters.includes(word)) {
             setActiveFilters([...activeFilters, word]);
+            setMessagePage(1); // Reset to first page
         }
     };
 
     const applyAllFilters = () => {
         setActiveFilters([...badWordsFilters]);
+        setMessagePage(1);
     };
 
     const removeFilter = (word: string) => {
         setActiveFilters(activeFilters.filter(f => f !== word));
+        setMessagePage(1);
     };
 
     const clearAllFilters = () => {
         setActiveFilters([]);
         setSearchQuery("");
+        setMessagePage(1);
     };
 
-    const handleViewMessage = (message: any) => {
+    const handleViewMessage = (message: FlaggedMessage) => {
         setSelectedMessage(message);
         setIsDialogOpen(true);
     };
@@ -138,21 +164,7 @@ export default function ModerationPage() {
         return "text-green-500 bg-green-500/10";
     };
 
-    const filteredMessages = messages.filter(message => {
-        const matchesSearch = searchQuery === "" ||
-            message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            message.sender.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            message.sender.email.toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesFilters = activeFilters.length === 0 ||
-            activeFilters.some(filter =>
-                message.content.toLowerCase().includes(filter.toLowerCase())
-            );
-
-        return matchesSearch && matchesFilters;
-    });
-
-    const openWarnDialog = (target: { name: string; email: string }) => {
+    const openWarnDialog = (target: { id: string; name: string; email: string; userType: 'creator' | 'member' }) => {
         setWarnTarget(target);
         setCustomWarnMessage("");
         setWarnDialogOpen(true);
@@ -164,10 +176,37 @@ export default function ModerationPage() {
         setCustomWarnMessage("");
     };
 
-    const sendWarning = () => {
-        // TODO: Integrate API to send warning with customWarnMessage
-        console.log("Warn", warnTarget, customWarnMessage);
-        closeWarnDialog();
+    const sendWarning = async () => {
+        if (!warnTarget) {
+            toast.error("Please enter a warning message");
+            return;
+        }
+
+        setIsWarning(true);
+        try {
+            const response = await adminService.issueWarning({
+                userId: warnTarget.id,
+                userType: warnTarget.userType,
+                warningMessage: customWarnMessage,
+            });
+
+            if (response.success) {
+                toast.success(`Warning sent to ${warnTarget.name}. Total warnings: ${response.data.isWarnedTimes}`);
+                closeWarnDialog();
+
+                // Refresh data
+                if (activeTab === "messages") {
+                    fetchMessages();
+                } else {
+                    fetchContent();
+                }
+            }
+        } catch (error: any) {
+            console.error('Failed to send warning:', error);
+            toast.error(error.message || 'Failed to send warning');
+        } finally {
+            setIsWarning(false);
+        }
     };
 
     return (
@@ -178,7 +217,7 @@ export default function ModerationPage() {
                     <ShieldBan className="w-8 h-8 text-red-500 font-bold" />
                     <h1 className="text-2xl font-bold text-foreground mt-2">Content Moderation</h1>
                 </div>
-                <p className="text-muted-foreground">Manage creators and members</p>
+                <p className="text-muted-foreground">Manage flagged messages and content</p>
             </div>
 
             <ModerationTabs
@@ -188,7 +227,10 @@ export default function ModerationPage() {
                     <>
                         <MessageFilters
                             searchQuery={searchQuery}
-                            onSearchChange={setSearchQuery}
+                            onSearchChange={(value) => {
+                                setSearchQuery(value);
+                                setMessagePage(1);
+                            }}
                             activeFilters={activeFilters}
                             badWordsFilters={badWordsFilters}
                             onApplyAll={applyAllFilters}
@@ -196,83 +238,221 @@ export default function ModerationPage() {
                             onAddFilter={handleBadWordClick}
                             onRemoveFilter={removeFilter}
                         />
-                        <FlaggedMessagesTable
-                            isLoading={isLoading}
-                            messages={messages as any}
-                            filteredMessages={filteredMessages as any}
-                            formatTimestamp={formatTimestamp}
-                            getWarningColor={getWarningColor}
-                            onView={handleViewMessage}
-                            onWarn={(m) => openWarnDialog({ name: m.sender.name, email: m.sender.email })}
-                        />
+
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <>
+                                <FlaggedMessagesTable
+                                    isLoading={isLoading}
+                                    messages={messages}
+                                    filteredMessages={messages}
+                                    formatTimestamp={formatTimestamp}
+                                    getWarningColor={getWarningColor}
+                                    onView={handleViewMessage}
+                                    onWarn={(m) => openWarnDialog({
+                                        id: m.sender.id,
+                                        name: m.sender.name,
+                                        email: m.sender.email,
+                                        userType: 'member' // Assuming chat messages are from members
+                                    })}
+                                    pagination={messagePagination}
+                                    currentPage={messagePage}
+                                    onPageChange={setMessagePage}
+                                />
+
+                                {/* Pagination at bottom */}
+                                {messagePagination.totalPages > 1 && (
+                                    <div className="flex items-center justify-center gap-2 mt-6">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={messagePage === 1}
+                                            onClick={() => setMessagePage(p => p - 1)}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <span className="text-sm text-muted-foreground">
+                                            Page {messagePage} of {messagePagination.totalPages}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={messagePage === messagePagination.totalPages}
+                                            onClick={() => setMessagePage(p => p + 1)}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         {/* Message Detail Dialog */}
                         <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-                            <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl">Message Details</DialogTitle>
+                            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 rounded-lg shadow-2xl">
+                                <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/20">
+                                    <DialogTitle className="text-2xl font-bold">Message Details</DialogTitle>
                                 </DialogHeader>
 
                                 {selectedMessage && (
-                                    <div className="space-y-6">
-                                        {/* Message Content */}
-                                        <div className="p-4 bg-muted/50 rounded-lg border border-border/20">
-                                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Message Content</h3>
-                                            <p className="text-foreground">{selectedMessage.content}</p>
-                                        </div>
-
-                                        {/* Sender Information */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="p-4 bg-card rounded-lg border border-border/30">
-                                                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Sender Name</h3>
-                                                <p className="text-foreground font-medium">{selectedMessage.sender.name}</p>
+                                    <>
+                                        {/* Scrollable Content */}
+                                        <div className="overflow-y-auto px-6 py-4 space-y-5 flex-1 custom-scrollbar">
+                                            {/* Message Content */}
+                                            <div className="p-5 bg-muted/50 rounded-xl border border-border/20 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Message Content</h3>
+                                                <p className="text-foreground leading-relaxed text-base">{selectedMessage.content}</p>
                                             </div>
-                                            <div className="p-4 bg-card rounded-lg border border-border/30">
-                                                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Email</h3>
-                                                <p className="text-foreground">{selectedMessage.sender.email}</p>
-                                            </div>
-                                        </div>
 
-                                        {/* Warning Count */}
-                                        <div className="p-4 bg-card rounded-lg border border-border/30">
-                                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Warning Status</h3>
-                                            <div className="flex items-center gap-3">
-                                                <div className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center ${getWarningColor(selectedMessage.sender.warningCount)}`}>
-                                                    {selectedMessage.sender.warningCount} {selectedMessage.sender.warningCount === 1 ? 'warning' : 'warnings'}
+                                            {/* Stream Title */}
+                                            <div className="p-5 rounded-xl border border-border/20 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Stream</h3>
+                                                <p className="text-foreground font-semibold text-base">{selectedMessage.streamTitle}</p>
+                                            </div>
+
+                                            {/* Sender Information */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="p-5 bg-card rounded-xl border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Sender Name</h3>
+                                                    <p className="text-foreground font-semibold text-base">{selectedMessage.sender.name}</p>
                                                 </div>
-                                                {selectedMessage.sender.warningCount >= 5 && (
-                                                    <div className="text-sm text-red-500 font-medium">⚠️ User may need suspension</div>
-                                                )}
+                                                <div className="p-5 bg-card rounded-xl border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Email</h3>
+                                                    <p className="text-foreground text-base">{selectedMessage.sender.email}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Reporter Comment */}
+                                            <div className="p-5 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-xl border border-amber-300/50 dark:border-amber-700/50 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100 mb-3">Reporter Comment</h3>
+                                                <p className="text-amber-900 dark:text-amber-200 leading-relaxed text-base">{selectedMessage.reporterComment}</p>
+                                            </div>
+
+                                            {/* Warning Count */}
+                                            <div className="p-5 bg-card rounded-xl border border-border/30 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Warning Status</h3>
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    <div className={`px-5 py-2.5 rounded-xl text-sm font-bold inline-flex items-center shadow-sm ${getWarningColor(selectedMessage.sender.warningCount)}`}>
+                                                        {selectedMessage.sender.warningCount} {selectedMessage.sender.warningCount === 1 ? 'warning' : 'warnings'}
+                                                    </div>
+                                                    {selectedMessage.sender.warningCount >= 5 && (
+                                                        <div className="text-sm text-red-500 font-semibold flex items-center gap-1.5">
+                                                            <span className="text-lg">⚠️</span>
+                                                            <span>User may need suspension</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Timestamp */}
+                                            <div className="p-5 bg-muted/30 rounded-xl border border-border/20 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Timestamp</h3>
+                                                <p className="text-foreground font-medium text-base">{formatTimestamp(selectedMessage.timestamp)}</p>
                                             </div>
                                         </div>
 
-                                        {/* Timestamp */}
-                                        <div className="p-4 bg-muted/30 rounded-lg border border-border/20">
-                                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Timestamp</h3>
-                                            <p className="text-foreground">{formatTimestamp(selectedMessage.timestamp)}</p>
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/20">
-                                            <Button variant="outline" onClick={handleCloseDialog}>
+                                        {/* Fixed Action Buttons */}
+                                        <div className="px-6 py-4 border-t border-border/20 bg-muted/30 flex items-center justify-end gap-3">
+                                            <Button variant="outline" onClick={handleCloseDialog} className="min-w-[100px]">
                                                 Close
                                             </Button>
-                                            <Button variant="destructive" onClick={() => openWarnDialog({ name: selectedMessage.sender.name, email: selectedMessage.sender.email })}>
+                                            <Button
+                                                variant="destructive"
+                                                onClick={() => {
+                                                    openWarnDialog({
+                                                        id: selectedMessage.sender.id,
+                                                        name: selectedMessage.sender.name,
+                                                        email: selectedMessage.sender.email,
+                                                        userType: 'member'
+                                                    });
+                                                    handleCloseDialog();
+                                                }}
+                                                className="min-w-[140px]"
+                                            >
                                                 <Ban className="w-4 h-4 mr-2" />
                                                 Issue Warning
                                             </Button>
                                         </div>
-                                    </div>
+                                    </>
                                 )}
                             </DialogContent>
                         </Dialog>
                     </>
                 )}
                 contentGrid={(
-                    <ContentGrid
-                        videos={videos as any}
-                        onWarn={(v) => openWarnDialog({ name: v.creator.name, email: v.creator.email })}
-                    />
+                    <>
+                        {/* Pagination at top */}
+                        {!isLoadingContent && contentPagination.totalPages > 1 && (
+                            <div className="flex items-center justify-end gap-2 mb-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={contentPage === 1}
+                                    onClick={() => setContentPage(p => p - 1)}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    Page {contentPage} of {contentPagination.totalPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={contentPage === contentPagination.totalPages}
+                                    onClick={() => setContentPage(p => p + 1)}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        )}
+
+                        {isLoadingContent ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <>
+                                <ContentGrid
+                                    videos={videos}
+                                    onWarn={(v) => openWarnDialog({
+                                        id: v.creator.id,
+                                        name: v.creator.name,
+                                        email: v.creator.email,
+                                        userType: 'creator'
+                                    })}
+                                    getWarningColor={getWarningColor}
+                                />
+
+                                {/* Pagination at bottom */}
+                                {contentPagination.totalPages > 1 && (
+                                    <div className="flex items-center justify-end gap-2 mt-6">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={contentPage === 1}
+                                            onClick={() => setContentPage(p => p - 1)}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <span className="text-sm text-muted-foreground">
+                                            Page {contentPage} of {contentPagination.totalPages}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={contentPage === contentPagination.totalPages}
+                                            onClick={() => setContentPage(p => p + 1)}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </>
                 )}
             />
 
@@ -293,14 +473,22 @@ export default function ModerationPage() {
                             <textarea
                                 className="w-full dark:text-white dark:placeholder:text-white rounded-md border border-border bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-primary"
                                 rows={5}
-                                placeholder="Describe the violation and the necessary action..."
+                                placeholder="Optional: Describe the violation and the necessary action..."
                                 value={customWarnMessage}
                                 onChange={(e) => setCustomWarnMessage(e.target.value)}
                             />
                         </div>
                         <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={closeWarnDialog}>Cancel</Button>
-                            <Button variant="destructive" onClick={sendWarning}>Send Warning</Button>
+                            <Button variant="outline" onClick={closeWarnDialog} disabled={isWarning}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={sendWarning}
+                                disabled={isWarning}
+                            >
+                                {isWarning ? "Sending..." : "Send Warning"}
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>

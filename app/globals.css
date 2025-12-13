@@ -47,7 +47,7 @@
   --shadow-blur: 0px;
   --shadow-spread: 0px;
   --shadow-opacity: 0;
-  --shadow-color: rgba(29,161,242,0.15);
+  --shadow-color: rgba(29, 161, 242, 0.15);
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
@@ -104,7 +104,7 @@
   --shadow-blur: 0px;
   --shadow-spread: 0px;
   --shadow-opacity: 0;
-  --shadow-color: rgba(29,161,242,0.25);
+  --shadow-color: rgba(29, 161, 242, 0.25);
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
@@ -196,9 +196,12 @@ body {
 }
 
 @keyframes rotate {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: rotate(-45deg) translate(-50%, -50%)
   }
+
   50% {
     transform: rotate(-245deg) translate(-50%, -50%)
   }
@@ -208,6 +211,7 @@ body {
   0% {
     width: 0%;
   }
+
   100% {
     width: 100%;
   }
@@ -221,7 +225,34 @@ body {
   * {
     @apply outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.3);
 }

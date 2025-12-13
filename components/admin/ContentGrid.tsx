@@ -4,23 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Ban, Video, Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FlaggedContent } from "@/services/admin";
 
-export type VideoItem = {
-  id: string;
-  title: string;
-  thumbnail: string;
-  videoUrl?: string;
-  flagged?: boolean;
-  reportedComment?: string;
-  creator: { name: string; email: string };
-};
-
-export function ContentGrid({ videos, onWarn }: { videos: VideoItem[]; onWarn: (v: VideoItem) => void }) {
+export function ContentGrid({
+  videos,
+  onWarn,
+  getWarningColor
+}: {
+  videos: FlaggedContent[];
+  onWarn: (v: FlaggedContent) => void;
+  getWarningColor?: (count: number) => string;
+}) {
   // Video dialog state
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<FlaggedContent | null>(null);
 
-  const openVideo = (v: VideoItem) => {
+  const openVideo = (v: FlaggedContent) => {
     setCurrentVideo(v);
     setIsVideoOpen(true);
   };
@@ -54,13 +53,23 @@ export function ContentGrid({ videos, onWarn }: { videos: VideoItem[]; onWarn: (
                 </Button>
               </div>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 mb-3">
               <p className="text-sm font-medium text-foreground">{v.creator.name}</p>
               <p className="text-xs text-muted-foreground">{v.creator.email}</p>
             </div>
+
+            {/* Warning Count Badge */}
+            {getWarningColor && (
+              <div className="mb-3">
+                <div className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center ${getWarningColor(v.creator.warningCount)}`}>
+                  {v.creator.warningCount} {v.creator.warningCount < 2 ? "warning" : "warnings already"} 
+                </div>
+              </div>
+            )}
+
             <div className="mt-3 p-3 rounded-md border border-red-500/30 bg-red-500/5">
               <p className="text-xs font-semibold text-red-500 mb-1">Reported Info</p>
-              <p className="text-sm text-foreground">{v.reportedComment || "Bad comment"}</p>
+              <p className="text-sm text-foreground">{v.reporterComment || "Bad comment"}</p>
             </div>
             <div className="mt-auto pt-4 flex items-center gap-2">
               <Button variant="destructive" size="sm" onClick={() => onWarn(v)}>
@@ -91,13 +100,19 @@ export function ContentGrid({ videos, onWarn }: { videos: VideoItem[]; onWarn: (
               <video
                 controls
                 className="w-full rounded-md"
-                src={currentVideo.videoUrl || "https://www.w3schools.com/html/mov_bbb.mp4"}
+                src={currentVideo.streamUrl || "https://www.w3schools.com/html/mov_bbb.mp4"}
               />
               {/* Creator + Actions */}
               <div className="flex items-center justify-between gap-4">
-                <div className="text-sm">
+                <div className="text-sm space-y-1">
                   <p className="font-medium text-foreground">{currentVideo.creator.name}</p>
                   <p className="text-muted-foreground">{currentVideo.creator.email}</p>
+                  {/* Warning count in dialog */}
+                  {getWarningColor && (
+                    <div className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center ${getWarningColor(currentVideo.creator.warningCount)}`}>
+                      {currentVideo.creator.warningCount} {currentVideo.creator.warningCount === 1 ? "warning" : "warnings"}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="destructive" size="sm" onClick={() => onWarn(currentVideo)}>

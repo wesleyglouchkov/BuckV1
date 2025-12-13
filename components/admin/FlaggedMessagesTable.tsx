@@ -4,8 +4,17 @@ import { AlertTriangle, Shield, Eye, Ban } from "lucide-react";
 export type Message = {
   id: string;
   content: string;
-  sender: { name: string; email: string; warningCount: number };
+  sender: {
+    id: string;
+    name: string;
+    email: string;
+    username: string;
+    warningCount: number;
+  };
   timestamp: string;
+  flagged: boolean;
+  reporterComment: string;
+  streamTitle: string;
 };
 
 export function FlaggedMessagesTable({
@@ -16,6 +25,9 @@ export function FlaggedMessagesTable({
   getWarningColor,
   onView,
   onWarn,
+  pagination,
+  currentPage,
+  onPageChange,
 }: {
   isLoading: boolean;
   messages: Message[];
@@ -24,6 +36,9 @@ export function FlaggedMessagesTable({
   getWarningColor: (c: number) => string;
   onView: (m: Message) => void;
   onWarn: (m: Message) => void;
+  pagination?: { total: number; totalPages: number };
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }) {
   return (
     <div className="bg-card rounded-lg border border-border/30 shadow-sm overflow-hidden">
@@ -33,8 +48,34 @@ export function FlaggedMessagesTable({
             <AlertTriangle className="w-5 h-5  text-orange-500" />
             <p className="pt-1.5"> Flagged Messages</p>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {isLoading ? "Loading..." : `${filteredMessages.length} message(s) found`}
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              {isLoading ? "Loading..." : `${filteredMessages.length} message(s) found`}
+            </div>
+            {/* Pagination in header */}
+            {!isLoading && pagination && pagination.totalPages > 1 && currentPage && onPageChange && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => onPageChange(currentPage - 1)}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {pagination.totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === pagination.totalPages}
+                  onClick={() => onPageChange(currentPage + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
