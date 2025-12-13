@@ -13,7 +13,6 @@ const creatorMenu = [
   { icon: FileText, label: "My Content", href: "/creator/content" },
   { icon: TrendingUp, label: "Analytics", href: "/creator/analytics" },
   { icon: User, label: "Profile", href: "/creator/profile" },
-  { icon: Settings, label: "Settings", href: "/creator/settings" },
 ];
 
 export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
