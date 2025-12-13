@@ -68,8 +68,9 @@ export default function HelpPage() {
         <div className="min-h-screen bg-background text-foreground">
             <div className="container mx-auto py-12 px-4 max-w-4xl">
                 <div className="mb-10">
-                    <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-                        <Image
+                    <Link href="/" className="flex gap-4 items-center hover:opacity-80 transition-opacity">
+                       <div>
+                         <Image
                             src="/buck.svg"
                             alt="Buck Logo"
                             width={120}
@@ -85,11 +86,13 @@ export default function HelpPage() {
                             className="hidden dark:block h-9 w-auto"
                             priority
                         />
+                       </div>
+                       <h1 className="mt-5 text-3xl md:text-4xl font-bold mb-4">Contact Support</h1>
                     </Link>
                 </div>
 
                 <div className="max-w-2xl mx-auto">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact Support</h1>
+                   
                     <p className="text-muted-foreground mb-8 text-lg">
                         Have a question or run into an issue? Fill out the form below and we'll get back to you as soon as possible.
                     </p>
