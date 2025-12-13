@@ -1,7 +1,6 @@
 import { createClientAuthInstance } from "@/utils/axios";
 
 // Creator services
-// Add your creator-related API calls and business logic here
 
 export const creatorService = {
   // Stripe Connect - Create Account Link
@@ -52,12 +51,41 @@ export const creatorService = {
     }
   },
 
-  // Example: Content management
-  // getContent: async () => { ... },
-  // createContent: async (data: any) => { ... },
-  // updateContent: async (contentId: string, data: any) => { ... },
-  // deleteContent: async (contentId: string) => { ... },
-
-  // Example: Analytics
-  // getAnalytics: async () => { ... },
+  // Update Profile
+  updateProfile: async (role: string, data: UpdateProfileData) => {
+    try {
+      const axios = await createClientAuthInstance(role);
+      const response = await axios.patch('/users/profile', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update user profile');
+    }
+  },
 };
+
+export interface UpdateProfileData {
+  bio?: string;
+  subscriptionPrice?: number;
+  avatar?: string;
+}
+
+export interface CreatorProfile {
+  id: string;
+  name: string;
+  username: string;
+  stripe_account_id: string;
+  stripe_connected: boolean;
+  stripe_onboarding_completed: boolean;
+  email: string;
+  bio: string | null;
+  avatar: string | null;
+  isActive: boolean;
+  createdAt: string;
+  isWarnedTimes: number;
+  subscriptionPrice: number | null;
+  _count: {
+    followers: number;
+    subscribers: number;
+    createdStreams: number;
+  };
+}

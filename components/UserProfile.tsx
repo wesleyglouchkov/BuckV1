@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Button, Input } from "@/components/ui";
 import { authService } from "@/services";
+import { creatorService, CreatorProfile } from "@/services/creator";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Camera, Save, X } from "lucide-react";
 
 interface ChangePasswordFormData {
   oldPassword: string;
@@ -12,25 +18,94 @@ interface ChangePasswordFormData {
   confirmPassword: string;
 }
 
+interface EditProfileFormData {
+  bio: string;
+  subscriptionPrice: string;
+}
+
 export default function UserProfile() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
+  const [profile, setProfile] = useState<CreatorProfile | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [formData, setFormData] = useState<ChangePasswordFormData>({
+  const [passwordFormData, setPasswordFormData] = useState<ChangePasswordFormData>({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editFormData, setEditFormData] = useState<EditProfileFormData>({
+    bio: "",
+    subscriptionPrice: "",
+  });
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchProfile();
+    }
+  }, [session?.user]);
+
+  const fetchProfile = async () => {
+    try {
+      setIsLoadingProfile(true);
+      if (!session?.user?.role) return;
+
+      const response = await creatorService.getUserProfile(session.user.role);
+      if (response && response.data) {
+        setProfile(response.data);
+        setEditFormData({
+          bio: response.data.bio || "",
+          subscriptionPrice: response.data.subscriptionPrice?.toString() || "",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile", error);
+      // Fallback to session data if specific profile fetch fails
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      if (!session?.user?.role) return;
+
+      const updatedData: any = {
+        bio: editFormData.bio,
+      };
+
+      if (session.user.role?.toLowerCase() === 'creator' && editFormData.subscriptionPrice) {
+        updatedData.subscriptionPrice = parseFloat(editFormData.subscriptionPrice);
+      }
+
+      await creatorService.updateProfile(session.user.role, updatedData);
+
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+      fetchProfile(); // Refresh data
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.newPassword !== formData.confirmPassword) {
+
+    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
       toast.error("New passwords don't match");
       return;
     }
 
-    if (formData.newPassword.length < 6) {
+    if (passwordFormData.newPassword.length < 6) {
       toast.error("New password must be at least 6 characters long");
       return;
     }
@@ -38,44 +113,27 @@ export default function UserProfile() {
     setIsChangingPassword(true);
 
     try {
-      // Get the session to ensure user is authenticated
       if (!session?.user) {
         throw new Error('Not authenticated');
       }
 
-      // Call the auth service to change password
       const response = await authService.changePassword({
-        oldPassword: formData.oldPassword,
-        newPassword: formData.newPassword,
+        oldPassword: passwordFormData.oldPassword,
+        newPassword: passwordFormData.newPassword,
       }, session.user.role);
 
       toast.success(response.message || "Password changed successfully");
-      setFormData({
+      setPasswordFormData({
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
       setShowChangePassword(false);
     } catch (error: any) {
-      // Handle errors gracefully - only show user-friendly messages in toast
       let errorMessage = "Failed to change password";
-
       if (error.response) {
-        // API responded with error status
         errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
-      } else if (error.request) {
-        // Request was made but no response received
-        errorMessage = "Unable to connect to server. Please try again.";
-      } else {
-        // Something else happened
-        errorMessage = "An unexpected error occurred. Please try again.";
       }
-
-      // Only log to console in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Change password error:', error);
-      }
-
       toast.error(errorMessage);
     } finally {
       setIsChangingPassword(false);
@@ -83,7 +141,7 @@ export default function UserProfile() {
   };
 
   const resetForm = () => {
-    setFormData({
+    setPasswordFormData({
       oldPassword: "",
       newPassword: "",
       confirmPassword: "",
@@ -91,153 +149,255 @@ export default function UserProfile() {
     setShowChangePassword(false);
   };
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
+
+  const displayUser = profile || {
+    name: session.user.name,
+    username: session.user.username,
+    email: session.user.email,
+    avatar: session.user.image,
+    role: session.user.role,
+    bio: null,
+    createdAt: new Date().toISOString(), // Fallback
+    _count: { followers: 0, subscribers: 0, createdStreams: 0 }
+  };
+
+  const isCreator = session.user.role?.toLowerCase() === 'creator';
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        User Profile
-      </h2>
-
-      {/* User Information */}
-      <div className="space-y-4 mb-8">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Name
-          </label>
-          <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white">
-            {session.user?.name || "Not provided"}
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-4xl mx-auto">
+      {/* Profile Header */}
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="relative group">
+            <UserAvatar
+              src={displayUser.avatar || null}
+              name={displayUser.name || "User"}
+              className="w-24 h-24 text-2xl"
+            />
+            {/* Future: Add avatar upload trigger here */}
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Username
-          </label>
-          <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white">
-            @{session.user?.username || "Not provided"}
-          </div>
-        </div>
+          <div className="flex-1 space-y-2 w-full">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {displayUser.name}
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">@{displayUser.username}</p>
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email
-          </label>
-          <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white">
-            {session.user?.email || "Not provided"}
-          </div>
-        </div>
+              {!isEditing ? (
+                <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+                  Edit Profile
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    size="sm"
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdateProfile}
+                    size="sm"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              )}
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Role
-          </label>
-          <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white capitalize">
-            {session.user?.role || "Member"}
+            <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600 dark:text-gray-300">
+              <span className="flex items-center gap-1">
+                <Badge variant={isCreator ? 'default' : 'secondary'} className="capitalize">
+                  {session.user.role?.toLowerCase() || 'Member'}
+                </Badge>
+              </span>
+              <span>•</span>
+              <span>Joined {new Date(displayUser.createdAt).toLocaleDateString()}</span>
+            </div>
+
+            {!isEditing ? (
+              <p className="text-gray-600 dark:text-gray-300 mt-4">
+                {displayUser.bio || "No bio provided"}
+              </p>
+            ) : (
+              <div className="mt-4">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={editFormData.bio}
+                  onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
+                  placeholder="Tell us about yourself..."
+                  className="mt-1"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Change Password Section */}
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-            Change Password
-          </h3>
-          {!showChangePassword && (
-            <Button
-              onClick={() => setShowChangePassword(true)}
-              variant="outline"
-              size="sm"
-            >
-              Change Password
-            </Button>
+      {/* Stats Grid (Creator Only) */}
+      {isCreator && profile && (
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x border-b border-gray-200 dark:border-gray-700">
+          <div className="p-6 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Followers</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {profile._count?.followers || 0}
+            </p>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Subscribers</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {profile._count?.subscribers || 0}
+            </p>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Streams</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {profile._count?.createdStreams || 0}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Details & Settings */}
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label>Email Address</Label>
+            <div className="mt-1 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100">
+              {displayUser.email}
+            </div>
+          </div>
+
+          {isCreator && (
+            <div>
+              <Label htmlFor="subscriptionPrice">Monthly Subscription Price ($)</Label>
+              {isEditing ? (
+                <Input
+                  id="subscriptionPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editFormData.subscriptionPrice}
+                  onChange={(e) => setEditFormData({ ...editFormData, subscriptionPrice: e.target.value })}
+                  className="mt-1"
+                  placeholder="0.00"
+                />
+              ) : (
+                <div className="mt-1 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100">
+                  {profile?.subscriptionPrice ? `$${profile.subscriptionPrice}` : 'Not set'}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
-        {showChangePassword && (
-          <form onSubmit={handleChangePassword} className="space-y-4">
-            <div>
-              <label
-                htmlFor="oldPassword"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Current Password
-              </label>
-              <Input
-                id="oldPassword"
-                type="password"
-                required
-                value={formData.oldPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, oldPassword: e.target.value })
-                }
-                placeholder="Enter your current password"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                New Password
-              </label>
-              <Input
-                id="newPassword"
-                type="password"
-                required
-                minLength={6}
-                value={formData.newPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, newPassword: e.target.value })
-                }
-                placeholder="Enter your new password"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Confirm New Password
-              </label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                required
-                minLength={6}
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
-                placeholder="Confirm your new password"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
+        {/* Change Password Section */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              Change Password
+            </h3>
+            {!showChangePassword && (
               <Button
-                type="submit"
-                disabled={isChangingPassword}
-                className="flex-1"
-              >
-                {isChangingPassword ? "Changing..." : "Change Password"}
-              </Button>
-              <Button
-                type="button"
+                onClick={() => setShowChangePassword(true)}
                 variant="outline"
-                onClick={resetForm}
-                disabled={isChangingPassword}
-                className="flex-1"
+                size="sm"
               >
-                Cancel
+                Change Password
               </Button>
-            </div>
-          </form>
-        )}
+            )}
+          </div>
+
+          {showChangePassword && (
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="oldPassword"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Current Password
+                </label>
+                <Input
+                  id="oldPassword"
+                  type="password"
+                  required
+                  value={passwordFormData.oldPassword}
+                  onChange={(e) =>
+                    setPasswordFormData({ ...passwordFormData, oldPassword: e.target.value })
+                  }
+                  placeholder="Enter your current password"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  New Password
+                </label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={passwordFormData.newPassword}
+                  onChange={(e) =>
+                    setPasswordFormData({ ...passwordFormData, newPassword: e.target.value })
+                  }
+                  placeholder="Enter your new password"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Confirm New Password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={passwordFormData.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordFormData({ ...passwordFormData, confirmPassword: e.target.value })
+                  }
+                  placeholder="Confirm your new password"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="flex-1"
+                >
+                  {isChangingPassword ? "Changing..." : "Change Password"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  disabled={isChangingPassword}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
