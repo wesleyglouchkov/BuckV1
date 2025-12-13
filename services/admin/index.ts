@@ -179,6 +179,7 @@ export interface IssueWarningParams {
   userId: string;
   userType: 'creator' | 'member';
   warningMessage: string;
+  violatingContent?: string; // The message/content that triggered the warning
 }
 
 export interface IssueWarningResponse {
@@ -289,6 +290,7 @@ export const adminService = {
       const response = await axios.patch(`/admin/increment-warnings/${params.userId}`, {
         userType: params.userType,
         warningMessage: params.warningMessage,
+        violatingContent: params.violatingContent,
       });
       return response.data;
     } catch (error: any) {

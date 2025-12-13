@@ -30,7 +30,13 @@ export default function ModerationPage() {
     const [videos, setVideos] = useState<FlaggedContent[]>([]);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
     const [warnDialogOpen, setWarnDialogOpen] = useState(false);
-    const [warnTarget, setWarnTarget] = useState<{ id: string; name: string; email: string; userType: 'creator' | 'member' } | null>(null);
+    const [warnTarget, setWarnTarget] = useState<{
+        id: string;
+        name: string;
+        email: string;
+        userType: 'creator' | 'member';
+        violatingContent?: string;
+    } | null>(null);
     const [customWarnMessage, setCustomWarnMessage] = useState("");
     const [isWarning, setIsWarning] = useState(false);
 
@@ -164,7 +170,13 @@ export default function ModerationPage() {
         return "text-green-500 bg-green-500/10";
     };
 
-    const openWarnDialog = (target: { id: string; name: string; email: string; userType: 'creator' | 'member' }) => {
+    const openWarnDialog = (target: {
+        id: string;
+        name: string;
+        email: string;
+        userType: 'creator' | 'member';
+        violatingContent?: string;
+    }) => {
         setWarnTarget(target);
         setCustomWarnMessage("");
         setWarnDialogOpen(true);
@@ -188,6 +200,7 @@ export default function ModerationPage() {
                 userId: warnTarget.id,
                 userType: warnTarget.userType,
                 warningMessage: customWarnMessage,
+                violatingContent: warnTarget.violatingContent,
             });
 
             if (response.success) {
@@ -256,7 +269,8 @@ export default function ModerationPage() {
                                         id: m.sender.id,
                                         name: m.sender.name,
                                         email: m.sender.email,
-                                        userType: 'member' // Assuming chat messages are from members
+                                        userType: 'member', // Assuming chat messages are from members
+                                        violatingContent: m.content,
                                     })}
                                     pagination={messagePagination}
                                     currentPage={messagePage}
@@ -366,7 +380,8 @@ export default function ModerationPage() {
                                                         id: selectedMessage.sender.id,
                                                         name: selectedMessage.sender.name,
                                                         email: selectedMessage.sender.email,
-                                                        userType: 'member'
+                                                        userType: 'member',
+                                                        violatingContent: selectedMessage.content,
                                                     });
                                                     handleCloseDialog();
                                                 }}
@@ -421,7 +436,8 @@ export default function ModerationPage() {
                                         id: v.creator.id,
                                         name: v.creator.name,
                                         email: v.creator.email,
-                                        userType: 'creator'
+                                        userType: 'creator',
+                                        violatingContent: `${v.title}: ${v.description || 'No description'}`,
                                     })}
                                     getWarningColor={getWarningColor}
                                 />
@@ -464,9 +480,19 @@ export default function ModerationPage() {
                     </DialogHeader>
                     <div className="space-y-4">
                         {warnTarget && (
-                            <div className="text-sm text-muted-foreground">
-                                Sending warning to <span className="font-medium text-foreground">{warnTarget.name}</span> ({warnTarget.email})
-                            </div>
+                            <>
+                                <div className="text-sm text-muted-foreground">
+                                    Sending warning to <span className="font-medium text-foreground">{warnTarget.name}</span> ({warnTarget.email})
+                                </div>
+
+                                {/* Display violating content */}
+                                {warnTarget.violatingContent && (
+                                    <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/5">
+                                        <p className="text-xs font-semibold text-red-500 mb-2">Violating Content:</p>
+                                        <p className="text-sm text-foreground">{warnTarget.violatingContent}</p>
+                                    </div>
+                                )}
+                            </>
                         )}
                         <div>
                             <label className="block text-sm font-medium mb-2 dark:text-white">Custom Message</label>
