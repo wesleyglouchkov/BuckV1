@@ -23,7 +23,7 @@ export default function ProfilePage() {
         if (!role) return "User";
         return role.charAt(0).toUpperCase() + role.slice(1);
     };
-    
+
     const getMenuItems = () => {
         if (isCreator) {
             return [
@@ -116,26 +116,6 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {/* Member-specific sidebar */}
-                        {isMember && (
-                            <div className="bg-muted/50 border border-border rounded-lg p-6">
-                                <h2 className="text-lg font-semibold text-foreground mb-4">
-                                    Your Activity
-                                </h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground mb-2">Following</p>
-                                        <p className="text-2xl font-bold text-foreground">0 Creators</p>
-                                    </div>
-                                    <a
-                                        href="/explore"
-                                        className="block w-full text-center bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-                                    >
-                                        Discover Creators
-                                    </a>
-                                </div>
-                            </div>
-                        )}
 
                         {/* Help & Support */}
                         <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
