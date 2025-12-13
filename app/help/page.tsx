@@ -1,8 +1,69 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { Loader2, Send } from "lucide-react";
+import { userService } from "@/services";
 
 export default function HelpPage() {
+    const { data: session } = useSession();
+    const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phoneNumber: '',
+        country: '',
+        issue: ''
+    });
+
+    // Pre-fill form with session data when available
+    useEffect(() => {
+        if (session?.user) {
+            setFormData(prev => ({
+                ...prev,
+                name: session.user.name || '',
+                email: session.user.email || '',
+            }));
+        }
+    }, [session]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            const role = (session?.user as any)?.role;
+            const response = await userService.submitHelpRequest(formData, role);
+
+            if (response.success) {
+                toast.success(response.message || "Help request sent successfully");
+                // Reset form (except maybe name/email?)
+                setFormData(prev => ({
+                    ...prev,
+                    phoneNumber: '',
+                    country: '',
+                    issue: ''
+                }));
+            } else {
+                toast.error(response.message || "Failed to send help request");
+            }
+        } catch (error: any) {
+            console.error("Help request error:", error);
+            const errorMessage = error.message || "Something went wrong. Please try again.";
+            toast.error(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className="container mx-auto py-12 px-4 max-w-4xl">
@@ -27,62 +88,111 @@ export default function HelpPage() {
                     </Link>
                 </div>
 
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">Help Center</h1>
-                <p className="text-muted-foreground mb-8 text-lg">How can we help you today?</p>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                    <section className="bg-card hover:bg-accent/5 transition-colors p-6 rounded-xl border border-border shadow-sm">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
-                        </div>
-                        <h2 className="text-xl font-semibold mb-2">Getting Started</h2>
-                        <p className="text-muted-foreground leading-relaxed">
-                            New to Buck? Learn the basics of setting up your profile, finding your favorite creators, and joining your first live class.
-                        </p>
-                    </section>
-
-                    <section className="bg-card hover:bg-accent/5 transition-colors p-6 rounded-xl border border-border shadow-sm">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg>
-                        </div>
-                        <h2 className="text-xl font-semibold mb-2">Account & Billing</h2>
-                        <p className="text-muted-foreground leading-relaxed">
-                            Manage your subscription details, payment methods, transaction history, and account security settings.
-                        </p>
-                    </section>
-
-                    <section className="bg-card hover:bg-accent/5 transition-colors p-6 rounded-xl border border-border shadow-sm">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg>
-                        </div>
-                        <h2 className="text-xl font-semibold mb-2">For Creators</h2>
-                        <p className="text-muted-foreground leading-relaxed">
-                            Everything you need to know about streaming, monetization, viewer engagement, and growing your fitness community.
-                        </p>
-                    </section>
-
-                    <section className="bg-card hover:bg-accent/5 transition-colors p-6 rounded-xl border border-border shadow-sm">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" /><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" /></svg>
-                        </div>
-                        <h2 className="text-xl font-semibold mb-2">Community & Safety</h2>
-                        <p className="text-muted-foreground leading-relaxed">
-                            Guidelines for our community standards, reporting procedures, and keeping Buck a safe space for everyone.
-                        </p>
-                    </section>
-                </div>
-
-                <div className="mt-12 p-8 bg-muted/30 rounded-2xl text-center border border-border/50">
-                    <h3 className="text-2xl font-bold mb-3">Still need help?</h3>
-                    <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-                        Our support team is available to assist you with any questions or issues you might have.
+                <div className="max-w-2xl mx-auto">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact Support</h1>
+                    <p className="text-muted-foreground mb-8 text-lg">
+                        Have a question or run into an issue? Fill out the form below and we'll get back to you as soon as possible.
                     </p>
-                    <a
-                        href="mailto:support@buckfitness.com"
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-                    >
-                        Contact Support
-                    </a>
+
+                    <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border rounded-xl p-6 md:p-8 shadow-sm">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label htmlFor="name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="John Doe"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Email <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="john@example.com"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label htmlFor="phoneNumber" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    id="phoneNumber"
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
+                                    onChange={handleChange}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="+1 (555) 000-0000"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="country" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Country
+                                </label>
+                                <input
+                                    type="text"
+                                    id="country"
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="United States"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="issue" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Issue <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                id="issue"
+                                name="issue"
+                                required
+                                value={formData.issue}
+                                onChange={handleChange}
+                                rows={5}
+                                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                placeholder="Describe your issue or question here..."
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Sending...
+                                </>
+                            ) : (
+                                <>
+                                    <Send className="mr-2 h-4 w-4" />
+                                    Submit Request
+                                </>
+                            )}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
