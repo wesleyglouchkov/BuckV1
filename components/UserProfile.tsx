@@ -44,10 +44,10 @@ export default function UserProfile() {
   });
 
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user?.email) {
       fetchProfile();
     }
-  }, [session?.user]);
+  }, [session?.user?.email]);
 
   const fetchProfile = async () => {
     try {
