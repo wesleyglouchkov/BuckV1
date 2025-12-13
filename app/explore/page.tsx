@@ -268,8 +268,35 @@ export default function ExplorePage() {
               onClick={() => setMobileMenuOpen(false)}
             />
             <div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm transform transition-transform duration-300 ease-out animate-in slide-in-from-left overflow-y-auto">
+              <div className="flex items-center gap-3 px-4 h-16 border-b border-border/20">
+                <Link href="/explore" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
+                  <Image
+                    src="/buck.svg"
+                    alt="Buck Logo"
+                    width={40}
+                    height={12}
+                    className="dark:hidden"
+                    priority
+                  />
+                  <Image
+                    src="/buck-dark.svg"
+                    alt="Buck Logo"
+                    width={40}
+                    height={12}
+                    className="hidden dark:block"
+                    priority
+                  />
+                </Link>
+                <Link
+                  href="/explore"
+                  className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Browse
+                </Link>
+              </div>
               {/* Live Channels Section */}
-              <div className="px-2 py-3 border-b border-border/20 mt-16">
+              <div className="px-2 py-3 border-b border-border/20">
                 <div className="flex items-center gap-2 px-2.5 py-2 mb-2">
                   <Radio className="h-4 w-4 text-red-500 animate-pulse" />
                   <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
