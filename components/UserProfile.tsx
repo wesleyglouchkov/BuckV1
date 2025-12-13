@@ -177,6 +177,7 @@ export default function UserProfile() {
   };
 
   const isCreator = session.user.role?.toLowerCase() === 'creator';
+  const isMember = session.user.role?.toLowerCase() === 'member';
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-4xl mx-auto">
@@ -275,6 +276,30 @@ export default function UserProfile() {
             <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Streams</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
               {profile._count?.createdStreams || 0}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Stats Grid (Member Only) */}
+      {isMember && profile && (
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x border-b border-gray-200 dark:border-gray-700">
+          <div className="p-6 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Subscriptions</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {profile._count?.subscriptions || 0}
+            </p>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Following</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {profile._count?.following || 0}
+            </p>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-sm text-red-500 uppercase tracking-wider font-semibold">Warnings</p>
+            <p className="text-2xl font-bold text-red-600 mt-1">
+              {profile.isWarnedTimes || 0}
             </p>
           </div>
         </div>

@@ -87,5 +87,7 @@ export interface CreatorProfile {
     followers: number;
     subscribers: number;
     createdStreams: number;
+    subscriptions?: number;
+    following?: number;
   };
 }
