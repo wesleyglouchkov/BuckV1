@@ -7,7 +7,7 @@ export const creatorService = {
   // Stripe Connect - Create Account Link
   createStripeAccountLink: async (userId: string) => {
     try {
-      const axios = await createClientAuthInstance('creator');
+      const axios = await createClientAuthInstance('CREATOR');
       const response = await axios.post('/creator/stripe/connect/create-account-link', {
         userId,
       });
@@ -20,7 +20,7 @@ export const creatorService = {
   // Stripe Connect - Disconnect Account
   disconnectStripeAccount: async (userId: string) => {
     try {
-      const axios = await createClientAuthInstance('creator');
+      const axios = await createClientAuthInstance('CREATOR');
       const response = await axios.post('/creator/stripe/connect/disconnect', {
         userId,
       });

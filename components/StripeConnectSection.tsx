@@ -215,7 +215,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
 
             {/* Full-screen loading overlay */}
             {(isConnecting || isDisconnecting) && (
-                <div className="fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="dark:text-white fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
                     Connecting to stripe...
                 </div>
             )}
