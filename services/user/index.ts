@@ -1,4 +1,4 @@
-import { createClientAuthInstance } from "@/utils/axios";
+import { axiosInstance } from "@/utils/axios";
 
 export const userService = {
     submitHelpRequest: async (data: {
@@ -7,10 +7,9 @@ export const userService = {
         phoneNumber?: string;
         country?: string;
         issue: string;
-    }, userRole?: string) => {
+    }) => {
         try {
-            const axios = await createClientAuthInstance(userRole);
-            const response = await axios.post('/users/help-request', data);
+            const response = await axiosInstance.post('/users/help-request', data);
             return response.data;
         } catch (error: any) {
             console.error("UserService submitHelpRequest error:", error);

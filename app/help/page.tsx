@@ -40,8 +40,7 @@ export default function HelpPage() {
         setIsLoading(true);
 
         try {
-            const role = (session?.user as any)?.role;
-            const response = await userService.submitHelpRequest(formData, role);
+            const response = await userService.submitHelpRequest(formData);
 
             if (response.success) {
                 toast.success(response.message || "Help request sent successfully");
@@ -69,30 +68,30 @@ export default function HelpPage() {
             <div className="container mx-auto py-12 px-4 max-w-4xl">
                 <div className="mb-10">
                     <Link href="/" className="flex gap-4 items-center hover:opacity-80 transition-opacity">
-                       <div>
-                         <Image
-                            src="/buck.svg"
-                            alt="Buck Logo"
-                            width={120}
-                            height={36}
-                            className="dark:hidden h-9 w-auto"
-                            priority
-                        />
-                        <Image
-                            src="/buck-dark.svg"
-                            alt="Buck Logo"
-                            width={120}
-                            height={36}
-                            className="hidden dark:block h-9 w-auto"
-                            priority
-                        />
-                       </div>
-                       <h1 className="mt-5 text-3xl md:text-4xl font-bold mb-4">Contact Support</h1>
+                        <div>
+                            <Image
+                                src="/buck.svg"
+                                alt="Buck Logo"
+                                width={120}
+                                height={36}
+                                className="dark:hidden h-9 w-auto"
+                                priority
+                            />
+                            <Image
+                                src="/buck-dark.svg"
+                                alt="Buck Logo"
+                                width={120}
+                                height={36}
+                                className="hidden dark:block h-9 w-auto"
+                                priority
+                            />
+                        </div>
+                        <h1 className="mt-5 text-3xl md:text-4xl font-bold mb-4">Contact Support</h1>
                     </Link>
                 </div>
 
                 <div className="max-w-2xl mx-auto">
-                   
+
                     <p className="text-muted-foreground mb-8 text-lg">
                         Have a question or run into an issue? Fill out the form below and we'll get back to you as soon as possible.
                     </p>
