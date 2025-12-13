@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, FileText, User, ArrowLeftToLine, ArrowRightFromLine } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import HelpSupportSidebar from "@/components/HelpSupportSidebar";
 
 const adminMenu = [
 	{ icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
@@ -94,28 +93,6 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }: {
 					</ul>
 				</nav>
 
-				{!collapsed && (
-					<div className="p-4">
-						<HelpSupportSidebar />
-					</div>
-				)}
-
-				{collapsed && (
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<button
-								aria-label="Open sidebar"
-								onClick={toggle}
-								className="absolute bottom-3 left-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-none hover:bg-accent transition-colors"
-							>
-								<ArrowRightFromLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
-							</button>
-						</TooltipTrigger>
-						<TooltipContent side="right" sideOffset={10}>
-							<p>Expand sidebar</p>
-						</TooltipContent>
-					</Tooltip>
-				)}
 			</aside>
 
 			{/* Mobile drawer */}
@@ -148,9 +125,6 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }: {
 								})}
 							</ul>
 						</nav>
-						<div className="p-4 mt-auto">
-							<HelpSupportSidebar />
-						</div>
 					</div>
 				</div>
 			)}

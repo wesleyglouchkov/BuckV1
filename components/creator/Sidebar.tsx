@@ -98,22 +98,6 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
           </div>
         )}
 
-        {collapsed && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                aria-label="Open sidebar"
-                onClick={toggle}
-                className="absolute bottom-3 left-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-none hover:bg-accent transition-colors"
-              >
-                <ArrowRightFromLine className="h-5 w-5 text-muted-foreground cursor-pointer" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={10}>
-              <p>Expand sidebar</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
       </aside>
 
       {/* Mobile drawer */}
