@@ -249,7 +249,7 @@ export default function UserProfile() {
                   value={editFormData.bio}
                   onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
                   placeholder="Tell us about yourself..."
-                  className="mt-1"
+                  className="mt-1 dark:text-white"
                 />
               </div>
             )}

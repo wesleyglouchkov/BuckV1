@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import OpenExploreNavbar from "@/components/OpenExploreNavbar";
 import { cn } from "@/lib/utils";
+import HelpSupportSidebar from "@/components/HelpSupportSidebar";
 
 export default function ProfilePage() {
     const { data: session, status } = useSession();
@@ -117,32 +118,7 @@ export default function ProfilePage() {
                         )}
 
 
-                        {/* Help & Support */}
-                        <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-                            <h2 className="text-lg font-semibold text-foreground mb-4">
-                                Help & Support
-                            </h2>
-                            <div className="space-y-2">
-                                <a
-                                    href="/help"
-                                    className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                                >
-                                    Help Center
-                                </a>
-                                <a
-                                    href="/terms"
-                                    className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                                >
-                                    Terms of Service
-                                </a>
-                                <a
-                                    href="/privacy"
-                                    className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                                >
-                                    Privacy Policy
-                                </a>
-                            </div>
-                        </div>
+                        <HelpSupportSidebar />
                     </div>
                 </div>
             </div>
