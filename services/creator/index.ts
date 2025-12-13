@@ -55,7 +55,7 @@ export const creatorService = {
   updateProfile: async (role: string, data: UpdateProfileData) => {
     try {
       const axios = await createClientAuthInstance(role);
-      const response = await axios.patch('/users/profile', data);
+      const response = await axios.put('/users/profile', data);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update user profile');

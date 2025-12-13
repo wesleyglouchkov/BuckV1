@@ -76,16 +76,30 @@ export default function UserProfile() {
 
     try {
       if (!session?.user?.role) return;
+      const role = session.user.role;
+      const roleKey = role.toLowerCase();
 
-      const updatedData: any = {
-        bio: editFormData.bio,
-      };
-
-      if (session.user.role?.toLowerCase() === 'creator' && editFormData.subscriptionPrice) {
-        updatedData.subscriptionPrice = parseFloat(editFormData.subscriptionPrice);
+      if (roleKey === 'creator') {
+        const updatedData: any = {
+          bio: editFormData.bio,
+        };
+        if (editFormData.subscriptionPrice) {
+          updatedData.subscriptionPrice = parseFloat(editFormData.subscriptionPrice);
+        }
+        await creatorService.updateProfile(role, updatedData);
       }
-
-      await creatorService.updateProfile(session.user.role, updatedData);
+      else if (roleKey === 'member') {
+        const updatedData: any = {
+          bio: editFormData.bio,
+        };
+        await creatorService.updateProfile(role, updatedData);
+      }
+      else if (roleKey === 'admin') {
+        const updatedData: any = {
+          bio: editFormData.bio,
+        };
+        await creatorService.updateProfile(role, updatedData);
+      }
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
