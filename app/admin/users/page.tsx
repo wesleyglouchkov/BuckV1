@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ChevronLeft, ChevronRight, Users, Filter, Eye } from "lucide-react";
 import { SkeletonBox } from "@/components/ui/skeleton-variants";
-import { CreatorProfileDialog } from "@/components/admin/CreatorProfileDialog";
+import { UserInfoDialog } from "@/components/admin/UserInfoDialog";
 import { TopCreator } from "@/services/admin";
 
 const ITEMS_PER_PAGE = 10;
@@ -108,6 +108,8 @@ export default function UsersPage() {
   };
 
   const handleViewProfile = (user: User) => {
+    const isCreator = user.role === 'CREATOR';
+
     const topCreator: TopCreator = {
       id: user.id,
       name: user.name,
@@ -120,10 +122,12 @@ export default function UsersPage() {
       stripeOnboardingCompleted: user.stripeOnboardingCompleted,
       warningCount: user.warningCount,
       joinedAt: user.createdAt,
-      followers: user.followers,
-      subscriberCount: user.subscriberCount,
-      totalStreams: user.totalStreams,
-      revenue: 0, // Not available in User interface
+      // For creators: use creator fields
+      // For members: map member fields to creator format for display
+      followers: isCreator ? (user.followers ?? 0) : (user.following ?? 0),
+      subscriberCount: isCreator ? (user.subscriberCount ?? 0) : (user.subscriptions ?? 0),
+      totalStreams: user.totalStreams ?? 0,
+      revenue: user.revenue ?? 0,
       rank: 0, // Not applicable here
     };
 
@@ -274,11 +278,12 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Creator Profile Dialog */}
-      <CreatorProfileDialog
+      {/* User Profile Dialog */}
+      <UserInfoDialog
         creator={selectedCreator}
         isOpen={isDialogOpen}
         onClose={handleCloseDialog}
+        userType={activeTab}
       />
     </div>
   );
@@ -434,7 +439,7 @@ function UserTable({ users, isLoading, error, type, onToggleStatus, onViewProfil
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {type === 'creator' && onViewProfile && (
+                  {onViewProfile && (
                     <Button
                       variant="outline"
                       size="sm"

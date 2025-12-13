@@ -14,9 +14,14 @@ export interface User {
   stripeConnected: boolean;
   stripeOnboardingCompleted: boolean;
   warningCount: number;
-  followers: number;
-  subscriberCount: number;
-  totalStreams: number;
+  // Creator-specific fields
+  followers?: number;
+  subscriberCount?: number;
+  totalStreams?: number;
+  revenue?: number;
+  // Member-specific fields
+  following?: number;
+  subscriptions?: number;
 }
 
 export interface GetUsersResponse {
@@ -46,8 +51,11 @@ export interface RecentSignupUser {
   id: string;
   name: string;
   email?: string;
+  username: string;
   role?: string;
   createdAt: string;
+  bio: string | null;
+  avatar: string | null;
 }
 
 export interface RecentSignups {

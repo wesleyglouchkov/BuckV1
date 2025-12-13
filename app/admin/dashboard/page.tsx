@@ -20,7 +20,7 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { CreatorProfileDialog } from "@/components/admin/CreatorProfileDialog";
+import { UserInfoDialog } from "@/components/admin/UserInfoDialog";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
@@ -64,7 +64,6 @@ export default function AdminDashboard() {
   const membersChartData = dashboardData?.data?.chart?.members || [];
   const statsData = dashboardData?.data?.stats.slice(0, 3) || [];
   const otherStatsData = dashboardData?.data?.stats.slice(3) || [];
-
   const recentSignupsData = dashboardData?.data?.recentSignups?.users || [];
   const recentSignupsCount = dashboardData?.data?.recentSignups?.count || 0;
   const topCreatorsData = dashboardData?.data?.topCreators || [];
@@ -82,9 +81,18 @@ export default function AdminDashboard() {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    }
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    }
+    if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days !== 1 ? 's' : ''} ago`;
+    }
     return date.toLocaleDateString();
   };
 
@@ -358,7 +366,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Last 30 days</p>
                 <div className="mt-4 pt-4 border-t border-border/20">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Total Revenue</span>
+                    <span className="text-muted-foreground">Total Revenue Combined of all Creators</span>
                     <span className="font-semibold text-foreground">${otherStatsData[0]?.value}</span>
                   </div>
                 </div>
@@ -399,28 +407,31 @@ export default function AdminDashboard() {
             ) : (
               recentSignupsData.map((user) => (
                 <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-accent/50 transition-colors">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
-                    {user.name.charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <p className="font-medium text-foreground">{user.name}</p>
+                  <UserAvatar
+                    src={user.avatar}
+                    name={user.name}
+                    className="w-10 h-10"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground truncate">{user.name}</p>
+                      <span className="text-xs text-muted-foreground truncate">@{user.username}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="w-3 h-3" />
-                      <span>{user.email || 'No email'}</span>
+                      <Mail className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{user.email || 'No email'}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0">
                     <div className="flex items-center">
-                      <span className={`px - 2 py - 1 rounded text - xs font - medium ${user.role === 'creator'
+                      <span className={`px-2 py-1 rounded-xs text-xs font-medium capitalize ${user.role === 'CREATOR'
                         ? 'bg-blue-500/10 text-blue-500'
                         : 'bg-orange-500/10 text-orange-500'
                         } `}>
-                        {user.role || 'Member'}
+                        {(user.role || 'Member').toLowerCase()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
                       <Calendar className="w-3 h-3" />
                       <span className="mt-1">{formatRelativeTime(user.createdAt)}</span>
                     </div>
@@ -433,7 +444,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Creator Profile Dialog */}
-      <CreatorProfileDialog
+      <UserInfoDialog
         creator={selectedCreator}
         isOpen={isDialogOpen}
         onClose={handleCloseDialog}

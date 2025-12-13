@@ -13,13 +13,14 @@ import {
     X
 } from "lucide-react";
 
-interface CreatorProfileDialogProps {
+interface UserInfoDialogProps {
     creator: TopCreator | null;
     isOpen: boolean;
     onClose: () => void;
+    userType?: 'creator' | 'member';
 }
 
-export function CreatorProfileDialog({ creator, isOpen, onClose }: CreatorProfileDialogProps) {
+export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' }: UserInfoDialogProps) {
     if (!creator) return null;
 
     return (
@@ -35,7 +36,9 @@ export function CreatorProfileDialog({ creator, isOpen, onClose }: CreatorProfil
                 </button>
 
                 <DialogHeader>
-                    <DialogTitle className="text-2xl dark:text-white">Creator Profile</DialogTitle>
+                    <DialogTitle className="text-2xl dark:text-white">
+                        {userType === 'creator' ? 'Creator Profile' : 'Member Profile'}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6">
@@ -51,7 +54,7 @@ export function CreatorProfileDialog({ creator, isOpen, onClose }: CreatorProfil
                             </div>
                             <div className="flex items-center gap-2 mt-2">
                                 <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
-                                    Creator
+                                    {userType === 'creator' ? 'Creator' : 'Member'}
                                 </span>
                                 {creator.stripeConnected && (
                                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
@@ -77,22 +80,26 @@ export function CreatorProfileDialog({ creator, isOpen, onClose }: CreatorProfil
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                                    <DollarSign className="w-5 h-5 text-green-500" />
+                        {userType === 'creator' && (
+                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                        <DollarSign className="w-5 h-5 text-green-500" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
                                 </div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
+                                <p className="text-2xl font-bold text-green-500">${creator.revenue.toLocaleString()}</p>
                             </div>
-                            <p className="text-2xl font-bold text-green-500">${creator.revenue.toLocaleString()}</p>
-                        </div>
+                        )}
 
                         <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
                                     <Star className="w-5 h-5 text-yellow-500" />
                                 </div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Followers</h3>
+                                <h3 className="text-sm font-medium text-muted-foreground">
+                                    {userType === 'creator' ? 'Followers' : 'Following'}
+                                </h3>
                             </div>
                             <p className="text-2xl font-bold text-foreground">{creator.followers.toLocaleString()}</p>
                         </div>
@@ -102,52 +109,75 @@ export function CreatorProfileDialog({ creator, isOpen, onClose }: CreatorProfil
                                 <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
                                     <User className="w-5 h-5 text-purple-500" />
                                 </div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Subscribers</h3>
+                                <h3 className="text-sm font-medium text-muted-foreground">
+                                    {userType === 'creator' ? 'Subscribers' : 'Subscriptions'}
+                                </h3>
                             </div>
                             <p className="text-2xl font-bold text-foreground">{creator.subscriberCount.toLocaleString()}</p>
                         </div>
-                    </div>
 
-                    {/* Additional Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                                    <FileText className="w-5 h-5 text-orange-500" />
+                        {/* Warning Count - Show in first row for members, second row for creators */}
+                        {userType === 'member' && (
+                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                        <Activity className="w-5 h-5 text-red-500" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-muted-foreground">Warning Count</h3>
                                 </div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Total Streams</h3>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{creator.totalStreams}</p>
-                        </div>
-
-                        <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
-                                    <Activity className="w-5 h-5 text-red-500" />
-                                </div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Warning Count</h3>
-                            </div>
-                            <p className={`text-2xl font-bold ${creator.warningCount >= 5 ? 'text-red-500' :
+                                <p className={`text-2xl font-bold ${creator.warningCount >= 5 ? 'text-red-500' :
                                     creator.warningCount >= 3 ? 'text-orange-500' :
                                         creator.warningCount >= 1 ? 'text-yellow-500' :
                                             'text-green-500'
-                                }`}>
-                                {creator.warningCount}
-                            </p>
-                        </div>
-
-                        <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                                    <DollarSign className="w-5 h-5 text-blue-500" />
-                                </div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Subscription Price</h3>
+                                    }`}>
+                                    {creator.warningCount}
+                                </p>
                             </div>
-                            <p className="text-2xl font-bold text-foreground">
-                                {creator.subscriptionPrice ? `$${creator.subscriptionPrice}` : 'Not set'}
-                            </p>
-                        </div>
+                        )}
                     </div>
+
+                    {/* Additional Stats - Only for creators */}
+                    {userType === 'creator' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                                        <FileText className="w-5 h-5 text-orange-500" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-muted-foreground">Total Streams</h3>
+                                </div>
+                                <p className="text-2xl font-bold text-foreground">{creator.totalStreams}</p>
+                            </div>
+
+                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                        <Activity className="w-5 h-5 text-red-500" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-muted-foreground">Warning Count</h3>
+                                </div>
+                                <p className={`text-2xl font-bold ${creator.warningCount >= 5 ? 'text-red-500' :
+                                    creator.warningCount >= 3 ? 'text-orange-500' :
+                                        creator.warningCount >= 1 ? 'text-yellow-500' :
+                                            'text-green-500'
+                                    }`}>
+                                    {creator.warningCount}
+                                </p>
+                            </div>
+
+                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                        <DollarSign className="w-5 h-5 text-blue-500" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-muted-foreground">Subscription Price</h3>
+                                </div>
+                                <p className="text-2xl font-bold text-foreground">
+                                    {creator.subscriptionPrice ? `$${creator.subscriptionPrice}` : 'Not set'}
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Join Date */}
                     <div className="p-4 bg-muted/30 rounded-lg border border-border/20">
