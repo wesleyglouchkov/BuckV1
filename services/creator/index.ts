@@ -61,6 +61,17 @@ export const creatorService = {
       throw new Error(error.response?.data?.message || 'Failed to update user profile');
     }
   },
+
+  // Get Dashboard Data
+  getDashboardData: async () => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/dashboard');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch dashboard data');
+    }
+  },
 };
 
 export interface UpdateProfileData {
