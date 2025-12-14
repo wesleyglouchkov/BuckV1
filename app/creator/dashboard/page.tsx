@@ -2,25 +2,29 @@
 
 import { Button } from "@/components/ui/button";
 import { SkeletonStats, SkeletonBox } from "@/components/ui/skeleton-variants";
-import { Plus, TrendingUp, DollarSign, User } from "lucide-react";
+import { Plus, TrendingUp, DollarSign, User, Video, X } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { creatorService } from "@/services/creator";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend, } from "recharts";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Image from "next/image";
 
 export default function CreatorDashboard() {
   const { data: session } = useSession();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedReplay, setSelectedReplay] = useState<any>(null);
+
   // SWR data fetching using creatorService
   const { data: dashboardResponse, error: dashboardError, isLoading: dashboardLoading } = useSWR('creator-dashboard',
     () => creatorService.getDashboardData(),
     { revalidateOnFocus: false }
   );
 
-  const { data: recentContent, error: contentError, isLoading: contentLoading } = useSWR('/api/creator/recent-content', (url) => fetch(url).then(res => res.json()));
   const dashboardData = dashboardResponse?.data;
+  const recentStreams = dashboardData?.recentStreams || [];
 
   // Process data for charts
   const followersAndSubscribersData = useMemo(() => {
@@ -200,6 +204,7 @@ export default function CreatorDashboard() {
                       }}
                       formatter={(value: number) => [`$${value}`, "Revenue"]}
                     />
+                    <Legend />
                     <Area
                       type="monotone"
                       dataKey="value"
@@ -210,7 +215,6 @@ export default function CreatorDashboard() {
                       dot={false}
                       activeDot={{ r: 5, stroke: "#10B981", strokeWidth: 2, fill: isDarkMode ? "#1F2937" : "#ffffff" }}
                     />
-                     <Legend />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
@@ -265,7 +269,7 @@ export default function CreatorDashboard() {
             </h3>
           </div>
           <div className="divide-y divide-border/20">
-            {contentLoading ? (
+            {dashboardLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="p-4 flex items-center justify-between">
                   <div className="flex-1">
@@ -279,19 +283,64 @@ export default function CreatorDashboard() {
                 </div>
               ))
             ) : (
-              (recentContent || []).map((item: any, index: number) => (
-                <div key={item?.id || index} className="p-4 flex items-center justify-between hover:bg-accent/50 transition-colors">
-                  <div>
-                    <p className="font-medium text-foreground">{item?.title || `Content Item ${index + 1}`}</p>
-                    <p className="text-sm text-muted-foreground">{item?.publishedDate || "Published recently"}</p>
+              recentStreams.map((item: any, index: number) => (
+                <div key={item?.id || index} className="p-4 flex items-center gap-4 hover:bg-accent/50 transition-colors">
+                  {/* Thumbnail */}
+                  <div
+                    className={`w-24 h-16 bg-muted cursor-pointer rounded-md overflow-hidden relative shrink-0 ${item.replayUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                    onClick={() => setSelectedReplay(item)}
+                  >
+                    {item.thumbnail ? (
+                      <Image src={item.thumbnail} alt={item.title} width={100} height={100} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-secondary">
+                        <Video className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-primary">{item?.views ? `${item.views} views` : "New"}</p>
+
+                  {/* Content Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-foreground truncate">{item?.title || "Untitled Stream"}</p>
+                      {item.workoutType && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                          {item.workoutType}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {item?.startTime ? new Date(item.startTime).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : "Date not available"}
+                    </p>
+                  </div>
+
+                  {/* Right Side Stats/Actions */}
+                  <div className="text-right shrink-0">
+                    <div className="flex items-center justify-end gap-1 mb-1">
+                      <User className="w-3 h-3 text-muted-foreground" />
+                      <p className="text-sm mt-1 font-medium text-foreground">{item?.viewerCount || 0} {item?.viewerCount < 2 ? "Viewer" : "Viewers"}</p>
+                    </div>
+                    {item.replayUrl && (
+                      <a
+                        href={item.replayUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:underline block"
+                      >
+                        Watch Replay
+                      </a>
+                    )}
                   </div>
                 </div>
               ))
             )}
-            {(!recentContent || recentContent.length === 0) && !contentLoading && (
+            {(!recentStreams || recentStreams.length === 0) && !dashboardLoading && (
               <div className="p-8 text-center text-muted-foreground">
                 No recent content found.
               </div>
@@ -299,6 +348,35 @@ export default function CreatorDashboard() {
           </div>
         </div>
       </div>
+      {/* Replay Modal */}
+      <Dialog open={!!selectedReplay} onOpenChange={(open) => !open && setSelectedReplay(null)}>
+        <DialogContent className="sm:max-w-3xl bg-card text-card-foreground border-border">
+          <button
+            onClick={() => setSelectedReplay(null)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+          <DialogHeader>
+            <DialogTitle>{selectedReplay?.title || "Stream Replay"}</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
+            {selectedReplay?.replayUrl ? (
+              <video
+                src={selectedReplay.replayUrl}
+                controls
+                className="w-full h-full"
+                autoPlay
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white">
+                No replay available
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
