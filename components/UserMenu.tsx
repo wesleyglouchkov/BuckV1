@@ -9,7 +9,8 @@ import {
     Sun,
     LogOut,
     ChevronDown,
-    Video
+    Video,
+    HelpCircle
 } from "lucide-react";
 import { Session } from "next-auth";
 import { Switch } from "@/components/ui";
@@ -40,6 +41,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
     const [isUpgrading, setIsUpgrading] = useState(false);
     const [showRedirecting, setShowRedirecting] = useState(false);
     const profileWrapperRef = useRef<HTMLDivElement | null>(null);
+    const isAdmin = session?.user?.role?.toLowerCase() === 'admin';
 
     useEffect(() => {
         initTheme();
@@ -102,9 +104,9 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
 
                 // Show redirecting overlay
                 setShowRedirecting(true);
-                
+
                 // Navigate to creator dashboard after 4 seconds
-                setTimeout(async() => {
+                setTimeout(async () => {
                     // Update the session with new role
                     await update({
                         user: {
@@ -171,6 +173,15 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                                 <p>Join as Creator</p>
                             </button>
                         )}
+
+                     { !isAdmin &&  <Link
+                            href="/help"
+                            className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors rounded-md"
+                            onClick={() => setShowProfileMenu(false)}
+                        >
+                            <HelpCircle className="w-4 h-4" />
+                            <p>Support</p>
+                        </Link>}
 
                         <div className="flex items-center justify-between px-3 py-2 text-sm">
                             <div className="flex items-center gap-3 text-foreground">

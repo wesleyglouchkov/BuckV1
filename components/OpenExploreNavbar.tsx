@@ -94,6 +94,7 @@ export default function OpenExploreNavbar({
                             roleLabel={roleLabel}
                             menuItems={menuItems}
                             signOutCallbackUrl="/explore"
+                            
                         />
                     ) : (
                         <>

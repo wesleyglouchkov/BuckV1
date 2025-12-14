@@ -66,8 +66,8 @@ export default function HelpPage() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className="container mx-auto py-12 px-4 max-w-4xl">
-                <div className="mb-10">
-                    <Link href="/" className="flex gap-4 items-center hover:opacity-80 transition-opacity">
+                <div className="mb-10 flex items-center gap-4">
+                    <Link href="/" className="inline-flex items-center hover:opacity-80 transition-opacity">
                         <div>
                             <Image
                                 src="/buck.svg"
@@ -86,8 +86,8 @@ export default function HelpPage() {
                                 priority
                             />
                         </div>
-                        <h1 className="mt-5 text-3xl md:text-4xl font-bold mb-4">Contact Support</h1>
                     </Link>
+                    <h1 className="text-3xl md:text-4xl font-bold">Contact Support</h1>
                 </div>
 
                 <div className="max-w-2xl mx-auto">
@@ -156,7 +156,7 @@ export default function HelpPage() {
                                     value={formData.country}
                                     onChange={handleChange}
                                     className="flex h-10 w-full  border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder="United States"
+                                    placeholder="Ex: United States"
                                 />
                             </div>
                         </div>
