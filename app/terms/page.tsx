@@ -66,9 +66,17 @@ export default function TermsPage() {
 
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">5. Subscriptions and Payments</h2>
-                        <p className="text-muted-foreground leading-7">
+                        <p className="text-muted-foreground leading-7 mb-4">
                             Members may subscribe to creators through Stripe Connect. Subscriptions auto-renew until canceled. All payments are processed by Stripe and subject to Stripe's terms. We do not store payment information. Creators are responsible for any taxes related to payouts.
                         </p>
+                        <h3 className="text-lg font-semibold mb-2 text-foreground">Platform Fees</h3>
+                        <p className="text-muted-foreground leading-7">
+                            BUCK deducts the following platform fees from transactions:
+                        </p>
+                        <ul className="list-disc pl-6 mt-2 text-muted-foreground leading-7">
+                            <li><strong>20%</strong> from subscriptions, replays, and paid classes.</li>
+                            <li><strong>5%</strong> from tips.</li>
+                        </ul>
                     </section>
 
                     <section className="mb-8">

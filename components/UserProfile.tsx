@@ -178,18 +178,27 @@ export default function UserProfile() {
 
   const isCreator = session.user.role?.toLowerCase() === 'creator';
   const isMember = session.user.role?.toLowerCase() === 'member';
-
+  const isAdmin = session.user.role?.toLowerCase() === 'admin';
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-4xl mx-auto">
       {/* Profile Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-6 items-start">
           <div className="relative group">
-            <UserAvatar
-              src={displayUser.avatar || null}
-              name={displayUser.name || "User"}
-              className="w-24 h-24 text-2xl"
-            />
+            {isAdmin ? (
+              <UserAvatar
+                src={'/Wesley.jpg'}
+                name={displayUser.name || "User"}
+                className="w-24 h-24 text-2xl"
+                size="xl"
+              />
+            ) : (
+              <UserAvatar
+                src={displayUser.avatar || null}
+                name={displayUser.name || "User"}
+                className="w-24 h-24 text-2xl"
+              />
+            )}
             {/* Future: Add avatar upload trigger here */}
           </div>
 
@@ -202,28 +211,30 @@ export default function UserProfile() {
                 <p className="text-gray-500 dark:text-gray-400">@{displayUser.username}</p>
               </div>
 
-              {!isEditing ? (
-                <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-                  Edit Profile
-                </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setIsEditing(false)}
-                    variant="outline"
-                    size="sm"
-                    disabled={isSaving}
-                  >
-                    Cancel
+              {!isAdmin && (
+                !isEditing ? (
+                  <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+                    Edit Profile
                   </Button>
-                  <Button
-                    onClick={handleUpdateProfile}
-                    size="sm"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setIsEditing(false)}
+                      variant="outline"
+                      size="sm"
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleUpdateProfile}
+                      size="sm"
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                )
               )}
             </div>
 
@@ -237,21 +248,23 @@ export default function UserProfile() {
               <span>Joined {new Date(displayUser.createdAt).toLocaleDateString()}</span>
             </div>
 
-            {!isEditing ? (
-              <p className="text-gray-600 dark:text-gray-300 mt-4">
-                {displayUser.bio || "No bio provided"}
-              </p>
-            ) : (
-              <div className="mt-4">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={editFormData.bio}
-                  onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
-                  placeholder="Tell us about yourself..."
-                  className="mt-1 dark:text-white"
-                />
-              </div>
+            {!isAdmin && (
+              !isEditing ? (
+                <p className="text-gray-600 dark:text-gray-300 mt-4">
+                  {displayUser.bio || "No bio provided"}
+                </p>
+              ) : (
+                <div className="mt-4">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={editFormData.bio}
+                    onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
+                    placeholder="Tell us about yourself..."
+                    className="mt-1 dark:text-white"
+                  />
+                </div>
+              )
             )}
           </div>
         </div>

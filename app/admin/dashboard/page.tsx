@@ -113,13 +113,7 @@ export default function AdminDashboard() {
     <div className="p-6">
       {/* Greeting Section */}
       <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-border/20">
-        <Image
-          src="/Wesley.jpg"
-          alt="User Initial"
-          width={100}
-          height={100}
-          className="w-30 h-30 rounded-full object-cover"
-        />
+          <UserAvatar src={'/Wesley.jpg'} size="xl" name="Wesley"/>
         <div>
           <h2 className="text-xl font-bold text-foreground">{getGreeting()}, {getUserDisplayName()}!</h2>
           <p className="text-muted-foreground">Welcome back to your dashboard</p>
