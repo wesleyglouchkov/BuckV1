@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { SkeletonStats, SkeletonBox } from "@/components/ui/skeleton-variants";
-import { Plus, TrendingUp, DollarSign, User, Video, X } from "lucide-react";
+import { Plus, TrendingUp, DollarSign, User, Video, X, Copy, Play } from "lucide-react";
+import { toast } from "sonner";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
@@ -11,6 +12,8 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Image from "next/image";
+import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
+import { formatDateTime } from "@/utils/dateTimeUtils";
 
 export default function CreatorDashboard() {
   const { data: session } = useSession();
@@ -80,10 +83,12 @@ export default function CreatorDashboard() {
         <div>
           <p className="text-muted-foreground">Creator overview</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          New Content
-        </Button>
+        <CreateContentDialog>
+          <Button className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            New Content
+          </Button>
+        </CreateContentDialog>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -287,14 +292,27 @@ export default function CreatorDashboard() {
                 <div key={item?.id || index} className="p-4 flex items-center gap-4 hover:bg-accent/50 transition-colors">
                   {/* Thumbnail */}
                   <div
-                    className={`w-24 h-16 bg-muted cursor-pointer rounded-md overflow-hidden relative shrink-0 ${item.replayUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                    className={`w-24 h-16 bg-muted rounded-md overflow-hidden cursor-pointer relative shrink-0 group ${item.replayUrl ? 'cursor-pointer' : ''}`}
                     onClick={() => setSelectedReplay(item)}
                   >
                     {item.thumbnail ? (
-                      <Image src={item.thumbnail} alt={item.title} width={100} height={100} className="w-full h-full object-cover" />
+                      <Image
+                        src={item.thumbnail}
+                        alt={item.title}
+                        width={100}
+                        height={100}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-secondary">
+                      <div className="w-full h-full flex items-center justify-center bg-secondary transition-colors group-hover:bg-secondary/80">
                         <Video className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+
+                    {/* Hover Overlay */}
+                    {item.replayUrl && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Play className="w-8 h-8 text-white fill-white opacity-90" />
                       </div>
                     )}
                   </div>
@@ -310,13 +328,7 @@ export default function CreatorDashboard() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {item?.startTime ? new Date(item.startTime).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : "Date not available"}
+                      {item?.startTime ? formatDateTime(item.startTime) : "Date not available"}
                     </p>
                   </div>
 
@@ -361,20 +373,41 @@ export default function CreatorDashboard() {
           <DialogHeader>
             <DialogTitle>{selectedReplay?.title || "Stream Replay"}</DialogTitle>
           </DialogHeader>
-          <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
-            {selectedReplay?.replayUrl ? (
-              <video
-                src={selectedReplay.replayUrl}
-                controls
-                className="w-full h-full"
-                autoPlay
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white">
-                No replay available
+          {selectedReplay?.replayUrl ? (
+            <>
+              <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
+                <video
+                  src={selectedReplay.replayUrl}
+                  controls
+                  className="w-full h-full"
+                  autoPlay
+                />
               </div>
-            )}
-          </div>
+              <div className="mt-4">
+                <div className="relative flex items-center bg-muted p-3 rounded-md pr-10 border border-border">
+                  <code className="text-xs sm:text-sm text-foreground truncate flex-1 font-mono">
+                    {selectedReplay.replayUrl}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedReplay.replayUrl);
+                      toast.success("Replay URL copied to clipboard");
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-foreground"
+                    title="Copy to clipboard"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+              <Video className="w-12 h-12 mb-4 opacity-20" />
+              <p className="text-lg font-medium">No replay available</p>
+              <p className="text-sm opacity-70">This stream does not have a recorded replay.</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
