@@ -28,15 +28,13 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
     if (src) {
         return (
             <div className={`${sizeClass} relative rounded-full overflow-hidden ${className}`}>
-               src  ?
                 <Image
                     src={src}
                     alt={name}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100px, 200px"
-                />:
-                <User/>
+                />
             </div>
         );
     }
@@ -45,7 +43,7 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
         <div
             className={`${sizeClass} bg-linear-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${className}`}
         >
-            {initials}
+             <User/>
         </div>
     );
 }
