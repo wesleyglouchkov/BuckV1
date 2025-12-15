@@ -207,7 +207,7 @@ export default function CreatorDashboard() {
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                         color: isDarkMode ? '#F9FAFB' : '#111827'
                       }}
-                      formatter={(value: number) => [`$${value}`, "Revenue"]}
+                      formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
                     />
                     <Legend />
                     <Area

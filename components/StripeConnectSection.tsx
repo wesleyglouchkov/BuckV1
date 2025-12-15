@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui";
+import { Button, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui";
 import { DollarSign, Unlink, CheckCircle, AlertCircle } from "lucide-react";
 import { creatorService } from "@/services";
 import Loader from "@/components/Loader";
@@ -20,6 +20,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     const [onboardingCompleted, setOnboardingCompleted] = useState(false);
     const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
 
     // Fetch user profile to get Stripe connection status
     useEffect(() => {
@@ -86,11 +87,8 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     };
 
     const handleDisconnectStripe = async () => {
-        if (!confirm("Are you sure you want to disconnect your Stripe account? You won't be able to receive tips until you reconnect.")) {
-            return;
-        }
-
         setIsDisconnecting(true);
+        setShowDisconnectDialog(false);
         try {
             const response = await creatorService.disconnectStripeAccount(session?.user?.id || '');
 
@@ -135,7 +133,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                                 Stripe Connected
                             </p>
                             <p className="text-xs text-green-700 dark:text-green-300">
-                                You can now receive tips from viewers
+                                You can now receive tips from viewers to your bank account. Members can also subscribe to interact and engage with you.
                             </p>
                         </div>
                     </div>
@@ -147,7 +145,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     )}
 
                     <Button
-                        onClick={handleDisconnectStripe}
+                        onClick={() => setShowDisconnectDialog(true)}
                         disabled={isDisconnecting}
                         variant="destructive"
                         size="sm"
@@ -219,6 +217,32 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     Connecting to stripe...
                 </div>
             )}
+
+            {/* Disconnect Confirmation Dialog */}
+            <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Disconnect Stripe Account?</AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                            <p>
+                                Are you sure you want to disconnect your Stripe account?
+                            </p>
+                            <p className="font-medium text-destructive">
+                                ⚠️ You won't be able to receive tips or subscription payments until you reconnect.
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDisconnectStripe}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Disconnect
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
