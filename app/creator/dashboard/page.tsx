@@ -305,7 +305,7 @@ export default function CreatorDashboard() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-secondary transition-colors group-hover:bg-secondary/80">
-                        <Video className="w-6 h-6 text-muted-foreground" />
+                        <Video className="w-6 h-6 text-muted-foreground dark:text-white" />
                       </div>
                     )}
 

@@ -10,11 +10,11 @@ export default function CreatorRevenuePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-card border border-border/20 rounded-lg p-6">
-                    <h2 className="text-xl font-semibold mb-4">Tips List</h2>
+                    <h2 className="text-xl font-semibold mb-4 dark:text-white">Tips List</h2>
                     <p className="text-muted-foreground">Recent tips will appear here.</p>
                 </div>
                 <div className="bg-card border border-border/20 rounded-lg p-6">
-                    <h2 className="text-xl font-semibold mb-4">Subscriptions</h2>
+                    <h2 className="text-xl font-semibold mb-4 dark:text-white">Subscriptions</h2>
                     <p className="text-muted-foreground">Subscription revenue details will appear here.</p>
                 </div>
             </div>
