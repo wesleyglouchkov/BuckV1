@@ -68,6 +68,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
   },
+  cookies: {
+  sessionToken: {
+    options: {
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    },
+  },
+},
   secret: process.env.JWT_SECRET,
   trustHost: true,
 });
