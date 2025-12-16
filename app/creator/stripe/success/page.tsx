@@ -7,6 +7,7 @@ import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { creatorService } from "@/services/creator";
 import { toast } from "sonner";
+import { SkeletonCard } from "@/components/ui/skeleton-variants";
 
 export default function StripeSuccessPage() {
     const { data: session } = useSession();
@@ -75,11 +76,10 @@ export default function StripeSuccessPage() {
     // Show loader while verifying
     if (isVerifying) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center space-y-4">
-                    <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto" />
-                    <h2 className="text-2xl font-bold text-foreground">Verifying your Stripe connection...</h2>
-                    <p className="text-muted-foreground">Please wait while we confirm your setup</p>
+            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+                <div className="max-w-2xl w-full space-y-4">
+                    <SkeletonCard />
+                    <SkeletonCard />
                 </div>
             </div>
         );

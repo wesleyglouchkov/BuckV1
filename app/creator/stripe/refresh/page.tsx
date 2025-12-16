@@ -7,6 +7,7 @@ import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { creatorService } from "@/services/creator";
 import { toast } from "sonner";
+import { SkeletonCard } from "@/components/ui/skeleton-variants";
 
 export default function StripeRefreshPage() {
     const { data: session } = useSession();
@@ -81,11 +82,9 @@ export default function StripeRefreshPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center space-y-4">
-                    <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto" />
-                    <h2 className="text-2xl font-bold text-foreground">Just a moment...</h2>
-                    <p className="text-muted-foreground">Checking your setup status</p>
+            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+                <div className="max-w-md w-full">
+                    <SkeletonCard />
                 </div>
             </div>
         );

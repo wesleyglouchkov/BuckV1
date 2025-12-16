@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui";
 import { Unlink, CheckCircle, AlertCircle, Link } from "lucide-react";
 import { creatorService } from "@/services";
-import Loader from "@/components/Loader";
+import { SkeletonCard } from "@/components/ui/skeleton-variants";
 
 interface StripeConnectSectionProps {
     isCreator: boolean;
@@ -121,9 +121,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     if (isLoading) {
         return (
             <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-                <div className="flex items-center justify-center py-8">
-                    <Loader />
-                </div>
+                <SkeletonCard />
             </div>
         );
     }
@@ -133,7 +131,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2">
-                    <img src="/stripe-logo.png" alt="Stripe" className="w-10 h-10 rounded-full object-cover" />
+                    <img src="/stripe-logo.png" alt="Stripe" className="w-10 h-10 rounded-full object-cover bg-blend-normal" />
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold text-foreground">
