@@ -43,10 +43,10 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     // If account exists, check latest status from Stripe API
                     if (profile.data.stripe_account_id) {
                         try {
-                            const statusCheck = await creatorService.checkAccountStatus(session.user.id);
-                            if (statusCheck.success && statusCheck.data) {
-                                setStripeConnected(statusCheck.data.stripe_connected);
-                                setOnboardingCompleted(statusCheck.data.stripe_onboarding_completed);
+                            const statusCheck = await creatorService.getStripeAccountStatus(session.user.id);
+                            if (statusCheck.success) {
+                                setStripeConnected(statusCheck.connected);
+                                setOnboardingCompleted(statusCheck.onboardingCompleted);
                             }
                         } catch (error) {
                             console.error('Failed to check Stripe status:', error);
@@ -289,52 +289,52 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                         ) : (
                             <>
 
-                            <Link className="w-4 h-4 mr-2" />
+                                <Link className="w-4 h-4 mr-2" />
                                 Connect Stripe Account
-                    </>
+                            </>
                         )}
-                </Button>
+                    </Button>
                 </div>
-    )
-}
+            )
+            }
 
-{/* Full-screen loading overlay */ }
-{
-    (isConnecting || isDisconnecting) && (
-        <div className="dark:text-white fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
-            {isConnecting ? "Connecting to stripe..." : "Disconnecting from stripe..."}
-        </div>
-    )
-}
+            {/* Full-screen loading overlay */}
+            {
+                (isConnecting || isDisconnecting) && (
+                    <div className="dark:text-white fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
+                        {isConnecting ? "Connecting to stripe..." : "Disconnecting from stripe..."}
+                    </div>
+                )
+            }
 
-{/* Disconnect Confirmation Dialog */ }
-<Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
-    <DialogContent>
-        <DialogHeader>
-            <DialogTitle>Disconnect Stripe Account?</DialogTitle>
-            <DialogDescription className="space-y-2">
-                Are you sure you want to disconnect your Stripe account?
-                <span className="font-medium text-destructive mt-2 block">
-                    ⚠️ You won't be able to receive tips or subscription payments until you reconnect.
-                </span>
-            </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2">
-            <Button
-                variant="outline"
-                onClick={() => setShowDisconnectDialog(false)}
-            >
-                Cancel
-            </Button>
-            <Button
-                variant="destructive"
-                onClick={handleDisconnectStripe}
-            >
-                Disconnect
-            </Button>
-        </DialogFooter>
-    </DialogContent>
-</Dialog>
+            {/* Disconnect Confirmation Dialog */}
+            <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Disconnect Stripe Account?</DialogTitle>
+                        <DialogDescription className="space-y-2">
+                            Are you sure you want to disconnect your Stripe account?
+                            <span className="font-medium text-destructive mt-2 block">
+                                ⚠️ You won't be able to receive tips or subscription payments until you reconnect.
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDisconnectDialog(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDisconnectStripe}
+                        >
+                            Disconnect
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div >
     );
 }
