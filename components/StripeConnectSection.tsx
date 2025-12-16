@@ -50,6 +50,45 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
         fetchProfile();
     }, [isCreator, session?.user?.id]);
 
+    // Check Stripe status when returning from onboarding
+    useEffect(() => {
+        const checkStripeReturn = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const stripeConnected = urlParams.get('stripe_connected');
+            const stripeRefresh = urlParams.get('stripe_refresh');
+
+            if (stripeConnected === 'true' || stripeRefresh === 'true') {
+                // Remove query params from URL
+                window.history.replaceState({}, '', window.location.pathname);
+
+                // Refresh the Stripe account status from backend
+                if (session?.user?.id) {
+                    try {
+                        const statusResponse = await creatorService.getStripeAccountStatus(session.user.id);
+
+                        if (statusResponse.success && statusResponse.data) {
+                            setStripeConnected(statusResponse.data.stripe_connected || false);
+                            setOnboardingCompleted(statusResponse.data.stripe_onboarding_completed || false);
+
+                            if (statusResponse.data.stripe_onboarding_completed) {
+                                toast.success('Stripe account connected successfully!');
+                            }
+                            else if (stripeRefresh === 'true') {
+                                toast.info('Please complete the Stripe onboarding process');
+                            }
+                        }
+                        
+                    } catch (error: any) {
+                        console.error('Failed to refresh Stripe status:', error);
+                        toast.error('Failed to verify Stripe connection status');
+                    }
+                }
+            }
+        };
+
+        checkStripeReturn();
+    }, [session?.user?.id]);
+
     // Only show for creators
     if (!isCreator) {
         return null;
