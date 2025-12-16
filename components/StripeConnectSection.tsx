@@ -50,24 +50,11 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
         fetchProfile();
     }, [isCreator, session?.user?.id]);
 
-    // Check Stripe status when returning from onboarding or when component mounts
+    // Check Stripe status when component mounts if account exists but onboarding incomplete
     useEffect(() => {
         const checkStripeStatus = async () => {
-            // Check if we have URL parameters from Stripe redirect
-            const urlParams = new URLSearchParams(window.location.search);
-            const stripeConnected = urlParams.get('stripe_connected');
-            const stripeRefresh = urlParams.get('stripe_refresh');
-            const hasStripeParams = stripeConnected === 'true' || stripeRefresh === 'true';
-
-            // If we have Stripe params, clean up the URL
-            if (hasStripeParams) {
-                window.history.replaceState({}, '', window.location.pathname);
-            }
-
-            // Check status if:
-            // 1. User just returned from Stripe (has URL params), OR
-            // 2. User has a Stripe account but onboarding is not completed (need to verify)
-            const shouldCheckStatus = hasStripeParams || (stripeAccountId && !onboardingCompleted);
+            // Only check status if user has a Stripe account but onboarding is not completed
+            const shouldCheckStatus = stripeAccountId && !onboardingCompleted;
 
             if (shouldCheckStatus && session?.user?.id) {
                 try {
@@ -75,29 +62,22 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     console.log('Stripe account status:', statusResponse);
 
                     if (statusResponse.success) {
-                        // Backend returns: { success, connected, chargesEnabled, payoutsEnabled }
-                        // We need to map it to our state
+                        // Backend returns: { success, connected, chargesEnabled, payoutsEnabled, detailsSubmitted }
                         const isConnected = statusResponse.connected || false;
-                        const isOnboardingCompleted = statusResponse.chargesEnabled && statusResponse.payoutsEnabled;
+                        // Use detailsSubmitted if available, otherwise fall back to chargesEnabled
+                        const isOnboardingCompleted = statusResponse.detailsSubmitted ?? statusResponse.chargesEnabled ?? false;
+
+                        console.log('Stripe connected:', isConnected);
+                        console.log('Stripe onboarding completed:', isOnboardingCompleted);
+                        console.log('Details submitted:', statusResponse.detailsSubmitted);
+                        console.log('Charges enabled:', statusResponse.chargesEnabled);
+                        console.log('Payouts enabled:', statusResponse.payoutsEnabled);
 
                         setStripeConnected(isConnected);
                         setOnboardingCompleted(isOnboardingCompleted);
-
-                        // Only show toast if user just returned from Stripe
-                        if (hasStripeParams) {
-                            if (isOnboardingCompleted) {
-                                toast.success('Stripe account connected successfully!');
-                            } else if (stripeRefresh === 'true') {
-                                toast.info('Please complete the Stripe onboarding process');
-                            }
-                        }
                     }
                 } catch (error: any) {
                     console.error('Failed to refresh Stripe status:', error);
-                    // Only show error toast if user just returned from Stripe
-                    if (hasStripeParams) {
-                        toast.error('Failed to verify Stripe connection status');
-                    }
                 }
             }
         };
