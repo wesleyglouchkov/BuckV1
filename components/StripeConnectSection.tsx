@@ -50,41 +50,6 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
         fetchProfile();
     }, [isCreator, session?.user?.id]);
 
-    // Check Stripe status when component mounts if account exists but onboarding incomplete
-    useEffect(() => {
-        const checkStripeStatus = async () => {
-            // Only check status if user has a Stripe account but onboarding is not completed
-            const shouldCheckStatus = stripeAccountId && !onboardingCompleted;
-
-            if (shouldCheckStatus && session?.user?.id) {
-                try {
-                    const statusResponse = await creatorService.getStripeAccountStatus(session.user.id);
-                    console.log('Stripe account status:', statusResponse);
-
-                    if (statusResponse.success) {
-                        // Backend returns: { success, connected, chargesEnabled, payoutsEnabled, detailsSubmitted }
-                        const isConnected = statusResponse.connected || false;
-                        // Use detailsSubmitted if available, otherwise fall back to chargesEnabled
-                        const isOnboardingCompleted = statusResponse.detailsSubmitted ?? statusResponse.chargesEnabled ?? false;
-
-                        console.log('Stripe connected:', isConnected);
-                        console.log('Stripe onboarding completed:', isOnboardingCompleted);
-                        console.log('Details submitted:', statusResponse.detailsSubmitted);
-                        console.log('Charges enabled:', statusResponse.chargesEnabled);
-                        console.log('Payouts enabled:', statusResponse.payoutsEnabled);
-
-                        setStripeConnected(isConnected);
-                        setOnboardingCompleted(isOnboardingCompleted);
-                    }
-                } catch (error: any) {
-                    console.error('Failed to refresh Stripe status:', error);
-                }
-            }
-        };
-
-        checkStripeStatus();
-    }, [session?.user?.id, stripeAccountId, onboardingCompleted]);
-
     // Only show for creators
     if (!isCreator) {
         return null;
@@ -146,8 +111,8 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     return (
         <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-primary" />
+                <div className="p-2">
+                    <img src="/stripe-logo.png" alt="Stripe" className="w-10 h-10 rounded-full object-cover" />
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold text-foreground">
@@ -188,6 +153,100 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     >
                         {isDisconnecting ? (
 
+                            <>
+                                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Disconnecting...
+                            </>
+                        ) : (
+                            <>
+                                <Unlink className="w-4 h-4 mr-2" />
+                                Disconnect Stripe
+                            </>
+                        )}
+                    </Button>
+
+                    {/* Complete Verification Button - Show if onboarding not completed */}
+                    {!onboardingCompleted && (
+                        <Button
+                            onClick={handleConnectStripe}
+                            disabled={isConnecting}
+                            variant="outline"
+                            size="sm"
+                            className="w-full border-amber-500 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                        >
+                            {isConnecting ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading...
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle className="w-4 h-4 mr-2" />
+                                    Complete Verification
+                                </>
+                            )}
+                        </Button>
+                    )}
+                </div>
+            ) : stripeConnected && !onboardingCompleted ? (
+                <div className="space-y-4">
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                        <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                                Verification Incomplete
+                            </p>
+                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                                Your Stripe account is connected, but additional verification is required to start receiving payments.
+                            </p>
+                        </div>
+                    </div>
+
+                    {stripeAccountId && (
+                        <div className="text-xs text-muted-foreground">
+                            Account ID: {stripeAccountId}
+                        </div>
+                    )}
+
+                    {/* Complete Verification Button */}
+                    <Button
+                        onClick={handleConnectStripe}
+                        disabled={isConnecting}
+                        variant="default"
+                        size="sm"
+                        className="w-full"
+                    >
+                        {isConnecting ? (
+                            <>
+                                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Loading...
+                            </>
+                        ) : (
+                            <>
+                                <AlertCircle className="w-4 h-4 mr-2" />
+                                Complete Verification
+                            </>
+                        )}
+                    </Button>
+
+                    {/* Disconnect Button */}
+                    <Button
+                        onClick={() => setShowDisconnectDialog(true)}
+                        disabled={isDisconnecting}
+                        variant="destructive"
+                        size="sm"
+                        className="w-full"
+                    >
+                        {isDisconnecting ? (
                             <>
                                 <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -244,14 +303,17 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                         )}
                     </Button>
                 </div>
-            )}
+            )
+            }
 
             {/* Full-screen loading overlay */}
-            {(isConnecting || isDisconnecting) && (
-                <div className="dark:text-white fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    {isConnecting ? "Connecting to stripe..." : "Disconnecting from stripe..."}
-                </div>
-            )}
+            {
+                (isConnecting || isDisconnecting) && (
+                    <div className="dark:text-white fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
+                        {isConnecting ? "Connecting to stripe..." : "Disconnecting from stripe..."}
+                    </div>
+                )
+            }
 
             {/* Disconnect Confirmation Dialog */}
             <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
@@ -281,6 +343,6 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 }

@@ -70,29 +70,32 @@ export default function StripeRefreshPage() {
 
                 {/* Title */}
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-foreground">Setup Incomplete</h2>
+                    <h2 className="text-2xl font-bold text-foreground">Additional Verification Required</h2>
                     <p className="text-muted-foreground">
-                        It looks like you didn't complete the Stripe onboarding process. Don't worry, you can try again anytime!
+                        Stripe needs a bit more information to complete your account setup. This is a standard security measure to protect your account.
                     </p>
                 </div>
 
                 {/* Info Box */}
                 <div className="bg-muted/50 border border-border rounded-lg p-4 text-left">
-                    <h3 className="text-sm font-semibold text-foreground mb-2">Why complete setup?</h3>
+                    <h3 className="text-sm font-semibold text-foreground mb-2">What you might need:</h3>
                     <ul className="space-y-2 text-sm text-muted-foreground">
                         <li className="flex items-start gap-2">
                             <span className="text-primary mt-0.5">•</span>
-                            <span>Receive tips from viewers during livestreams</span>
+                            <span>Proof of address (utility bill, bank statement, etc.)</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-primary mt-0.5">•</span>
-                            <span>Enable paid subscriptions for exclusive content</span>
+                            <span>Additional identity verification documents</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-primary mt-0.5">•</span>
-                            <span>Withdraw earnings directly to your bank account</span>
+                            <span>Business or tax information</span>
                         </li>
                     </ul>
+                    <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
+                        💡 This process usually takes just a few minutes. Once verified, you'll be able to receive tips and subscriptions!
+                    </p>
                 </div>
 
                 {/* Action Buttons */}
@@ -111,7 +114,7 @@ export default function StripeRefreshPage() {
                         ) : (
                             <>
                                 <RefreshCw className="w-4 h-4 mr-2" />
-                                Try Again
+                                Continue Verification
                             </>
                         )}
                     </Button>
