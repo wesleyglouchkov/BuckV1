@@ -50,44 +50,60 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
         fetchProfile();
     }, [isCreator, session?.user?.id]);
 
-    // Check Stripe status when returning from onboarding
+    // Check Stripe status when returning from onboarding or when component mounts
     useEffect(() => {
-        const checkStripeReturn = async () => {
+        const checkStripeStatus = async () => {
+            // Check if we have URL parameters from Stripe redirect
             const urlParams = new URLSearchParams(window.location.search);
             const stripeConnected = urlParams.get('stripe_connected');
             const stripeRefresh = urlParams.get('stripe_refresh');
+            const hasStripeParams = stripeConnected === 'true' || stripeRefresh === 'true';
 
-            if (stripeConnected === 'true' || stripeRefresh === 'true') {
-                // Remove query params from URL
+            // If we have Stripe params, clean up the URL
+            if (hasStripeParams) {
                 window.history.replaceState({}, '', window.location.pathname);
+            }
 
-                // Refresh the Stripe account status from backend
-                if (session?.user?.id) {
-                    try {
-                        const statusResponse = await creatorService.getStripeAccountStatus(session.user.id);
+            // Check status if:
+            // 1. User just returned from Stripe (has URL params), OR
+            // 2. User has a Stripe account but onboarding is not completed (need to verify)
+            const shouldCheckStatus = hasStripeParams || (stripeAccountId && !onboardingCompleted);
 
-                        if (statusResponse.success && statusResponse.data) {
-                            setStripeConnected(statusResponse.data.stripe_connected || false);
-                            setOnboardingCompleted(statusResponse.data.stripe_onboarding_completed || false);
+            if (shouldCheckStatus && session?.user?.id) {
+                try {
+                    const statusResponse = await creatorService.getStripeAccountStatus(session.user.id);
+                    console.log('Stripe account status:', statusResponse);
 
-                            if (statusResponse.data.stripe_onboarding_completed) {
+                    if (statusResponse.success) {
+                        // Backend returns: { success, connected, chargesEnabled, payoutsEnabled }
+                        // We need to map it to our state
+                        const isConnected = statusResponse.connected || false;
+                        const isOnboardingCompleted = statusResponse.chargesEnabled && statusResponse.payoutsEnabled;
+
+                        setStripeConnected(isConnected);
+                        setOnboardingCompleted(isOnboardingCompleted);
+
+                        // Only show toast if user just returned from Stripe
+                        if (hasStripeParams) {
+                            if (isOnboardingCompleted) {
                                 toast.success('Stripe account connected successfully!');
-                            }
-                            else if (stripeRefresh === 'true') {
+                            } else if (stripeRefresh === 'true') {
                                 toast.info('Please complete the Stripe onboarding process');
                             }
                         }
-                        
-                    } catch (error: any) {
-                        console.error('Failed to refresh Stripe status:', error);
+                    }
+                } catch (error: any) {
+                    console.error('Failed to refresh Stripe status:', error);
+                    // Only show error toast if user just returned from Stripe
+                    if (hasStripeParams) {
                         toast.error('Failed to verify Stripe connection status');
                     }
                 }
             }
         };
 
-        checkStripeReturn();
-    }, [session?.user?.id]);
+        checkStripeStatus();
+    }, [session?.user?.id, stripeAccountId, onboardingCompleted]);
 
     // Only show for creators
     if (!isCreator) {
