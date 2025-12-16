@@ -15,7 +15,7 @@ const creatorMenu = [
   { icon: Users, label: "My Subscribers", href: "/creator/subscribers" },
   { icon: FileText, label: "My Content", href: "/creator/content" },
   { icon: DollarSign, label: "Revenue", href: "/creator/revenue" },
-  { icon: User, label: "Profile", href: "/creator/profile" },
+  { icon: User, label: "Account Profile", href: "/creator/profile" },
 ];
 
 export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
