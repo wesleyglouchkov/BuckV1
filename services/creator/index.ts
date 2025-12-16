@@ -40,6 +40,17 @@ export const creatorService = {
     }
   },
 
+  // Stripe Connect - Check Account Status (refreshes from Stripe API)
+  checkAccountStatus: async (userId: string) => {
+    try {
+      const axios = await createClientAuthInstance('creator');
+      const response = await axios.get(`/creator/stripe/connect/check-status/${userId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to check Stripe account status');
+    }
+  },
+
   // Get User Profile
   getUserProfile: async (role: string) => {
     try {

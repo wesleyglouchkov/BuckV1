@@ -1,51 +1,82 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { creatorService } from "@/services/creator";
 import { toast } from "sonner";
-import { useState } from "react";
 
 export default function StripeRefreshPage() {
     const { data: session } = useSession();
     const router = useRouter();
-    const [isRetrying, setIsRetrying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRetrying, setIsRetrying] = useState(false);
 
+    // Check account status and redirect if already complete
     useEffect(() => {
-        // Show loader for 2 seconds before showing the retry page
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 2000);
+        const checkStatusAndRedirect = async () => {
+            if (!session?.user?.id) {
+                setIsLoading(false);
+                return;
+            }
 
-        return () => clearTimeout(timer);
-    }, []);
+            try {
+                // Check current Stripe status
+                const statusResponse = await creatorService.getStripeAccountStatus(session.user.id);
+
+                if (statusResponse.success) {
+                    // If onboarding is complete, redirect to profile
+                    if (statusResponse.onboardingCompleted) {
+                        toast.success("Your Stripe account is already verified!");
+                        router.push("/creator/profile");
+                        return;
+                    }
+
+                    // If fully connected (charges + payouts), redirect to success page
+                    if (statusResponse.chargesEnabled && statusResponse.payoutsEnabled) {
+                        router.push("/creator/stripe/success");
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to check account status:", error);
+            }
+
+            // Show the refresh page after 2 seconds
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 2000);
+        };
+
+        checkStatusAndRedirect();
+    }, [session?.user?.id, router]);
 
     const handleRetry = async () => {
-        if (!session?.user?.id) return;
+        if (!session?.user?.id) {
+            toast.error("Please sign in to continue");
+            return;
+        }
 
         setIsRetrying(true);
         try {
             const response = await creatorService.createStripeAccountLink(session.user.id);
-
             if (response.success && response.url) {
                 window.location.href = response.url;
             } else {
-                toast.error(response.message || "Failed to create Stripe link");
+                toast.error("Failed to create Stripe connection link");
                 setIsRetrying(false);
             }
         } catch (error: any) {
-            console.error("Failed to create Stripe link:", error);
-            toast.error(error.message || "Failed to create Stripe link");
+            console.error('Failed to retry Stripe connection:', error);
+            toast.error(error.message || "Failed to retry Stripe connection");
             setIsRetrying(false);
         }
     };
 
     const handleGoBack = () => {
-        window.location.href = "/creator/profile";
+        router.push("/creator/profile");
     };
 
     if (isLoading) {
@@ -62,7 +93,7 @@ export default function StripeRefreshPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6">
-            <div className="max-w-md w-full bg-card border border-border rounded-lg p-8 text-center space-y-6">
+            <div className="max-w-md w-full bg-card border border-border rounded-lg p-8 space-y-6">
                 {/* Warning Icon */}
                 <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
                     <AlertCircle className="w-8 h-8 text-amber-500" />
@@ -118,22 +149,16 @@ export default function StripeRefreshPage() {
                             </>
                         )}
                     </Button>
+
                     <Button
                         onClick={handleGoBack}
                         variant="outline"
                         className="w-full"
+                        size="lg"
                     >
-                        Maybe Later
+                        Go Back to Profile
                     </Button>
                 </div>
-
-                {/* Help Text */}
-                <p className="text-xs text-muted-foreground">
-                    Need help? Contact support or check our{" "}
-                    <a href="/help" className="text-primary hover:underline">
-                        help center
-                    </a>
-                </p>
             </div>
         </div>
     );

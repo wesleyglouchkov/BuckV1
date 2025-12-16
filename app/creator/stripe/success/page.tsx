@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Loader2, AlertCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { creatorService } from "@/services/creator";
 import { toast } from "sonner";
@@ -12,24 +12,23 @@ export default function StripeSuccessPage() {
     const { data: session } = useSession();
     const router = useRouter();
     const [isVerifying, setIsVerifying] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [status, setStatus] = useState<{
         connected: boolean;
         chargesEnabled: boolean;
         payoutsEnabled: boolean;
-        detailsSubmitted: boolean;
+        onboardingCompleted: boolean;
     } | null>(null);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const verifyStripeConnection = async () => {
             if (!session?.user?.id) {
-                // Only stop loading if there's no session after a delay
                 setTimeout(() => setIsVerifying(false), 1000);
                 return;
             }
 
             try {
-                // Wait for Stripe webhook to process (3 seconds)
+                // Wait for Stripe webhook to process
                 await new Promise(resolve => setTimeout(resolve, 3000));
 
                 // Check the Stripe account status
@@ -40,18 +39,18 @@ export default function StripeSuccessPage() {
                         connected: statusResponse.connected || false,
                         chargesEnabled: statusResponse.chargesEnabled || false,
                         payoutsEnabled: statusResponse.payoutsEnabled || false,
-                        detailsSubmitted: statusResponse.detailsSubmitted || false,
+                        onboardingCompleted: statusResponse.onboardingCompleted || false,
                     };
 
                     // If nothing is enabled, redirect to refresh page
-                    if (!accountStatus.connected && !accountStatus.chargesEnabled && !accountStatus.detailsSubmitted) {
+                    if (!accountStatus.connected && !accountStatus.chargesEnabled) {
                         router.push('/creator/stripe/refresh');
                         return;
                     }
 
                     setStatus(accountStatus);
 
-                    // Show success toast if fully connected
+                    // Show success toast if connected
                     if (statusResponse.chargesEnabled) {
                         toast.success("Stripe account connected successfully!");
                     }
@@ -62,7 +61,6 @@ export default function StripeSuccessPage() {
                 console.error("Failed to verify Stripe connection:", err);
                 setError(err.message || "Failed to verify Stripe connection");
             } finally {
-                // Only stop loading after we get a response (success or error)
                 setIsVerifying(false);
             }
         };
@@ -74,6 +72,7 @@ export default function StripeSuccessPage() {
         router.push("/creator/profile");
     };
 
+    // Show loader while verifying
     if (isVerifying) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
@@ -86,6 +85,7 @@ export default function StripeSuccessPage() {
         );
     }
 
+    // Show error if verification failed
     if (error) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background p-6">
@@ -95,9 +95,7 @@ export default function StripeSuccessPage() {
                     </div>
                     <div className="space-y-2">
                         <h2 className="text-2xl font-bold text-foreground">Verification Failed</h2>
-                        <p className="text-muted-foreground">
-                            {error}
-                        </p>
+                        <p className="text-muted-foreground">{error}</p>
                     </div>
                     <Button onClick={handleContinue} className="w-full">
                         Return to Profile
@@ -140,20 +138,20 @@ export default function StripeSuccessPage() {
                     {/* Charges Enabled */}
                     <div className={`flex items-center gap-3 p-4 rounded-lg border ${status.chargesEnabled
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                        : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                        : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
                         }`}>
-                        <CheckCircle className={`w-5 h-5 ${status.chargesEnabled ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'
+                        <CheckCircle className={`w-5 h-5 ${status.chargesEnabled ? 'text-green-600 dark:text-green-400' : 'text-gray-400'
                             }`} />
                         <div className="flex-1">
                             <p className={`text-sm font-medium ${status.chargesEnabled
                                 ? 'text-green-900 dark:text-green-100'
-                                : 'text-amber-900 dark:text-amber-100'
+                                : 'text-gray-900 dark:text-gray-100'
                                 }`}>
                                 Accept Payments
                             </p>
                             <p className={`text-xs ${status.chargesEnabled
                                 ? 'text-green-700 dark:text-green-300'
-                                : 'text-amber-700 dark:text-amber-300'
+                                : 'text-gray-700 dark:text-gray-300'
                                 }`}>
                                 {status.chargesEnabled
                                     ? "You can now receive tips and subscriptions"
@@ -211,10 +209,9 @@ export default function StripeSuccessPage() {
                     </div>
                 )}
 
-                {/* Action Button */}
+                {/* Continue Button */}
                 <Button onClick={handleContinue} className="w-full" size="lg">
                     Continue to Profile
-                    <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
             </div>
         </div>
