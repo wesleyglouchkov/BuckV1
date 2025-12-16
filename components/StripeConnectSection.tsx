@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Button, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui";
 import { DollarSign, Unlink, CheckCircle, AlertCircle } from "lucide-react";
 import { creatorService } from "@/services";
 import Loader from "@/components/Loader";
@@ -249,35 +249,38 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
             {/* Full-screen loading overlay */}
             {(isConnecting || isDisconnecting) && (
                 <div className="dark:text-white fixed inset-0 bg-background/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    Connecting to stripe...
+                    {isConnecting ? "Connecting to stripe..." : "Disconnecting from stripe..."}
                 </div>
             )}
 
             {/* Disconnect Confirmation Dialog */}
-            <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Disconnect Stripe Account?</AlertDialogTitle>
-                        <AlertDialogDescription className="space-y-2">
-                            <p>
-                                Are you sure you want to disconnect your Stripe account?
-                            </p>
-                            <p className="font-medium text-destructive">
+            <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Disconnect Stripe Account?</DialogTitle>
+                        <DialogDescription className="space-y-2">
+                            Are you sure you want to disconnect your Stripe account?
+                            <span className="font-medium text-destructive mt-2 block">
                                 ⚠️ You won't be able to receive tips or subscription payments until you reconnect.
-                            </p>
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDisconnectDialog(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
                             onClick={handleDisconnectStripe}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             Disconnect
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

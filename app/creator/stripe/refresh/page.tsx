@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { creatorService } from "@/services/creator";
 import { toast } from "sonner";
@@ -45,14 +45,14 @@ export default function StripeRefreshPage() {
     };
 
     const handleGoBack = () => {
-        router.push("/creator/profile");
+        window.location.href = "/creator/profile";
     };
 
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center space-y-4">
-                    <RefreshCw className="w-16 h-16 animate-spin text-primary mx-auto" />
+                    <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto" />
                     <h2 className="text-2xl font-bold text-foreground">Just a moment...</h2>
                     <p className="text-muted-foreground">Checking your setup status</p>
                 </div>
@@ -105,7 +105,7 @@ export default function StripeRefreshPage() {
                     >
                         {isRetrying ? (
                             <>
-                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 Loading...
                             </>
                         ) : (

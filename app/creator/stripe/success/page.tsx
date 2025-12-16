@@ -36,12 +36,20 @@ export default function StripeSuccessPage() {
                 const statusResponse = await creatorService.getStripeAccountStatus(session.user.id);
 
                 if (statusResponse.success) {
-                    setStatus({
+                    const accountStatus = {
                         connected: statusResponse.connected || false,
                         chargesEnabled: statusResponse.chargesEnabled || false,
                         payoutsEnabled: statusResponse.payoutsEnabled || false,
                         detailsSubmitted: statusResponse.detailsSubmitted || false,
-                    });
+                    };
+
+                    // If nothing is enabled, redirect to refresh page
+                    if (!accountStatus.connected && !accountStatus.chargesEnabled && !accountStatus.detailsSubmitted) {
+                        router.push('/creator/stripe/refresh');
+                        return;
+                    }
+
+                    setStatus(accountStatus);
 
                     // Show success toast if fully connected
                     if (statusResponse.chargesEnabled) {
@@ -60,7 +68,7 @@ export default function StripeSuccessPage() {
         };
 
         verifyStripeConnection();
-    }, [session?.user?.id]);
+    }, [session?.user?.id, router]);
 
     const handleContinue = () => {
         router.push("/creator/profile");
@@ -99,17 +107,9 @@ export default function StripeSuccessPage() {
         );
     }
 
-    // If status is still null but no error, keep showing loader
+    // This should not happen due to redirect logic, but TypeScript needs the check
     if (!status) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center space-y-4">
-                    <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto" />
-                    <h2 className="text-2xl font-bold text-foreground">Verifying your Stripe connection...</h2>
-                    <p className="text-muted-foreground">Please wait while we confirm your setup</p>
-                </div>
-            </div>
-        );
+        return null;
     }
 
     const isFullyConnected = status.chargesEnabled && status.payoutsEnabled;
@@ -182,7 +182,7 @@ export default function StripeSuccessPage() {
                                 }`}>
                                 {status.payoutsEnabled
                                     ? "You can withdraw earnings to your bank account"
-                                    : "Add bank details in Stripe Dashboard to enable withdrawals"}
+                                    : "Payouts are being verified by Stripe. This may take 1-2 business days."}
                             </p>
                         </div>
                     </div>
@@ -204,7 +204,7 @@ export default function StripeSuccessPage() {
                             {!status.payoutsEnabled && (
                                 <li className="flex items-start gap-2">
                                     <span className="text-primary mt-0.5">•</span>
-                                    <span>Complete your bank details in Stripe Dashboard to withdraw earnings</span>
+                                    <span>Wait for Stripe to verify your account (usually 1-2 business days) to enable withdrawals</span>
                                 </li>
                             )}
                         </ul>

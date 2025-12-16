@@ -23,34 +23,6 @@ export default function CreatorProfilePage() {
           {/* Stripe Connect Section */}
           <StripeConnectSection isCreator={true} />
 
-          {/* Creator Dashboard Card */}
-          <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Creator Dashboard
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Quick Stats</p>
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <div className="bg-background/50 rounded-md p-3">
-                    <p className="text-xs text-muted-foreground">Followers</p>
-                    <p className="text-xl font-bold text-foreground">0</p>
-                  </div>
-                  <div className="bg-background/50 rounded-md p-3">
-                    <p className="text-xs text-muted-foreground">Streams</p>
-                    <p className="text-xl font-bold text-foreground">0</p>
-                  </div>
-                </div>
-              </div>
-              <a
-                href="/creator/dashboard"
-                className="block w-full text-center bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-              >
-                Go to Creator Dashboard
-              </a>
-            </div>
-          </div>
-
           {/* Help & Support */}
           <HelpSupportSidebar />
         </div>
