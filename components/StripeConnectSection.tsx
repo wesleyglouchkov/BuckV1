@@ -233,7 +233,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                         ) : (
                             <>
                                 <AlertCircle className="w-4 h-4 mr-2" />
-                                Complete Verification
+                                Complete Verification for Payouts
                             </>
                         )}
                     </Button>
