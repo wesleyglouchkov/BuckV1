@@ -220,7 +220,7 @@ export default function LoginPage() {
               className="w-full flex justify-center items-center"
             >
               {isLoading ? (
-                <span className="loader"></span>
+                <span className="loader">Signing in...</span>
               ) : (
                 "Sign in"
               )}
