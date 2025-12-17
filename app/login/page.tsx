@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Button, Input } from "@/components/ui";
 import { signIn, getSession, useSession } from "next-auth/react";
 import LoadingSpinner from "../loading";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <LoadingSpinner/>
+          <LoadingSpinner />
         </div>
       </div>
     );
@@ -43,7 +44,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const result = await signIn("credentials", {
         emailOrUsername: formData.emailOrUsername,
@@ -59,10 +60,10 @@ export default function LoginPage() {
         } else {
           toast.error("Authentication failed. Please try again.");
         }
-      } 
+      }
       else {
         toast.success("Logged in successfully");
-        
+
         // Get the updated session to access user role
         const session = await getSession();
         const userRole = session?.user?.role?.toLowerCase();
@@ -220,7 +221,10 @@ export default function LoginPage() {
               className="w-full flex justify-center items-center"
             >
               {isLoading ? (
-                <span className="loader">Signing in...</span>
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Signing in...</span>
+                </div>
               ) : (
                 "Sign in"
               )}
