@@ -21,14 +21,7 @@ import {
   User,
   Users
 } from "lucide-react";
-import {
-  CreativeIcon,
-  YogaIcon,
-  HIITIcon,
-  CardioIcon,
-  GroupTrainingIcon,
-  EsportsIcon,
-} from "@/components/icons/CategoryIcons";
+import { EXPLORE_CATEGORIES } from "@/lib/categories";
 
 
 // Mock creators data
@@ -48,16 +41,6 @@ const liveChannels = [
   { id: 3, name: "Digital Art Tutorial", creator: "ArtMaster", viewers: "890", category: "Creative" },
   { id: 4, name: "Just Chatting", creator: "CasualStreamer", viewers: "650", category: "IRL" },
   { id: 5, name: "Cooking Show", creator: "ChefLife", viewers: "420", category: "IRL" },
-];
-
-// Sidebar categories (different from browse categories)
-const sidebarCategories = [
-  { id: 6, name: "HIIT", icon: HIITIcon, count: 2323 },
-  { id: 5, name: "Yoga", icon: YogaIcon, count: 312 },
-  { id: 7, name: "Cardio", icon: CardioIcon, count: 1234 },
-  { id: 4, name: "Creative", icon: CreativeIcon, count: 698 },
-  { id: 8, name: "Group Training", icon: GroupTrainingIcon, count: 856 },
-  { id: 9, name: "Esports", icon: EsportsIcon, count: 542 },
 ];
 
 export default function ExplorePage() {
@@ -82,7 +65,7 @@ export default function ExplorePage() {
     ? creators.filter(c => c.category.toLowerCase() === selectedCategory.toLowerCase())
     : creators;
 
-  const displayedCategories = showAllCategories ? sidebarCategories : sidebarCategories.slice(0, 4);
+  const displayedCategories = showAllCategories ? EXPLORE_CATEGORIES : EXPLORE_CATEGORIES.slice(0, 4);
 
   const getMenuItems = () => {
     const role = session?.user?.role?.toLowerCase();
@@ -406,7 +389,7 @@ export default function ExplorePage() {
                 </>
               ) : (
                 // Actual category cards
-                sidebarCategories.map((category) => {
+                EXPLORE_CATEGORIES.map((category) => {
                   const IconComponent = category.icon;
                   return (
                     <Link
@@ -428,7 +411,7 @@ export default function ExplorePage() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h3 className="text-foreground font-bold text-lg mb-1 group-hover:text-primary transition-colors duration-300">{category.name}</h3>
-                              <p className="text-muted-foreground text-sm font-medium">{category.count.toLocaleString()} classes</p>
+                              <p className="text-muted-foreground text-sm font-medium">{(category.count ?? 0).toLocaleString()} classes</p>
                             </div>
                           </div>
 

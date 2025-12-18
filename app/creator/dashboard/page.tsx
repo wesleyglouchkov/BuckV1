@@ -86,7 +86,7 @@ export default function CreatorDashboard() {
         <CreateContentDialog>
           <Button className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            New Content
+              Get Live
           </Button>
         </CreateContentDialog>
       </div>
