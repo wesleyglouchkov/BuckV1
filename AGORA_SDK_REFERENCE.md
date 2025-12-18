@@ -227,7 +227,7 @@ function LiveStream() {
   const { localMicrophoneTrack } = useLocalMicrophoneTrack();
 
   useJoin({
-    appid: "YOUR_APP_ID",
+    appid: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
     channel: "test-channel",
     token: "YOUR_TOKEN",
     uid: 123456,
