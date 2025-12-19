@@ -89,14 +89,28 @@ function LiveBroadcast({
     const recordedChunksRef = useRef<Blob[]>([]);
     const client = useRTCClient();
 
-    // Hooks for tracks
-    const { localCameraTrack } = useLocalCameraTrack(isVideoEnabled);
-    const { localMicrophoneTrack } = useLocalMicrophoneTrack(isAudioEnabled);
+    // Hooks for tracks - always create them initially
+    const { localCameraTrack } = useLocalCameraTrack(true);
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
 
     // Connection & quality hooks
     const isConnected = useIsConnected();
     const networkQuality = useNetworkQuality();
     const audioLevel = useVolumeLevel(localMicrophoneTrack ?? undefined);
+
+    // Effect to enable/disable camera track when toggle changes
+    useEffect(() => {
+        if (localCameraTrack) {
+            localCameraTrack.setEnabled(isVideoEnabled);
+        }
+    }, [localCameraTrack, isVideoEnabled]);
+
+    // Effect to enable/disable microphone track when toggle changes
+    useEffect(() => {
+        if (localMicrophoneTrack) {
+            localMicrophoneTrack.setEnabled(isAudioEnabled);
+        }
+    }, [localMicrophoneTrack, isAudioEnabled]);
 
     // Join channel with null token for testing (but real token in production)
     useJoin({
@@ -163,9 +177,21 @@ function LiveBroadcast({
                 cameraOn={isVideoEnabled}
                 micOn={isAudioEnabled}
                 playAudio={false}
-                playVideo={true}
+                playVideo={isVideoEnabled}
                 className="w-full h-full"
             />
+
+            {/* Placeholder when video is off */}
+            {!isVideoEnabled && (
+                <div className="absolute flex flex-col items-center justify-center inset-0 bg-card z-10">
+                    <div className="w-24 h-24 flex-col rounded-full bg-muted flex gap-4 items-center justify-center">
+                        <VideoOff className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground mt-2">
+                        Your video is not enabled, press on the video button to enable it.
+                    </p>
+                </div>
+            )}
 
             {/* Top Bar with Status */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
