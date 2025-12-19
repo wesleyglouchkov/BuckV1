@@ -25,8 +25,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ stre
         }
 
         // Generate the S3 key and pre-signed upload URL
-        const key = `${S3_PATHS.STREAMS}/${streamId}/${filename}`;
-        const uploadUrl = await getUploadUrl(S3_PATHS.STREAMS, `${streamId}/${filename}`, "video/webm");
+        const key = `${S3_PATHS.CREATORS}/${session.user.email}/${S3_PATHS.STREAMS}/${streamId}/${filename}`;
+        const uploadUrl = await getUploadUrl(S3_PATHS.CREATORS, `${session.user.email}/${S3_PATHS.STREAMS}/${streamId}/${filename}`, "video/webm");
 
         return NextResponse.json({
             uploadUrl,
