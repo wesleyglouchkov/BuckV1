@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Users } from "lucide-react";
-import AgoraViewer from "@/components/live/AgoraViewer";
+
+// Dynamic import to avoid SSR issues with Agora (uses window)
+const AgoraViewer = dynamic(() => import("@/components/live/AgoraViewer"), { ssr: false });
 import VideoPlayer from "@/components/live/VideoPlayer";
 import StreamChat from "@/components/live/StreamChat";
 import RecordingConsentDialog from "@/components/live/RecordingConsentDialog";
@@ -113,29 +116,11 @@ export default function LiveStreamPage() {
         router.push("/explore");
     };
 
-    // Handle share
+    // Handle share - just copy link to clipboard
     const handleShare = async () => {
         const shareUrl = window.location.href;
-
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: streamDetails?.title || "Live Stream",
-                    url: shareUrl,
-                });
-            } else {
-                await navigator.clipboard.writeText(shareUrl);
-                toast.success("Stream link copied to clipboard!");
-            }
-        } catch (error) {
-            // User cancelled the share dialog - this is not an error
-            if (error instanceof Error && error.name === "AbortError") {
-                return;
-            }
-            // For other errors, fall back to clipboard
-            await navigator.clipboard.writeText(shareUrl);
-            toast.success("Stream link copied to clipboard!");
-        }
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Stream link copied to clipboard!");
     };
 
     if (status === "loading" || isLoading) {
