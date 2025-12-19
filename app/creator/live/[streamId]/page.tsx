@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { CATEGORIES } from "@/lib/categories";
 import { SkeletonLiveStream } from "@/components/ui/skeleton-variants";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -262,6 +263,7 @@ export default function CreatorLivePage() {
                                 Share
                             </Button>
                         )}
+                        <ThemeToggle />
                     </div>
                 </div>
             </div>
@@ -269,12 +271,12 @@ export default function CreatorLivePage() {
             {/* Main Content */}
             <div className="container mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
+
                     {/* Live Stream and Preview Overlay */}
                     <div className="lg:col-span-2 space-y-4">
                         <div className="relative">
                             {/* AgoraLiveStream handles preview mode internally when isLive=false */}
-                         <AgoraLiveStream
+                            <AgoraLiveStream
                                 appId={appId}
                                 channelName={urlStreamId}
                                 token={agoraToken}
