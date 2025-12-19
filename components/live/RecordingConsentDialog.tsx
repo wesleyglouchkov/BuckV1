@@ -8,7 +8,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Video, Eye, AlertTriangle } from "lucide-react";
+import { Video, X, AlertTriangle } from "lucide-react";
 
 interface RecordingConsentDialogProps {
     open: boolean;
@@ -30,9 +30,9 @@ export default function RecordingConsentDialog({
                     <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                         <AlertTriangle className="w-8 h-8 text-primary" />
                     </div>
-                    <DialogTitle className="text-xl">Recording Consent Required</DialogTitle>
+                    <DialogTitle className="text-xl">Participate with Camera & Mic?</DialogTitle>
                     <DialogDescription className="text-base">
-                        You&apos;re about to join <strong className="text-foreground">{creatorName}</strong>&apos;s live stream
+                        You&apos;re about to join <strong className="text-foreground">{creatorName}</strong>&apos;s live stream with your camera and microphone
                     </DialogDescription>
                 </DialogHeader>
 
@@ -45,10 +45,10 @@ export default function RecordingConsentDialog({
                     </div>
 
                     <div className="text-sm text-muted-foreground">
-                        By joining, you acknowledge that:
+                        By joining with camera & mic, you acknowledge that:
                         <ul className="list-disc list-inside mt-2 space-y-1">
                             <li>The stream will be recorded</li>
-                            <li>Your video/audio may appear in the recording (if you participate)</li>
+                            <li>Your video/audio <strong>will appear</strong> in the recording</li>
                             <li>The recording may be shared publicly</li>
                         </ul>
                     </div>
@@ -60,8 +60,7 @@ export default function RecordingConsentDialog({
                         className="w-full h-12 text-base gap-2"
                     >
                         <Video className="w-5 h-5" />
-                        Join & Participate
-                        <span className="text-xs opacity-75">(Camera & Mic)</span>
+                        <p className="mt-1">Join with Camera & Mic</p>
                     </Button>
 
                     <Button
@@ -69,14 +68,14 @@ export default function RecordingConsentDialog({
                         variant="outline"
                         className="w-full h-12 text-base gap-2"
                     >
-                        <Eye className="w-5 h-5" />
-                        Watch Only
-                        <span className="text-xs opacity-75">(View-only mode)</span>
+                        <X className="w-5 h-5" />
+                        <p className="mt-1">Cancel</p>
+                        <span className="text-xs opacity-75 mt-1">(Continue watching)</span>
                     </Button>
                 </div>
 
                 <p className="text-xs text-center text-muted-foreground mt-2">
-                    You can change your participation mode during the stream
+                    You can turn your camera and mic on/off during the stream
                 </p>
             </DialogContent>
         </Dialog>

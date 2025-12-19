@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import AgoraRTC, { AgoraRTCProvider, useRTCClient } from "agora-rtc-react";
 import {
     useJoin,
@@ -443,13 +443,19 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
 
 // Main wrapper - only use AgoraRTCProvider when live AND token is available
 export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
+    // Memoize the client to prevent reconnection on parent re-renders
+    const client = useMemo(() => {
+        if (!props.isLive || !props.token) return null;
+        return AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+    }, [props.isLive, props.token]);
+
     // For preview, we don't need Agora at all
     if (!props.isLive) {
         return <PreviewMode onPermissionChange={props.onPermissionChange} />;
     }
 
     // Wait for token before joining Agora channel
-    if (!props.token) {
+    if (!props.token || !client) {
         return (
             <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -459,9 +465,6 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
             </div>
         );
     }
-
-    // Only create Agora client when going live AND token is available
-    const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
 
     return (
         <AgoraRTCProvider client={client}>
