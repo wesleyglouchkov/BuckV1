@@ -75,7 +75,7 @@ export default function StreamChat({
     };
 
     return (
-        <div className="flex flex-col h-full bg-card border border-border rounded-xl overflow-hidden">
+        <div className="flex flex-col h-full bg-card border border-border overflow-hidden">
             {/* Header */}
             <div className="px-4 py-3 border-b border-border bg-card">
                 <div className="flex items-center gap-2">

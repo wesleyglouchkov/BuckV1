@@ -95,7 +95,7 @@ function LiveBroadcast({
 
     // Connection & quality hooks
     const isConnected = useIsConnected();
-    const networkQuality = useNetworkQuality();
+    // const networkQuality = useNetworkQuality();
     const audioLevel = useVolumeLevel(localMicrophoneTrack ?? undefined);
 
     // Effect to enable/disable camera track when toggle changes
@@ -202,7 +202,7 @@ function LiveBroadcast({
                         <span className="font-semibold text-sm">LIVE</span>
                     </div>
 
-                    {/* Connection Status */}
+                    {/* Connection Status
                     <div className="bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2">
                         {isConnected ? (
                             <NetworkIndicator quality={networkQuality.uplinkNetworkQuality} />
@@ -212,7 +212,7 @@ function LiveBroadcast({
                                 <span>Connecting...</span>
                             </div>
                         )}
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Recording + Audio Level */}
