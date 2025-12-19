@@ -15,7 +15,7 @@ export function CreateContentDialog({ children }: { children: React.ReactNode })
         setOpen(false);
         // Generate local stream ID and go directly to live preview
         const streamId = cuid();
-        router.push(`/creator/live/${streamId}`);
+        router.push(`/creator/live`);
     };
 
     const handleSchedule = () => {

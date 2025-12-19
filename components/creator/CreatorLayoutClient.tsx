@@ -3,15 +3,18 @@
 import { Session } from "next-auth";
 import { CreatorNavbar } from "@/components/creator";
 import { SidebarProvider, useSidebar } from "@/lib/sidebar-context";
+import { usePathname } from "next/navigation";
 
 function CreatorLayoutContent({ children, session }: { children: React.ReactNode; session: Session | null }) {
   const { collapsed } = useSidebar();
+  const pathname = usePathname();
+  const isLivePage = pathname.includes("/creator/live");
 
   return (
     <div className="min-h-screen bg-background">
-      <CreatorNavbar session={session} />
-      <div className={`transition-all duration-300 ${collapsed ? 'sm:ml-16' : 'sm:ml-64'}`}>
-        <main className="pt-16">{children}</main>
+      <CreatorNavbar session={session} isLivePage={isLivePage} />
+      <div className={`transition-all duration-300 ${isLivePage ? '' : (collapsed ? 'sm:ml-16' : 'sm:ml-64')}`}>
+        <main className={isLivePage ? '' : 'pt-16'}>{children}</main>
       </div>
     </div>
   );

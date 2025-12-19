@@ -11,7 +11,6 @@ import StreamCalendar, { StreamEvent } from "@/components/schedule/StreamCalenda
 import ScheduleStreamDialog, { ScheduleStreamData } from "@/components/schedule/ScheduleStreamDialog";
 import StreamDetailsDialog from "@/components/schedule/StreamDetailsDialog";
 import { creatorService } from "@/services/creator";
-import cuid from "cuid";
 
 export default function CreatorSchedulePage() {
     const { data: session, status } = useSession();
@@ -127,9 +126,8 @@ export default function CreatorSchedulePage() {
     const handleGoLiveNow = () => {
         if (!session?.user?.id) return;
 
-        // Generate local stream ID - backend will be called when actually going live
-        const streamId = cuid();
-        router.push(`/creator/live/${streamId}`);
+        // Navigate to preview page - no ID needed, backend will create it when going live
+        router.push(`/creator/live`);
     };
 
     // Handle clicking a scheduled stream - show details dialog
