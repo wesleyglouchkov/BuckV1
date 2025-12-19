@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { CATEGORIES } from "@/lib/categories";
 import { SkeletonLiveStream } from "@/components/ui/skeleton-variants";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -130,6 +131,7 @@ export default function CreatorLivePreviewPage() {
                             </p>
                         </div>
                     </div>
+                    <ThemeToggle />
                 </div>
             </div>
 
