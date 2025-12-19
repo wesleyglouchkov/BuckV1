@@ -136,7 +136,7 @@ export function SkeletonDashboard({ className }: { className?: string }) {
           <SkeletonStats key={i} />
         ))}
       </div>
-      
+
       {/* Content area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
@@ -150,6 +150,24 @@ export function SkeletonDashboard({ className }: { className?: string }) {
         <div className="space-y-4">
           <Skeleton className="h-8 w-32" />
           <SkeletonCard />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Live stream page skeleton
+export function SkeletonLiveStream({ className }: { className?: string }) {
+  return (
+    <div className={cn("space-y-4", className)}>
+      {/* Video preview skeleton */}
+      <Skeleton className="aspect-video w-full rounded-xl" />
+      {/* Stream setup card skeleton */}
+      <div className="rounded-xl border border-border/20 p-4 space-y-4">
+        <Skeleton className="h-6 w-32" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       </div>
     </div>

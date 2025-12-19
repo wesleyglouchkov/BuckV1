@@ -9,4 +9,12 @@ export {
   CardioIcon,
   GroupTrainingIcon,
   EsportsIcon,
+  PilatesIcon,
+  StrengthTrainingIcon,
+  DanceIcon,
+  BoxingIcon,
+  StretchingIcon,
+  MeditationIcon,
+  OtherIcon,
 } from './CategoryIcons';
+
