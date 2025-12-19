@@ -189,12 +189,22 @@ export default function CreatorLivePage() {
     const handleShare = async () => {
         const shareUrl = `${window.location.origin}/live/${urlStreamId}`;
 
-        if (navigator.share) {
-            await navigator.share({
-                title: streamTitle,
-                url: shareUrl,
-            });
-        } else {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: streamTitle,
+                    url: shareUrl,
+                });
+            } else {
+                await navigator.clipboard.writeText(shareUrl);
+                toast.success("Stream link copied to clipboard!");
+            }
+        } catch (error) {
+            // User cancelled the share dialog - this is not an error
+            if (error instanceof Error && error.name === "AbortError") {
+                return;
+            }
+            // For other errors, fall back to clipboard
             await navigator.clipboard.writeText(shareUrl);
             toast.success("Stream link copied to clipboard!");
         }

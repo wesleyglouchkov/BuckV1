@@ -73,7 +73,7 @@ export default function CreatorNavbar({ session, isLivePage = false }: CreatorNa
               session={session}
               roleLabel="Creator"
               menuItems={[
-                { label: "View Profile", href: "/creator/profile", icon: User }
+                { label: "View Profile", href: "/creator/profile" }
               ]}
             />
           </div>

@@ -117,12 +117,22 @@ export default function LiveStreamPage() {
     const handleShare = async () => {
         const shareUrl = window.location.href;
 
-        if (navigator.share) {
-            await navigator.share({
-                title: streamDetails?.title || "Live Stream",
-                url: shareUrl,
-            });
-        } else {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: streamDetails?.title || "Live Stream",
+                    url: shareUrl,
+                });
+            } else {
+                await navigator.clipboard.writeText(shareUrl);
+                toast.success("Stream link copied to clipboard!");
+            }
+        } catch (error) {
+            // User cancelled the share dialog - this is not an error
+            if (error instanceof Error && error.name === "AbortError") {
+                return;
+            }
+            // For other errors, fall back to clipboard
             await navigator.clipboard.writeText(shareUrl);
             toast.success("Stream link copied to clipboard!");
         }
@@ -217,7 +227,7 @@ export default function LiveStreamPage() {
                                     onLeave={handleLeave}
                                 />
                             ) : (
-                                <div className="w-full aspect-video bg-gradient-to-br from-card to-muted rounded-xl flex items-center justify-center border border-border">
+                                <div className="w-full aspect-video bg-linear-to-br from-card to-muted rounded-xl flex items-center justify-center border border-border">
                                     <div className="text-center space-y-4">
                                         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                                             <Users className="w-8 h-8 text-primary" />
