@@ -84,10 +84,12 @@ export default function CreatorDashboard() {
           <p className="text-muted-foreground">Creator overview</p>
         </div>
         <CreateContentDialog>
-          <Button className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
+          <div className="animated-border-btn">
+            <Button className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
               Get Live
-          </Button>
+            </Button>
+          </div>
         </CreateContentDialog>
       </div>
 

@@ -343,3 +343,35 @@ input[type="time"]:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
 }
+
+/* Animated border button */
+.animated-border-btn {
+  position: relative;
+  padding: 1px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.animated-border-btn::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(from 0deg, transparent 0deg, #fff 60deg, var(--primary) 120deg, #fff 180deg, var(--primary) 240deg, #fff 300deg, transparent 360deg);
+  animation: spin-border 3s linear infinite;
+}
+
+.animated-border-btn>button {
+  position: relative;
+  z-index: 1;
+  border-radius: 6px;
+}
+
+@keyframes spin-border {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
