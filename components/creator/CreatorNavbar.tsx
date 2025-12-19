@@ -13,10 +13,16 @@ import UserMenu from "../UserMenu";
 
 interface CreatorNavbarProps {
   session: Session | null;
+  isLivePage?: boolean;
 }
 
-export default function CreatorNavbar({ session }: CreatorNavbarProps) {
+export default function CreatorNavbar({ session, isLivePage = false }: CreatorNavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // On live page, render nothing (fullscreen mode)
+  if (isLivePage) {
+    return null;
+  }
 
   return (
     <>

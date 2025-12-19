@@ -27,10 +27,19 @@ import { Calendar as CalendarIcon, Dumbbell } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 
+export interface InitialStreamData {
+    id: string;
+    title: string;
+    workoutType?: string;
+    startTime: Date;
+}
+
 interface ScheduleStreamDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSchedule: (data: ScheduleStreamData) => Promise<void>;
+    onUpdate?: (streamId: string, data: ScheduleStreamData) => Promise<void>;
+    initialData?: InitialStreamData | null;
 }
 
 export interface ScheduleStreamData {
@@ -46,6 +55,8 @@ export default function ScheduleStreamDialog({
     open,
     onOpenChange,
     onSchedule,
+    onUpdate,
+    initialData,
 }: ScheduleStreamDialogProps) {
     const [title, setTitle] = useState("");
     const [workoutType, setWorkoutType] = useState("");
@@ -55,10 +66,21 @@ export default function ScheduleStreamDialog({
     const [datePickerOpen, setDatePickerOpen] = useState(false);
 
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const isEditMode = !!initialData;
 
-    // Reset form when dialog closes
+    // Pre-populate form when editing or reset when creating
     useEffect(() => {
-        if (!open) {
+        if (open && initialData) {
+            // Edit mode - pre-populate fields
+            setTitle(initialData.title);
+            setWorkoutType(initialData.workoutType || "");
+            setSelectedDate(initialData.startTime);
+            // Extract time from date
+            const hours = initialData.startTime.getHours().toString().padStart(2, '0');
+            const minutes = initialData.startTime.getMinutes().toString().padStart(2, '0');
+            setSelectedTime(`${hours}:${minutes}`);
+        } else if (!open) {
+            // Reset form when dialog closes
             setTitle("");
             setWorkoutType("");
             setSelectedDate(undefined);
@@ -66,7 +88,7 @@ export default function ScheduleStreamDialog({
             setIsSubmitting(false);
             setDatePickerOpen(false);
         }
-    }, [open]);
+    }, [open, initialData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -81,12 +103,20 @@ export default function ScheduleStreamDialog({
             const localDateTime = new Date(`${dateStr}T${selectedTime}:00`);
             const startTime = localDateTime.toISOString();
 
-            await onSchedule({
+            const data = {
                 title,
                 workoutType,
                 startTime,
                 timezone,
-            });
+            };
+
+            if (isEditMode && onUpdate && initialData) {
+                // Update existing stream
+                await onUpdate(initialData.id, data);
+            } else {
+                // Create new stream
+                await onSchedule(data);
+            }
 
             // Reset form
             setTitle("");
@@ -95,7 +125,7 @@ export default function ScheduleStreamDialog({
             setSelectedTime("");
             onOpenChange(false);
         } catch (error) {
-            console.error("Failed to schedule stream:", error);
+            console.error(isEditMode ? "Failed to update stream:" : "Failed to schedule stream:", error);
         } finally {
             setIsSubmitting(false);
         }
@@ -111,10 +141,12 @@ export default function ScheduleStreamDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <CalendarIcon className="w-5 h-5 text-primary" />
-                        Schedule Live Stream
+                        {isEditMode ? "Update Stream" : "Schedule Live Stream"}
                     </DialogTitle>
                     <DialogDescription>
-                        Set up your upcoming live stream. Your followers will be notified.
+                        {isEditMode
+                            ? "Update your scheduled stream details."
+                            : "Set up your upcoming live stream. Your followers will be notified."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -215,7 +247,9 @@ export default function ScheduleStreamDialog({
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Scheduling..." : "Schedule Stream"}
+                            {isSubmitting
+                                ? (isEditMode ? "Updating..." : "Scheduling...")
+                                : (isEditMode ? "Update Stream" : "Schedule Stream")}
                         </Button>
                     </DialogFooter>
                 </form>
