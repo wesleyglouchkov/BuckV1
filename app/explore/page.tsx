@@ -21,7 +21,7 @@ import {
   User,
   Users
 } from "lucide-react";
-import { EXPLORE_CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/categories";
 
 
 // Mock creators data
@@ -65,7 +65,7 @@ export default function ExplorePage() {
     ? creators.filter(c => c.category.toLowerCase() === selectedCategory.toLowerCase())
     : creators;
 
-  const displayedCategories = showAllCategories ? EXPLORE_CATEGORIES : EXPLORE_CATEGORIES.slice(0, 4);
+  const displayedCategories = showAllCategories ? CATEGORIES : CATEGORIES.slice(0, 4);
 
   const getMenuItems = () => {
     const role = session?.user?.role?.toLowerCase();
@@ -389,7 +389,7 @@ export default function ExplorePage() {
                 </>
               ) : (
                 // Actual category cards
-                EXPLORE_CATEGORIES.map((category) => {
+                CATEGORIES.map((category) => {
                   const IconComponent = category.icon;
                   return (
                     <Link

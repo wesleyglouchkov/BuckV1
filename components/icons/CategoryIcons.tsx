@@ -326,3 +326,235 @@ export const EsportsIcon: React.FC<IconProps> = ({ className = "", size = 24 }) 
     />
   </svg>
 );
+
+// Pilates - Person in reformer-inspired pose
+export const PilatesIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <circle cx="19" cy="6" r="2" fill="currentColor" opacity="0.9" />
+    <path
+      d="M4 18H20"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M16 10L19 8V14L12 16L6 14"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M6 14L4 12"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// Strength Training - Dumbbell
+export const StrengthTrainingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <rect x="5" y="6" width="3" height="12" rx="1" fill="currentColor" opacity="0.9" />
+    <rect x="16" y="6" width="3" height="12" rx="1" fill="currentColor" opacity="0.9" />
+    <rect x="2" y="9" width="2" height="6" rx="0.5" fill="currentColor" opacity="0.9" />
+    <rect x="20" y="9" width="2" height="6" rx="0.5" fill="currentColor" opacity="0.9" />
+    <rect x="8" y="11" width="8" height="2" rx="0.5" fill="currentColor" opacity="0.9" />
+  </svg>
+);
+
+// Dance - Dancing figure
+export const DanceIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <circle cx="14" cy="4" r="2" fill="currentColor" opacity="0.9" />
+    <path
+      d="M14 7V11L10 14"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M14 11L18 9"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 14L7 20"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 14L15 18L17 21"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M6 8L10 6"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// Boxing - Boxing glove
+export const BoxingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M5 10C5 7.79086 6.79086 6 9 6H13C16.3137 6 19 8.68629 19 12V14C19 16.2091 17.2091 18 15 18H9C6.79086 18 5 16.2091 5 14V10Z"
+      fill="currentColor"
+      opacity="0.9"
+    />
+    <path
+      d="M9 6V4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M8 11H10M14 11H16"
+      stroke="white"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      opacity="0.9"
+    />
+    <path
+      d="M10 18V21H14V18"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// Stretching - Person stretching
+export const StretchingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <circle cx="12" cy="4" r="2" fill="currentColor" opacity="0.9" />
+    <path
+      d="M12 7V12"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M8 9L12 7L16 9"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M5 15L12 12L19 15"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8 18L12 20L16 18"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// Meditation - Person meditating in lotus position
+export const MeditationIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <circle cx="12" cy="5" r="2" fill="currentColor" opacity="0.9" />
+    <path
+      d="M12 8V12"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M6 11L9 13H15L18 11"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8 16C8 14.8954 8.89543 14 10 14H14C15.1046 14 16 14.8954 16 16V17C16 18.1046 15.1046 19 14 19H10C8.89543 19 8 18.1046 8 17V16Z"
+      fill="currentColor"
+      opacity="0.9"
+    />
+    <circle cx="7" cy="3" r="0.8" fill="currentColor" opacity="0.5" />
+    <circle cx="17" cy="3" r="0.8" fill="currentColor" opacity="0.5" />
+    <circle cx="5" cy="6" r="0.6" fill="currentColor" opacity="0.4" />
+    <circle cx="19" cy="6" r="0.6" fill="currentColor" opacity="0.4" />
+  </svg>
+);
+
+// Other - Generic category icon (grid/more)
+export const OtherIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <rect x="4" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.9" />
+    <rect x="14" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.9" />
+    <rect x="4" y="14" width="6" height="6" rx="1" fill="currentColor" opacity="0.9" />
+    <circle cx="17" cy="17" r="3" stroke="currentColor" strokeWidth="2" opacity="0.9" />
+  </svg>
+);
