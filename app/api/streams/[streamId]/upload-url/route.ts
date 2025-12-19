@@ -3,10 +3,7 @@ import { S3_PATHS } from "@/lib/s3-constants";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: { streamId: string } }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ streamId: string }> }) {
     try {
         // Verify user is authenticated
         const session = await auth();
@@ -17,7 +14,7 @@ export async function GET(
             );
         }
 
-        const { streamId } = params;
+        const { streamId } = await params;
         const filename = req.nextUrl.searchParams.get("filename");
 
         if (!filename) {
