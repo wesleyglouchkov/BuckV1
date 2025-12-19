@@ -3,7 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Path } from "./s3-constants";
 
 const s3Client = new S3Client({
-    region: process.env.AWS_REGION!,
+    region: process.env.NEXT_PUBLIC_AWS_REGION!,
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -13,7 +13,7 @@ const s3Client = new S3Client({
 export async function getS3Url(subpath: S3Path, filename: string) {
     const key = `${subpath}/${filename}`;
     const command = new GetObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
     });
 
@@ -23,7 +23,7 @@ export async function getS3Url(subpath: S3Path, filename: string) {
 export async function getUploadUrl(subpath: S3Path, filename: string, contentType: string) {
     const key = `${subpath}/${filename}`;
     const command = new PutObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
         ContentType: contentType,
     });
@@ -42,7 +42,7 @@ export async function uploadToS3(subpath: S3Path, file: File | Blob, filename: s
     const buffer = Buffer.from(arrayBuffer);
 
     const command = new PutObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
         Body: buffer,
         ContentType: file.type,

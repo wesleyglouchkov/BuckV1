@@ -79,21 +79,44 @@ export default function CreatorLivePage() {
         }
     }, [urlStreamId, session?.user?.id, status]);
 
-    // Warn user before leaving/refreshing when live
+    // Warn user before leaving/refreshing when live OR handle browser back button
     useEffect(() => {
-        if (!isLive) return;
-
+        // Handle page reload/close
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (!isLive) return;
             e.preventDefault();
             // Most modern browsers will show a generic message, but we set returnValue for compatibility
             e.returnValue = "You are currently live streaming. Are you sure you want to leave?";
             return e.returnValue;
         };
 
+        // Handle browser back button
+        const handlePopState = () => {
+            if (!isLive) return;
+
+            const confirmed = window.confirm("You are currently live streaming. Are you sure you want to leave? This will end your stream.");
+            if (!confirmed) {
+                // Push state back to prevent navigation
+                window.history.pushState(null, "", window.location.href);
+            } else {
+                // Stop the stream/camera and navigate
+                setIsStopped(true);
+                // Allow the navigation to proceed after cleanup
+                setTimeout(() => {
+                    window.location.href = "/creator/schedule";
+                }, 100);
+            }
+        };
+
+        // Push initial state to enable popstate handling
+        window.history.pushState(null, "", window.location.href);
+
         window.addEventListener("beforeunload", handleBeforeUnload);
+        window.addEventListener("popstate", handlePopState);
 
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
+            window.removeEventListener("popstate", handlePopState);
         };
     }, [isLive]);
 
@@ -185,29 +208,11 @@ export default function CreatorLivePage() {
         }
     };
 
-    // Handle share
+    // Handle share - just copy link to clipboard
     const handleShare = async () => {
         const shareUrl = `${window.location.origin}/live/${urlStreamId}`;
-
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: streamTitle,
-                    url: shareUrl,
-                });
-            } else {
-                await navigator.clipboard.writeText(shareUrl);
-                toast.success("Stream link copied to clipboard!");
-            }
-        } catch (error) {
-            // User cancelled the share dialog - this is not an error
-            if (error instanceof Error && error.name === "AbortError") {
-                return;
-            }
-            // For other errors, fall back to clipboard
-            await navigator.clipboard.writeText(shareUrl);
-            toast.success("Stream link copied to clipboard!");
-        }
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Stream link copied to clipboard!");
     };
 
     // Show loading only for auth
