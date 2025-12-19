@@ -24,6 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 name: response.user.name,
                 username: response.user.username,
                 role: response.user.role || "member",
+                avatar: response.user.avatar || "",
               };
             }
           }
@@ -41,6 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.role = user.role;
         token.username = user.username;
+        token.avatar = user.avatar;
       }
 
       // Handle session update
@@ -58,7 +60,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as "admin" | "creator" | "member";
         session.user.username = token.username as string;
-      }
+        session.user.avatar = token.avatar as string;
+}
       return session;
     },
   },

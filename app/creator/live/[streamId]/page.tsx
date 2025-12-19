@@ -177,11 +177,11 @@ export default function CreatorLivePage() {
 
             setIsLive(false);
             toast.success("Stream ended successfully!");
-            router.push("/creator/content");
+            window.location.href = "/creator/content";
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to end stream properly";
             toast.error(message);
-            router.push("/creator/schedule");
+            window.location.href = "/creator/schedule";
         }
     };
 

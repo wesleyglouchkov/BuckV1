@@ -156,7 +156,7 @@ function LiveBroadcast({
     };
 
     return (
-        <div className="relative w-full aspect-video bg-card rounded-xl overflow-hidden border border-border shadow-lg">
+        <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
             <LocalUser
                 audioTrack={localMicrophoneTrack}
                 videoTrack={localCameraTrack}
@@ -240,10 +240,10 @@ function LiveBroadcast({
 function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermission: boolean) => void }) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [stream, setStream] = useState<MediaStream | null>(null);
     const [audioLevel, setAudioLevel] = useState(0);
     const [permissionError, setPermissionError] = useState<string | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const streamRef = useRef<MediaStream | null>(null); // Use ref for cleanup
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
 
@@ -264,7 +264,7 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
                     return;
                 }
 
-                setStream(mediaStream);
+                streamRef.current = mediaStream;
                 onPermissionChange?.(true);
 
                 if (videoRef.current) {
@@ -308,31 +308,28 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
 
         startPreview();
 
-        // Cleanup on unmount
+        // Cleanup on unmount - ALWAYS stop all tracks
         return () => {
             isMounted = false;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+            // Stop all tracks in the stream
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => {
+                    track.stop();
+                });
+                streamRef.current = null;
             }
+            // Close audio context
             if (audioContextRef.current) {
                 audioContextRef.current.close();
+                audioContextRef.current = null;
             }
         };
-    }, [isVideoEnabled, isAudioEnabled]);
-
-    // Cleanup stream when disabled
-    useEffect(() => {
-        return () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        };
-    }, [stream]);
+    }, [isVideoEnabled, isAudioEnabled, onPermissionChange]);
 
     // Permission error UI
     if (permissionError) {
         return (
-            <div className="relative w-full aspect-video bg-card rounded-xl overflow-hidden border border-border shadow-lg">
+            <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
                     <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                         <VideoOff className="w-10 h-10 text-destructive" />
@@ -361,7 +358,7 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
     }
 
     return (
-        <div className="relative w-full aspect-video bg-card rounded-xl overflow-hidden border border-border shadow-lg">
+        <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
             <video
                 ref={videoRef}
                 autoPlay
@@ -428,7 +425,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
     // Wait for token before joining Agora channel
     if (!props.token) {
         return (
-            <div className="relative w-full aspect-video bg-card rounded-xl overflow-hidden border border-border shadow-lg">
+            <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
                     <p className="text-muted-foreground text-sm">Connecting to stream...</p>
@@ -449,7 +446,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 uid={props.uid}
                 onStreamEnd={props.onStreamEnd}
                 onRecordingReady={props.onRecordingReady}
-            /> 
+            />
         </AgoraRTCProvider>
     );
 }

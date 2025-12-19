@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { memberService } from "@/services";
 import { UpgradeToCreatorDialog } from "@/components/UpgradeToCreatorDialog";
 import RedirectingOverlay from "@/components/RedirectingOverlay";
+import Image from "next/image";
 
 interface MenuItem {
     label: string;
@@ -42,7 +43,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
     const [showRedirecting, setShowRedirecting] = useState(false);
     const profileWrapperRef = useRef<HTMLDivElement | null>(null);
     const isAdmin = session?.user?.role?.toLowerCase() === 'admin';
-
+    const avatar = session?.user?.avatar;
     useEffect(() => {
         initTheme();
         setIsDarkMode(getTheme() === "dark");
@@ -140,7 +141,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
             </button>
 
             {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-md border border-border/30 shadow-sm z-50 rounded-lg">
+                <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-md border border-border/30 shadow-sm z-50">
                     <div className="p-3 border-b border-border/50">
                         <p className="text-sm font-medium text-foreground">
                             {session?.user?.name || session?.user?.email}
@@ -152,10 +153,10 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                             <Link
                                 key={index}
                                 href={item.href}
-                                className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors rounded-md"
+                                className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors "
                                 onClick={() => setShowProfileMenu(false)}
                             >
-                                {item.icon ? <item.icon className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                                {item.icon ? <item.icon className="w-4 h-4" />: <Image src={avatar || '/avatar.png'} alt="Avatar" width={20} height={20} className="rounded-full h-10 w-10 object-cover" />}
                                 <p>{item.label}</p>
                             </Link>
                         ))}
@@ -167,7 +168,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                                 onClick={() => {
                                     setShowUpgradeDialog(true);
                                 }}
-                                className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 text-sm text-primary hover:bg-primary/10 transition-colors rounded-md font-medium"
+                                className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 text-sm text-primary hover:bg-primary/10 transition-colors  font-medium"
                             >
                                 <Video className="w-4 h-4" />
                                 <p>Join as Creator</p>
@@ -176,7 +177,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
 
                      { !isAdmin &&  <Link
                             href="/help"
-                            className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors rounded-md"
+                            className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors"
                             onClick={() => setShowProfileMenu(false)}
                         >
                             <HelpCircle className="w-4 h-4" />
