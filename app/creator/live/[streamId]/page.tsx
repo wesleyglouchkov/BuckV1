@@ -44,6 +44,8 @@ export default function CreatorLivePage() {
     const [isLoadingStream, setIsLoadingStream] = useState(false);
     const [agoraToken, setAgoraToken] = useState<string>(""); // Token from backend for Agora
     const [uid, setUid] = useState<number>(0);
+    const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
+
     // For scheduled streams, fetch stream data on load
     // For live streams (redirected from preview), the stream is already active
     useEffect(() => {
@@ -240,8 +242,11 @@ export default function CreatorLivePage() {
                                     const confirmed = window.confirm("You are currently live streaming. Are you sure you want to leave? This will end your stream.");
                                     if (!confirmed) return;
                                 }
-                                await handleStreamEnd();
-                                router.push("/creator/schedule");
+                                // Stop the stream/camera first
+                                setIsStopped(true);
+                                // Wait for cleanup to complete
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                                window.location.href = "/creator/schedule";
                             }}
                         >
                             <ArrowLeft className="w-5 h-5 dark:text-white" />
@@ -276,17 +281,21 @@ export default function CreatorLivePage() {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="relative">
                             {/* AgoraLiveStream handles preview mode internally when isLive=false */}
-                            <AgoraLiveStream
-                                appId={appId}
-                                channelName={urlStreamId}
-                                token={agoraToken}
-                                uid={uid}
-                                streamId={urlStreamId}
-                                isLive={isLive}
-                                onStreamEnd={handleStreamEnd}
-                                onRecordingReady={handleRecordingReady}
-                                onPermissionChange={handlePermissionChange}
-                            />
+                            {!isStopped ? (
+                                <AgoraLiveStream
+                                    appId={appId}
+                                    channelName={urlStreamId}
+                                    token={agoraToken}
+                                    uid={uid}
+                                    streamId={urlStreamId}
+                                    isLive={isLive}
+                                    onStreamEnd={handleStreamEnd}
+                                    onRecordingReady={handleRecordingReady}
+                                    onPermissionChange={handlePermissionChange}
+                                />
+                            ) : (
+                                <div className="w-full aspect-video bg-card rounded-xl border border-border" />
+                            )}
 
                             {/* PREVIEW: Overlay */}
                             {!isLive && (
