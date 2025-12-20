@@ -112,15 +112,26 @@ function LiveBroadcast({
         }
     }, [localMicrophoneTrack, isAudioEnabled]);
 
+    const [isHost, setIsHost] = useState(false);
+
+    // Ensure client role is set to host for the creator BEFORE joining
+    useEffect(() => {
+        if (client) {
+            client.setClientRole("host")
+                .then(() => setIsHost(true))
+                .catch(err => console.error("Failed to set client role to host:", err));
+        }
+    }, [client]);
+
     useJoin({
         appid: appId,
         channel: channelName,
-        token: token || null, // Use null if no token provided
+        token: token || null,
         uid
-    });
+    }, isHost);
 
-    // Publish tracks
-    usePublish([localCameraTrack, localMicrophoneTrack]);
+    // Publish tracks only when role is host
+    usePublish([localCameraTrack, localMicrophoneTrack], isHost);
 
     // Start recording
     const startRecording = useCallback(() => {
