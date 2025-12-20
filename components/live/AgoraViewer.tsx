@@ -8,11 +8,13 @@ import AgoraRTC, {
     useLocalMicrophoneTrack,
     usePublish,
     useRemoteUsers,
+    useRTCClient,
     LocalUser,
     RemoteUser,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon } from "lucide-react";
+import Loader from "@/components/Loader";
 
 export interface AgoraViewerProps {
     appId: string;
@@ -48,6 +50,18 @@ function StreamLogic({
     // Best practice: Always call hooks, but control enablement/publishing.
     const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher");
+
+    // Get client instance to manage role
+    const client = useRTCClient();
+
+    // Handle role switching (Host/Audience)
+    useEffect(() => {
+        if (client) {
+            const targetRole = role === "publisher" ? "host" : "audience";
+            client.setClientRole(targetRole)
+                .catch(err => console.error("Failed to set client role:", err));
+        }
+    }, [client, role]);
 
     // Join channel
     useJoin({
@@ -96,8 +110,8 @@ function StreamLogic({
             {/* Fallback if no host is live/visible yet */}
             {remoteUsers.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center text-white z-0">
-                    <div className="text-center">
-                        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <div className="text-center flex flex-col items-center gap-4">
+                        <Loader />
                         <p>Waiting for host...</p>
                     </div>
                 </div>

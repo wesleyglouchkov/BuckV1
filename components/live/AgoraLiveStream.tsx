@@ -112,7 +112,6 @@ function LiveBroadcast({
         }
     }, [localMicrophoneTrack, isAudioEnabled]);
 
-    // Join channel with null token for testing (but real token in production)
     useJoin({
         appid: appId,
         channel: channelName,

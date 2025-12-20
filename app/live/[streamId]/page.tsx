@@ -60,6 +60,12 @@ export default function LiveStreamPage() {
 
                     // If stream is live and user is authenticated
                     if (response.stream.isLive && session?.user?.id) {
+                        // Prevent Creator from joining as a subscriber (UID collision)
+                        if (session.user.id === response.stream.creator.id) {
+                            toast.info("You are the creator of this stream. Redirecting to Creator Dashboard...");
+                            window.location.href = `/creator/live/${streamId}`;
+                            return;
+                        }
                         await joinStream("subscriber");
                     }
                 } else {
@@ -92,6 +98,10 @@ export default function LiveStreamPage() {
                         channelId: tokenResponse.channelId,
                         uid: tokenResponse.uid,
                         role: role
+                    });
+                    console.log('Comparison:', {
+                        paramsStreamId: streamId,
+                        backendChannelId: tokenResponse.channelId
                     });
                     setTokenData({
                         token: tokenResponse.token,
@@ -249,6 +259,7 @@ export default function LiveStreamPage() {
                                         onRequestUpgrade={() => setShowConsentDialog(true)}
                                     />
                                 ) : (
+                                    // Condition: Stream is not live and viewer has not joined
                                     <div className="w-full aspect-video bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
                                         <div className="text-center space-y-4">
                                             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
@@ -265,6 +276,7 @@ export default function LiveStreamPage() {
                                 )
                             )
                             :
+                            // Condition: Stream is not live and replay is available
                             streamDetails.replayUrl ? (
                                 <VideoPlayer
                                     src={streamDetails.replayUrl}
@@ -272,6 +284,7 @@ export default function LiveStreamPage() {
                                 />
                             ) :
                                 (
+                                    // Condition: Stream is not live and no replay is available
                                     <div className="w-full aspect-video bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
                                         <div className="text-center space-y-4">
                                             <p className="text-muted-foreground">

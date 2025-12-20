@@ -184,7 +184,7 @@ body {
 
 .loader:after {
   content: '';
-  background: hsl(var(--primary));
+  background: hsl(203.8863 88.2845% 53.1373%);
   position: absolute;
   left: 50%;
   top: 50%;
