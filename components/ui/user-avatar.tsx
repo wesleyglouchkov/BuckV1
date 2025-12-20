@@ -41,7 +41,7 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
 
     return (
         <div
-            className={`${sizeClass} bg-linear-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${className}`}
+            className={`${sizeClass} bg-linear-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${className}`}
         >
              <User/>
         </div>

@@ -72,7 +72,7 @@ export default function CreatorDashboard() {
     <div className="p-6">
       {/* Greeting Section */}
       <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-border/20">
-        <UserAvatar src={session?.user?.image || ''} size="xl" name={session?.user?.name || 'Creator'} />
+        <UserAvatar src={session?.user?.avatar || ''} size="xl" name={session?.user?.name || 'Creator'} />
         <div>
           <h2 className="text-xl font-bold text-foreground">{getGreeting()}, {getUserDisplayName()}!</h2>
           <p className="text-muted-foreground">Ready to create amazing content today?</p>
