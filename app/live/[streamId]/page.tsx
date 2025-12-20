@@ -143,7 +143,6 @@ export default function LiveStreamPage() {
                 session.user.id,
                 "publisher"
             );
-            console.log('tokenResponse', tokenResponse);
             if (tokenResponse.success) {
                 setTokenData({
                     token: tokenResponse.token,

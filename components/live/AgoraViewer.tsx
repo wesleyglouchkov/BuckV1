@@ -139,7 +139,7 @@ function StreamLogic({
 
 
             {/* Controls Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-30 transition-opacity opacity-0 group-hover:opacity-100">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 to-transparent z-30 transition-opacity opacity-0 group-hover:opacity-100">
                 <div className="flex items-center justify-center gap-4">
                     {/* Only show Cam/Mic controls if Publisher */}
                     {role === "publisher" && (
