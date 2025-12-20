@@ -21,9 +21,10 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Dumbbell, Radio, Trash2, Edit, X, Copy, Play } from "lucide-react";
+import { Calendar, Clock, Dumbbell, Radio, Trash2, Edit, X, Play } from "lucide-react";
 import { StreamEvent } from "./StreamCalendar";
 import { toast } from "sonner";
+import { CopyableField } from "@/components/ui/copyable-field";
 
 interface StreamDetailsDialogProps {
     open: boolean;
@@ -170,30 +171,16 @@ export default function StreamDetailsDialog({
 
                         {/* Replay URL for past streams */}
                         {isPast && stream.resource?.replayUrl && (
-                            <div className="bg-muted/30 border border-border p-3 rounded-lg relative">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-1 flex-1 min-w-0">
-                                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                            <Play className="w-3 h-3" />
-                                            Replay URL
-                                        </p>
-                                        <p className="text-xs text-foreground truncate pr-8">
-                                            {stream.resource.replayUrl}
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute top-2 right-2 h-7 w-7"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(stream.resource?.replayUrl || "");
-                                            toast.success("Replay URL copied!");
-                                        }}
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                    </Button>
-                                </div>
-                            </div>
+                            <CopyableField
+                                label={
+                                    <>
+                                        <Play className="w-3 h-3" />
+                                        Replay URL
+                                    </>
+                                }
+                                value={stream.resource.replayUrl}
+                                toastMessage="Replay URL copied!"
+                            />
                         )}
                     </div>
 
