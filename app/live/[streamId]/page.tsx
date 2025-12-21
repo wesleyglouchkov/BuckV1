@@ -51,11 +51,37 @@ export default function LiveStreamPage() {
 
     // Fetch stream details and auto-join as viewer
     useEffect(() => {
+        const joinStream = async (role: "publisher" | "subscriber" = "subscriber") => {
+            const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
+
+            try {
+                const tokenResponse = await streamService.getViewerToken(
+                    streamId,
+                    userId,
+                    role
+                );
+
+                if (tokenResponse.success) {
+                    setTokenData({
+                        token: tokenResponse.token,
+                        uid: tokenResponse.uid,
+                        channelId: tokenResponse.channelId,
+                        appId: tokenResponse.appId,
+                    });
+                    setViewerRole(role);
+                    setHasJoined(true);
+                }
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Failed to join stream";
+                toast.error(message);
+            }
+        };
+
         const fetchStreamDetails = async () => {
             try {
                 const response = await streamService.getStreamDetails(streamId);
 
-                if (response.success) {
+                if (response.success && response.stream) {
                     setStreamDetails(response.stream);
 
                     // If stream is live, attempt to join
@@ -81,51 +107,8 @@ export default function LiveStreamPage() {
             }
         };
 
-
-
-        const joinStream = async (role: "publisher" | "subscriber" = "subscriber") => {
-            // Generates a random guest ID if not logged in (numerical string)
-            // Use 0 or a massive number to avoid conflicts? 
-            // Better: use session ID if available, else random string "guest_..." 
-            // Note: services/stream might fail if it requires auth. We assume it might work or we need to update it.
-            // Actually, Agora UIDs are numbers. Let's send a fake string ID to backend, backend should handle it.
-            // But wait, the backend endpoint expects specific auth?
-            // The user request says "this should work without login as well".
-
-            const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
-
-            try {
-                const tokenResponse = await streamService.getViewerToken(
-                    streamId,
-                    userId,
-                    role
-                );
-
-                if (tokenResponse.success) {
-                    console.log('Agora Join Data:', {
-                        channelId: tokenResponse.channelId,
-                        uid: tokenResponse.uid,
-                        role: role
-                    });
-                    // ... rest of success logic
-                    setTokenData({
-                        token: tokenResponse.token,
-                        uid: tokenResponse.uid,
-                        channelId: tokenResponse.channelId,
-                        appId: tokenResponse.appId,
-                    });
-                    setViewerRole(role);
-                    setHasJoined(true);
-                }
-            } catch (error: unknown) {
-                const message = error instanceof Error ? error.message : "Failed to join stream";
-                // If unauthorized, maybe prompt login? For now just show error.
-                toast.error(message);
-            }
-        };
-
         fetchStreamDetails();
-    }, [streamId, session, router]);
+    }, [streamId, session?.user?.id, router]);
 
     // Handle consent to upgrade to publisher (camera & mic)
     const handleConsent = async (participateWithVideo: boolean) => {
