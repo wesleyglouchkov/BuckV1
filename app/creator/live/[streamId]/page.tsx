@@ -6,24 +6,14 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Video, Mic, Radio, Users, ArrowLeft, Share2, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Share2 } from "lucide-react";
 import StreamChat from "@/components/live/StreamChat";
 import { creatorService } from "@/services/creator";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { CATEGORIES } from "@/lib/categories";
 import { SkeletonLiveStream } from "@/components/ui/skeleton-variants";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import StreamPreviewOverlay from "@/components/live/StreamPreviewOverlay";
+import StreamSetupCard from "@/components/live/StreamSetupCard";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -161,6 +151,13 @@ export default function CreatorLivePage() {
     const handlePermissionChange = useCallback((hasPermission: boolean) => {
         setHasPermission(hasPermission);
     }, []);
+
+    const handleGrantPermissions = () => {
+        // Request permissions again
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(() => setHasPermission(true))
+            .catch(() => setHasPermission(false));
+    };
 
     // Handle stream end
     const handleStreamEnd = async () => {
@@ -314,108 +311,16 @@ export default function CreatorLivePage() {
 
                             {/* PREVIEW: Overlay */}
                             {!isLive && (
-                                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20">
-                                    {/* Logo - Top Left */}
-                                    <Image
-                                        src='/buck.svg'
-                                        alt='go live'
-                                        width={40}
-                                        height={40}
-                                        className="absolute top-4 left-4"
-                                    />
-                                    {/* Status Badge - Top Right */}
-                                    <div
-                                        className={cn(
-                                            "absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium",
-                                            isLive
-                                                ? "bg-destructive text-white"
-                                                : "bg-white/20 text-white backdrop-blur-sm"
-                                        )}
-                                    >
-                                        <span
-                                            className={cn(
-                                                "w-2 h-2 rounded-full",
-                                                isLive ? "bg-white animate-pulse" : "bg-white/70"
-                                            )}
-                                        />
-                                        {isLive ? "LIVE" : "Preview"}
-                                    </div>
-                                    <div className="text-center space-y-6 p-8">
-                                        <div className={cn(
-                                            "sm:w-20 sm:h-20 sm:flex hidden rounded-full items-center justify-center mx-auto",
-                                            hasPermission === false ? "bg-yellow-500/20" : "bg-destructive/20"
-                                        )}>
-                                            {hasPermission === false ? (
-                                                <AlertTriangle className="w-10 h-10 text-yellow-500" />
-                                            ) : (
-                                                <Radio className="sm:w-10 sm:h-10 text-destructive w-4 h-4" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-bold text-white mb-2 hidden sm:block">
-                                                {hasPermission === false ? "Permission Required" : "Ready to go live?"}
-                                            </h2>
-                                            <p className="text-white/70 sm:block hidden">
-                                                {hasPermission === false
-                                                    ? "Please allow camera and microphone access"
-                                                    : hasPermission === true
-                                                        ? "Your camera and microphone are ready"
-                                                        : "Checking camera and microphone..."
-                                                }
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col gap-3 items-center">
-                                            <Button
-                                                onClick={handleGoLive}
-                                                disabled={isGoingLive || !canGoLive}
-                                                size="lg"
-                                                className="bg-destructive hover:bg-destructive/90 text-white px-6 py-4 text-base rounded-full shadow-lg disabled:opacity-50 w-auto"
-                                            >
-                                                <Radio className="w-5 h-5 mr-2" />
-                                                {isGoingLive ? "Starting..." : "Go Live"}
-                                            </Button>
-                                            {hasPermission === false && (
-                                                <Button
-                                                    onClick={() => {
-                                                        // Request permissions again
-                                                        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                                                            .then(() => setHasPermission(true))
-                                                            .catch(() => setHasPermission(false));
-                                                    }}
-                                                    variant="outline"
-                                                    size="lg"
-                                                    className="text-white border-white/30 hover:bg-white/10 px-8 py-6 text-lg rounded-full"
-                                                >
-                                                    Grant Permissions
-                                                </Button>
-                                            )}
-                                        </div>
-                                        {/* Status Indicators */}
-                                        <div className="flex items-center justify-center gap-6 mt-4">
-                                            <div className="flex items-center gap-2 text-white/80 text-sm">
-                                                <Video className={cn(
-                                                    "w-4 h-4",
-                                                    hasPermission === false ? "text-red-400" : "text-green-400"
-                                                )} />
-                                                <span className="mt-1 max-sm:text-xs">{hasPermission === false ? "Camera blocked" : "Camera ready"}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-white/80 text-sm">
-                                                <Mic className={cn(
-                                                    "w-4 h-4",
-                                                    hasPermission === false ? "text-red-400" : "text-green-400"
-                                                )} />
-                                                <span className="mt-1 max-sm:text-xs">{hasPermission === false ? "Mic blocked" : "Mic ready"}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-white/80 text-sm">
-                                                <Users className="w-4 h-4 text-blue-400" />
-                                                <span className="mt-1 max-sm:text-xs">Followers and Subscribers will be notified via email</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-gray-400 text-sm font-black">
-                                            To go live, fill in the title and select the stream type.
-                                        </div>
-                                    </div>
-                                </div>
+                                <StreamPreviewOverlay
+                                    isLive={isLive}
+                                    hasPermission={hasPermission}
+                                    isGoingLive={isGoingLive}
+                                    canGoLive={canGoLive}
+                                    streamTitle={streamTitle}
+                                    streamType={streamType}
+                                    onGoLive={handleGoLive}
+                                    onGrantPermissions={handleGrantPermissions}
+                                />
                             )}
                         </div>
 
@@ -448,45 +353,12 @@ export default function CreatorLivePage() {
                                 isCreator={true}
                             />
                         ) : (
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-lg">Stream Setup</CardTitle>
-                                    {(!streamTitle.trim() || !streamType.trim()) && (
-                                        <p className="text-xs text-muted-foreground">
-                                            * Please fill in both fields to enable Go Live
-                                        </p>
-                                    )}
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="streamTitle">Title</Label>
-                                        <Input
-                                            id="streamTitle"
-                                            value={streamTitle}
-                                            onChange={(e) => setStreamTitle(e.target.value)}
-                                            placeholder="Enter your stream title"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="streamType">Stream Type</Label>
-                                        <Select
-                                            value={streamType}
-                                            onValueChange={setStreamType}
-                                        >
-                                            <SelectTrigger className="h-12">
-                                                <SelectValue placeholder="Select workout type" />
-                                            </SelectTrigger>
-                                            <SelectContent className="border border-border">
-                                                {CATEGORIES.map((category) => (
-                                                    <SelectItem key={category.id} value={category.name}>
-                                                        {category.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <StreamSetupCard
+                                title={streamTitle}
+                                onTitleChange={setStreamTitle}
+                                type={streamType}
+                                onTypeChange={setStreamType}
+                            />
                         )}
                     </div>
 
