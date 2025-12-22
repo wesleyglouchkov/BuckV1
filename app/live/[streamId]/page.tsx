@@ -112,6 +112,37 @@ export default function LiveStreamPage() {
         fetchStreamDetails();
     }, [streamId, session?.user?.id, router]);
 
+    // Warn user before leaving/refreshing when watching live stream
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (!hasJoined || !streamDetails?.isLive) return;
+            e.preventDefault();
+            e.returnValue = "You are watching a live stream. Are you sure you want to leave?";
+            return e.returnValue;
+        };
+
+        const handlePopState = () => {
+            if (!hasJoined || !streamDetails?.isLive) return;
+
+            const confirmed = window.confirm("You are watching a live stream. Are you sure you want to leave?");
+            if (!confirmed) {
+                window.history.pushState(null, "", window.location.href);
+            } else {
+                handleLeave();
+            }
+        };
+
+        window.history.pushState(null, "", window.location.href);
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, [hasJoined, streamDetails?.isLive, router]);
+
     // Handle consent to upgrade to publisher (camera & mic)
     const handleConsent = async (participateWithVideo: boolean) => {
         console.log("handleConsent called with:", participateWithVideo);
