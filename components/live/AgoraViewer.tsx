@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useState, useMemo, useEffect, useCallback } from "react";
 import AgoraRTC, {
     AgoraRTCProvider,
@@ -24,12 +26,14 @@ const viewerRtmSingleton: {
     isInitializing: boolean;
     channelName: string | null;
     uid: number | null;
+    currentUidRef: { current: number | null }; // Track current UID via ref for message handler
     subscribers: Set<(ready: boolean) => void>;
 } = {
     instance: null,
     isInitializing: false,
     channelName: null,
     uid: null,
+    currentUidRef: { current: null },
     subscribers: new Set(),
 };
 
@@ -58,6 +62,8 @@ function StreamLogic({
     onLeave,
     onRequestUpgrade,
 }: AgoraViewerProps) {
+    const router = useRouter();
+
     // Track state - start enabled so tracks can be published
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -88,6 +94,18 @@ function StreamLogic({
         uid: uid,
     });
 
+    // Sync RTM UID with actual RTC UID (Agora may assign a different UID after joining)
+    // Priority: RTC-assigned UID > prop UID
+    useEffect(() => {
+        if (client && client.uid) {
+            // Use the actual RTC UID that other participants see
+            viewerRtmSingleton.currentUidRef.current = client.uid as number;
+        } else {
+            // Fallback to prop UID before RTC connection is established
+            viewerRtmSingleton.currentUidRef.current = uid;
+        }
+    }, [client, client?.uid, uid]);
+
     // Publish tracks if role is publisher
     usePublish([localCameraTrack, localMicrophoneTrack], role === "publisher");
 
@@ -107,14 +125,13 @@ function StreamLogic({
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
 
-    // Message handler for RTM commands from host
+    // Message handler for RTM commands from host - uses ref to avoid stale closure
     const handleRTMMessage = useCallback((msg: { type: string; payload: { userId: string | number; mediaType: string; mute: boolean } }) => {
         console.log("RTM: Message received in viewer:", msg);
 
         const targetUid = msg.payload.userId.toString();
-        const myUid = uid.toString();
-
-        console.log("RTM: Target UID:", targetUid, "My UID:", myUid);
+        // Use the ref to get the CURRENT uid, not a stale closure value
+        const myUid = viewerRtmSingleton.currentUidRef.current?.toString() || '';
 
         if (msg.type === "MUTE_USER" && targetUid === myUid) {
             console.log("RTM: Command matched! Applying changes...");
@@ -140,8 +157,6 @@ function StreamLogic({
                         : "The host has disabled your camera"
                 );
             }
-        } else {
-            console.log("RTM: Message not for this user or wrong type");
         }
     }, [uid]);
 
@@ -213,6 +228,43 @@ function StreamLogic({
 
         // Don't cleanup on Strict Mode unmount - singleton persists
     }, [appId, uid, channelName, rtmToken, role, handleRTMMessage]);
+
+    // Cleanup RTM singleton
+    const cleanupViewerRTM = useCallback(() => {
+        if (viewerRtmSingleton.instance) {
+            console.log("RTM Viewer: Cleaning up singleton");
+            viewerRtmSingleton.instance.logout();
+            viewerRtmSingleton.instance = null;
+            viewerRtmSingleton.channelName = null;
+            viewerRtmSingleton.uid = null;
+            viewerRtmSingleton.currentUidRef.current = null;
+            viewerRtmSingleton.isInitializing = false;
+        }
+    }, []);
+
+    // Handle leaving the stream - cleanup and call parent onLeave
+    const handleLeaveStream = useCallback(async () => {
+        console.log("Viewer: Leaving stream...");
+
+        // Cleanup RTM
+        cleanupViewerRTM();
+
+        // Close local tracks if publisher
+        if (role === "publisher") {
+            localCameraTrack?.close();
+            localMicrophoneTrack?.close();
+        }
+
+        // Leave Agora channel
+        try {
+            await client.leave();
+            console.log("Viewer: Left Agora channel");
+        } catch (err) {
+            console.warn("Viewer: Error leaving channel:", err);
+        }
+
+        router.push('/explore');
+    }, [cleanupViewerRTM, client, localCameraTrack, localMicrophoneTrack, role, onLeave]);
 
     // Identify Host and other participants
     // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.
@@ -340,7 +392,7 @@ function StreamLogic({
                 )}
 
                 <Button
-                    onClick={onLeave}
+                    onClick={handleLeaveStream}
                     variant="destructive"
                     size="icon"
                     className="w-12 h-12 rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"

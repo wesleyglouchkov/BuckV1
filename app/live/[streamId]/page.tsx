@@ -181,10 +181,14 @@ export default function LiveStreamPage() {
 
     // Handle leaving stream
     const handleLeave = () => {
-        setHasJoined(false);
-        setTokenData(null);
-        setViewerRole(null);
+        // Navigate first, then reset state (prevents "Connecting" flash)
         router.push("/explore");
+        // Use setTimeout to ensure navigation starts before state reset
+        setTimeout(() => {
+            setHasJoined(false);
+            setTokenData(null);
+            setViewerRole(null);
+        }, 100);
     };
 
     // Handle share - just copy link to clipboard

@@ -329,12 +329,6 @@ function LiveBroadcast({
         const participant = participants.find(p => p.uid.toString() === remoteUid.toString());
         const isCurrentlyOn = participant?.cameraOn ?? true;
 
-        console.log("RTM: Toggling remote camera", {
-            remoteUid,
-            currentState: isCurrentlyOn,
-            willMute: isCurrentlyOn
-        });
-
         try {
             const message = {
                 type: "MUTE_USER" as const,
@@ -353,8 +347,6 @@ function LiveBroadcast({
                     description: "The user should see the change shortly"
                 }
             );
-
-            console.log("RTM: Command sent successfully");
         } catch (err) {
             console.error("RTM: Failed to send camera command:", err);
             toast.error("Failed to send camera command", {
@@ -362,6 +354,7 @@ function LiveBroadcast({
             });
         }
     };
+
 
     const endStream = async () => {
         mediaRecorderRef.current?.stop();
