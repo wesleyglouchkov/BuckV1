@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import AgoraRTC, {
     AgoraRTCProvider,
     useJoin,
@@ -9,17 +9,29 @@ import AgoraRTC, {
     usePublish,
     useRemoteUsers,
     useRTCClient,
-    LocalUser,
-    RemoteUser,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2 } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora-rtm";
-import { useRef } from "react";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
+
+// Module-level singleton for RTM to prevent multiple instances in Strict Mode
+const viewerRtmSingleton: {
+    instance: SignalingManager | null;
+    isInitializing: boolean;
+    channelName: string | null;
+    uid: number | null;
+    subscribers: Set<(ready: boolean) => void>;
+} = {
+    instance: null,
+    isInitializing: false,
+    channelName: null,
+    uid: null,
+    subscribers: new Set(),
+};
 
 export interface AgoraViewerProps {
     appId: string;
@@ -92,48 +104,115 @@ function StreamLogic({
         }
     }, [localMicrophoneTrack, isAudioEnabled]);
 
-    // --- Signaling (RTM) Implementation ---
-    const signalingRef = useRef<SignalingManager | null>(null);
-    const hasInitializedRTM = useRef(false);
+    // --- Signaling (RTM) Implementation using Singleton ---
+    const [isRTMReady, setIsRTMReady] = useState(false);
+
+    // Message handler for RTM commands from host
+    const handleRTMMessage = useCallback((msg: { type: string; payload: { userId: string | number; mediaType: string; mute: boolean } }) => {
+        console.log("RTM: Message received in viewer:", msg);
+
+        const targetUid = msg.payload.userId.toString();
+        const myUid = uid.toString();
+
+        console.log("RTM: Target UID:", targetUid, "My UID:", myUid);
+
+        if (msg.type === "MUTE_USER" && targetUid === myUid) {
+            console.log("RTM: Command matched! Applying changes...");
+
+            if (msg.payload.mediaType === "audio") {
+                const newState = !msg.payload.mute;
+                console.log("RTM: Setting audio to:", newState);
+                setIsAudioEnabled(newState);
+
+                toast.info(
+                    newState
+                        ? "The host has unmuted your microphone"
+                        : "The host has muted your microphone"
+                );
+            } else if (msg.payload.mediaType === "video") {
+                const newState = !msg.payload.mute;
+                console.log("RTM: Setting video to:", newState);
+                setIsVideoEnabled(newState);
+
+                toast.info(
+                    newState
+                        ? "The host has enabled your camera"
+                        : "The host has disabled your camera"
+                );
+            }
+        } else {
+            console.log("RTM: Message not for this user or wrong type");
+        }
+    }, [uid]);
 
     useEffect(() => {
-        if (!appId || !uid || !channelName || !rtmToken) return;
-        if (hasInitializedRTM.current) return; // Prevent duplicate initialization
+        if (!appId || !uid || !channelName || !rtmToken) {
+            console.log("RTM Viewer: Missing required params");
+            return;
+        }
 
-        hasInitializedRTM.current = true;
+        // If singleton already exists for this channel and user, reuse it
+        if (viewerRtmSingleton.instance &&
+            viewerRtmSingleton.channelName === channelName &&
+            viewerRtmSingleton.uid === uid) {
+            console.log("RTM Viewer: Reusing existing singleton instance");
+            viewerRtmSingleton.instance.onMessage(handleRTMMessage);
+            setIsRTMReady(true);
+            return;
+        }
 
-        // Small delay to let React stabilize and prevent "login too frequent"
-        const timeoutId = setTimeout(() => {
-            console.log("RTM Viewer Init:", { channelName, uid }); // DEBUG
-            const sm = new SignalingManager(appId, uid, channelName);
-            signalingRef.current = sm;
+        // If already initializing, just subscribe to updates
+        if (viewerRtmSingleton.isInitializing) {
+            console.log("RTM Viewer: Already initializing, subscribing to updates");
+            const callback = (ready: boolean) => setIsRTMReady(ready);
+            viewerRtmSingleton.subscribers.add(callback);
+            return () => {
+                viewerRtmSingleton.subscribers.delete(callback);
+            };
+        }
 
-            sm.login(rtmToken).then(() => {
-                // Listen for host commands
-                sm.onMessage((msg) => {
-                    if (msg.type === "MUTE_USER" && msg.payload.userId.toString() === uid.toString()) {
-                        if (msg.payload.mediaType === "audio") {
-                            setIsAudioEnabled(!msg.payload.mute);
-                            toast.info("The host has muted your microphone");
-                        } else if (msg.payload.mediaType === "video") {
-                            setIsVideoEnabled(!msg.payload.mute);
-                            toast.info("The host has disabled your camera");
-                        }
-                    }
-                });
-            }).catch(err => {
-                console.warn("Signaling login failed - remote controls may not work:", err);
-                hasInitializedRTM.current = false; // Allow retry on error
-            });
-        }, 500);
+        // Start initialization
+        viewerRtmSingleton.isInitializing = true;
+        viewerRtmSingleton.channelName = channelName;
+        viewerRtmSingleton.uid = uid;
 
-        return () => {
-            clearTimeout(timeoutId);
-            if (signalingRef.current) {
-                signalingRef.current.logout();
+        const initRTM = async () => {
+            try {
+                // Double-check no instance was created while we were waiting
+                if (viewerRtmSingleton.instance) {
+                    console.log("RTM Viewer: Instance already exists, skipping");
+                    viewerRtmSingleton.instance.onMessage(handleRTMMessage);
+                    setIsRTMReady(true);
+                    viewerRtmSingleton.isInitializing = false;
+                    return;
+                }
+
+                console.log("RTM Viewer Init:", { channelName, uid, role });
+                const sm = new SignalingManager(appId, uid, channelName);
+
+                // Setup message listener FIRST
+                sm.onMessage(handleRTMMessage);
+
+                await sm.login(rtmToken);
+
+                console.log("RTM Viewer: Login successful, signaling ready");
+                viewerRtmSingleton.instance = sm;
+                viewerRtmSingleton.isInitializing = false;
+                setIsRTMReady(true);
+
+                // Notify all subscribers
+                viewerRtmSingleton.subscribers.forEach(cb => cb(true));
+            } catch (err: any) {
+                console.warn("RTM Viewer: Login failed:", err?.message || err);
+                viewerRtmSingleton.isInitializing = false;
+                viewerRtmSingleton.subscribers.forEach(cb => cb(false));
             }
         };
-    }, [appId, uid, channelName, rtmToken]);
+
+        initRTM();
+
+        // Don't cleanup on Strict Mode unmount - singleton persists
+    }, [appId, uid, channelName, rtmToken, role, handleRTMMessage]);
 
     // Identify Host and other participants
     // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.

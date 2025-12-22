@@ -7,18 +7,28 @@ import {
     useLocalCameraTrack,
     useLocalMicrophoneTrack,
     usePublish,
-    useIsConnected,
-    useNetworkQuality,
     useVolumeLevel,
-    LocalUser,
+    useRemoteUsers,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, Settings, Maximize2, Wifi, WifiOff } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, Settings, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ParticipantGrid } from "./AgoraComponents";
-import { useRemoteUsers } from "agora-rtc-react";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora-rtm";
+
+// Module-level singleton for RTM to prevent multiple instances in Strict Mode
+const rtmSingleton: {
+    instance: SignalingManager | null;
+    isInitializing: boolean;
+    channelName: string | null;
+    subscribers: Set<(ready: boolean) => void>;
+} = {
+    instance: null,
+    isInitializing: false,
+    channelName: null,
+    subscribers: new Set(),
+};
 
 interface AgoraLiveStreamProps {
     appId: string;
@@ -99,8 +109,7 @@ function LiveBroadcast({
     const { localCameraTrack } = useLocalCameraTrack(true);
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
 
-    // Connection & quality hooks
-    const isConnected = useIsConnected();
+    // Remote users and audio level
     const remoteUsers = useRemoteUsers();
     const audioLevel = useVolumeLevel(localMicrophoneTrack ?? undefined);
 
@@ -176,75 +185,181 @@ function LiveBroadcast({
         }
     }, [localCameraTrack, localMicrophoneTrack, isRecording, startRecording]);
 
-    // --- Signaling (RTM) Implementation ---
-    const signalingRef = useRef<SignalingManager | null>(null);
-    const hasInitializedRTM = useRef(false);
+    // --- Signaling (RTM) Implementation using Singleton ---
+    const [isRTMReady, setIsRTMReady] = useState(false);
 
     useEffect(() => {
-        if (!appId || !uid || !channelName || !token || !rtmToken) return;
-        if (hasInitializedRTM.current) return;
+        if (!appId || !uid || !channelName || !rtmToken) {
+            console.log("RTM: Missing required params");
+            return;
+        }
 
-        hasInitializedRTM.current = true;
+        // If singleton already exists for this channel, reuse it
+        if (rtmSingleton.instance && rtmSingleton.channelName === channelName) {
+            console.log("RTM: Reusing existing singleton instance");
+            setIsRTMReady(true);
+            return;
+        }
 
-        const timeoutId = setTimeout(() => {
-            const sm = new SignalingManager(appId, uid, channelName);
-            signalingRef.current = sm;
+        // If already initializing, just subscribe to updates
+        if (rtmSingleton.isInitializing) {
+            console.log("RTM: Already initializing, subscribing to updates");
+            const callback = (ready: boolean) => setIsRTMReady(ready);
+            rtmSingleton.subscribers.add(callback);
+            return () => {
+                rtmSingleton.subscribers.delete(callback);
+            };
+        }
 
-            sm.login(rtmToken).catch(err => {
-                console.warn("Signaling login failed - remote controls may not work:", err);
-                hasInitializedRTM.current = false;
-            });
-        }, 500);
+        // Start initialization
+        rtmSingleton.isInitializing = true;
+        rtmSingleton.channelName = channelName;
 
-        return () => {
-            clearTimeout(timeoutId);
-            if (signalingRef.current) {
-                signalingRef.current.logout();
+        const initRTM = async () => {
+            try {
+                // Double-check no instance was created while we were waiting
+                if (rtmSingleton.instance) {
+                    console.log("RTM: Instance already exists, skipping");
+                    setIsRTMReady(true);
+                    rtmSingleton.isInitializing = false;
+                    return;
+                }
+
+                const sm = new SignalingManager(appId, uid, channelName);
+                console.log("RTM: SignalingManager created (singleton)");
+
+                await sm.login(rtmToken);
+
+                console.log("RTM: Login successful, signaling ready");
+                rtmSingleton.instance = sm;
+                rtmSingleton.isInitializing = false;
+                setIsRTMReady(true);
+
+                // Notify all subscribers
+                rtmSingleton.subscribers.forEach(cb => cb(true));
+            } catch (err: any) {
+                console.warn("RTM: Login failed:", err?.message || err);
+                rtmSingleton.isInitializing = false;
+                rtmSingleton.subscribers.forEach(cb => cb(false));
             }
         };
-    }, [appId, uid, channelName, token, rtmToken]);
+
+        initRTM();
+
+        // Don't cleanup on Strict Mode unmount - singleton persists
+    }, [appId, uid, channelName, rtmToken]);
+
+    // Cleanup singleton only when stream actually ends
+    const cleanupRTM = useCallback(() => {
+        if (rtmSingleton.instance) {
+            console.log("RTM: Cleaning up singleton");
+            rtmSingleton.instance.logout();
+            rtmSingleton.instance = null;
+            rtmSingleton.channelName = null;
+            rtmSingleton.isInitializing = false;
+        }
+    }, []);
 
     const handleToggleRemoteMic = async (remoteUid: string | number) => {
-        if (!signalingRef.current) return;
+        if (!isRTMReady || !rtmSingleton.instance) {
+            console.error("RTM: Signaling not ready", { isRTMReady, hasInstance: !!rtmSingleton.instance });
+            toast.error("Signaling still connecting. Please wait a moment and try again.");
+            return;
+        }
+
+        // Check connection status
+        if (!rtmSingleton.instance.isConnected()) {
+            console.error("RTM: Not connected to signaling");
+            toast.error("Not connected to signaling service. Reconnecting...");
+            return;
+        }
 
         // Find current state from participants list
         const participant = participants.find(p => p.uid.toString() === remoteUid.toString());
         const isCurrentlyOn = participant?.micOn ?? true;
 
+        console.log("RTM: Toggling remote mic", {
+            remoteUid,
+            currentState: isCurrentlyOn,
+            willMute: isCurrentlyOn
+        });
+
         try {
-            await signalingRef.current.sendMessage({
-                type: "MUTE_USER",
+            const message = {
+                type: "MUTE_USER" as const,
                 payload: {
                     userId: remoteUid,
-                    mediaType: "audio",
+                    mediaType: "audio" as const,
                     mute: isCurrentlyOn // If it's on, we want to mute (mute=true)
                 }
-            });
-            toast.success(`${isCurrentlyOn ? 'Mute' : 'Unmute'} command sent to User ${remoteUid}`);
+            };
+
+            await rtmSingleton.instance.sendMessage(message);
+
+            toast.success(
+                `${isCurrentlyOn ? 'Mute' : 'Unmute'} command sent to User ${remoteUid}`,
+                {
+                    description: "The user should see the change shortly"
+                }
+            );
+
+            console.log("RTM: Command sent successfully");
         } catch (err) {
-            toast.error("Failed to send mute command");
+            console.error("RTM: Failed to send mute command:", err);
+            toast.error("Failed to send mute command", {
+                description: "Please check your connection and try again"
+            });
         }
     };
 
     const handleToggleRemoteCamera = async (remoteUid: string | number) => {
-        if (!signalingRef.current) return;
+        if (!isRTMReady || !rtmSingleton.instance) {
+            console.error("RTM: Signaling not ready", { isRTMReady, hasInstance: !!rtmSingleton.instance });
+            toast.error("Signaling still connecting. Please wait a moment and try again.");
+            return;
+        }
+
+        if (!rtmSingleton.instance.isConnected()) {
+            console.error("RTM: Not connected to signaling");
+            toast.error("Not connected to signaling service. Reconnecting...");
+            return;
+        }
 
         // Find current state
         const participant = participants.find(p => p.uid.toString() === remoteUid.toString());
         const isCurrentlyOn = participant?.cameraOn ?? true;
 
+        console.log("RTM: Toggling remote camera", {
+            remoteUid,
+            currentState: isCurrentlyOn,
+            willMute: isCurrentlyOn
+        });
+
         try {
-            await signalingRef.current.sendMessage({
-                type: "MUTE_USER",
+            const message = {
+                type: "MUTE_USER" as const,
                 payload: {
                     userId: remoteUid,
-                    mediaType: "video",
+                    mediaType: "video" as const,
                     mute: isCurrentlyOn
                 }
-            });
-            toast.success(`${isCurrentlyOn ? 'Disable' : 'Enable'} camera command sent to User ${remoteUid}`);
+            };
+
+            await rtmSingleton.instance.sendMessage(message);
+
+            toast.success(
+                `${isCurrentlyOn ? 'Disable' : 'Enable'} camera command sent to User ${remoteUid}`,
+                {
+                    description: "The user should see the change shortly"
+                }
+            );
+
+            console.log("RTM: Command sent successfully");
         } catch (err) {
-            toast.error("Failed to send camera command");
+            console.error("RTM: Failed to send camera command:", err);
+            toast.error("Failed to send camera command", {
+                description: "Please check your connection and try again"
+            });
         }
     };
 
@@ -254,9 +369,7 @@ function LiveBroadcast({
         await client.leave();
         localCameraTrack?.close();
         localMicrophoneTrack?.close();
-        if (signalingRef.current) {
-            signalingRef.current.logout();
-        }
+        cleanupRTM();
         onStreamEnd();
     };
 

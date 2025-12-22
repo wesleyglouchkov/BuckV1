@@ -117,27 +117,33 @@ export function ParticipantTile({
                 </div>
             </div>
 
-            {/* Host Controls (Hover only) */}
-            {isHost && !participant.isLocal && (
+            {/* Host Controls (Hover only) - Can only mute/disable, not unmute/enable */}
+            {isHost && !participant.isLocal && (isMicOn || isCameraOn) && (
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 z-20">
-                    <Button
-                        size="icon"
-                        variant={isMicOn ? "secondary" : "destructive"}
-                        className="w-10 h-10 backdrop-blur-md"
-                        onClick={() => onToggleRemoteMic?.(participant.uid)}
-                        title={isMicOn ? "Mute Participant" : "Unmute Participant"}
-                    >
-                        {isMicOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant={isCameraOn ? "secondary" : "destructive"}
-                        className="w-10 h-10 backdrop-blur-md"
-                        onClick={() => onToggleRemoteCamera?.(participant.uid)}
-                        title={isCameraOn ? "Disable Camera" : "Enable Camera"}
-                    >
-                        {isCameraOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-                    </Button>
+                    {/* Mic Toggle - only shown when mic is ON (can only mute) */}
+                    {isMicOn && (
+                        <Button
+                            size="icon"
+                            variant="secondary"
+                            className="w-10 h-10 backdrop-blur-md"
+                            onClick={() => onToggleRemoteMic?.(participant.uid)}
+                            title="Mute Participant"
+                        >
+                            <Mic className="w-4 h-4" />
+                        </Button>
+                    )}
+                    {/* Camera Toggle - only shown when camera is ON (can only turn off) */}
+                    {isCameraOn && (
+                        <Button
+                            size="icon"
+                            variant="secondary"
+                            className="w-10 h-10 backdrop-blur-md"
+                            onClick={() => onToggleRemoteCamera?.(participant.uid)}
+                            title="Disable Camera"
+                        >
+                            <Video className="w-4 h-4" />
+                        </Button>
+                    )}
                 </div>
             )}
         </div>
