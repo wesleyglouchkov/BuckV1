@@ -185,7 +185,6 @@ function LiveBroadcast({
         hasInitializedRTM.current = true;
 
         const timeoutId = setTimeout(() => {
-            console.log("RTM Host Init:", { channelName, uid }); // DEBUG
             const sm = new SignalingManager(appId, uid, channelName);
             signalingRef.current = sm;
 

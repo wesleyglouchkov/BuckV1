@@ -41,16 +41,15 @@ function StreamLogic({
     onRequestUpgrade,
 }: AgoraViewerProps) {
     // Track state
-    // Track state
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+    const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+    const [isAudioEnabled, setIsAudioEnabled] = useState(false);
 
     // Get remote users
     const remoteUsers = useRemoteUsers();
 
-    // Local tracks - only initialized if role is publisher
-    const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
-    const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher");
+    // Local tracks - only initialized if role is publisher AND enabled
+    const { localCameraTrack } = useLocalCameraTrack(role === "publisher" && isVideoEnabled);
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher" && isAudioEnabled);
 
     const client = useRTCClient();
 
