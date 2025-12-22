@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { RemoteUser, LocalUser, IRemoteVideoTrack, IRemoteAudioTrack, ILocalVideoTrack, ILocalAudioTrack, IAgoraRTCRemoteUser } from "agora-rtc-react";
+import { useState, useRef, useEffect } from "react";
+import { RemoteUser, IRemoteVideoTrack, IRemoteAudioTrack, ILocalVideoTrack, ILocalAudioTrack, IAgoraRTCRemoteUser } from "agora-rtc-react";
 import { Mic, MicOff, Video, VideoOff, MoreHorizontal, X, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ interface Participant {
 
 interface ParticipantTileProps {
     participant: Participant;
-    isHost?: boolean; // If true, show administrative controls for remote users
+    isHost?: boolean;
     onToggleRemoteMic?: (uid: string | number) => void;
     onToggleRemoteCamera?: (uid: string | number) => void;
     className?: string;
@@ -34,6 +34,18 @@ export function ParticipantTile({
 }: ParticipantTileProps) {
     const isCameraOn = participant.cameraOn ?? !!participant.videoTrack;
     const isMicOn = participant.micOn ?? !!participant.audioTrack;
+    const videoRef = useRef<HTMLDivElement>(null);
+
+    // Play local video track manually
+    useEffect(() => {
+        if (participant.isLocal && participant.videoTrack && videoRef.current) {
+            const track = participant.videoTrack as ILocalVideoTrack;
+            track.play(videoRef.current);
+            return () => {
+                track.stop();
+            };
+        }
+    }, [participant.isLocal, participant.videoTrack]);
 
     return (
         <div className={cn(
@@ -44,18 +56,15 @@ export function ParticipantTile({
             <div className="absolute inset-0 w-full h-full">
                 {participant.isLocal ? (
                     <>
-                        <LocalUser
-                            videoTrack={participant.videoTrack as ILocalVideoTrack}
-                            audioTrack={participant.audioTrack as ILocalAudioTrack}
-                            cameraOn={isCameraOn}
-                            micOn={isMicOn}
-                            playVideo={isCameraOn}
-                            playAudio={false}
-                            className="w-full h-full object-cover"
-                        />
-                        {!isCameraOn && (
+                        {isCameraOn && participant.videoTrack ? (
+                            <div
+                                ref={videoRef}
+                                className="w-full h-full"
+                                style={{ transform: 'scaleX(-1)' }}
+                            />
+                        ) : (
                             <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-800">
-                                <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
+                                <div className="w-16 h-16 bg-neutral-700 rounded-full flex items-center justify-center mb-2">
                                     <UserIcon className="w-8 h-8 text-neutral-400" />
                                 </div>
                                 <p className="text-xs text-neutral-500">Camera Off</p>
