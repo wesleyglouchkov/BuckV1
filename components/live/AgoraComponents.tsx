@@ -5,6 +5,14 @@ import { RemoteUser, IRemoteVideoTrack, IRemoteAudioTrack, ILocalVideoTrack, ILo
 import { Mic, MicOff, Video, VideoOff, MoreHorizontal, X, User as UserIcon, Pin, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 // Error boundary to catch Agora subscription errors gracefully
 interface RemoteUserErrorBoundaryProps {
@@ -199,105 +207,113 @@ export function ParticipantTile({
                 )}
             </div>
 
-            {/* Status Indicators (Always visible) */}
-            <div className="absolute top-2 right-2 flex gap-1.5 z-10">
-                {isPinned && (
-                    <div className="bg-primary/80 backdrop-blur-md p-1.5 border border-white/10 shadow-lg">
-                        <Pin className="w-3.5 h-3.5 text-white" />
-                    </div>
-                )}
-                {!isMicOn && (
-                    <div className="bg-destructive/80 backdrop-blur-md p-1.5 border border-white/10 shadow-lg">
-                        <MicOff className="w-3.5 h-3.5 text-white" />
-                    </div>
-                )}
-                {!isCameraOn && (
-                    <div className="bg-neutral-800/80 backdrop-blur-md p-1.5 border border-white/10 shadow-lg">
-                        <VideoOff className="w-3.5 h-3.5 text-white" />
-                    </div>
-                )}
-            </div>
+            {/* Unified Controls & Status Overlay (Top Right) */}
+            <TooltipProvider>
+                <div className="absolute top-2 right-2 flex gap-1.5 z-20 flex-wrap justify-end pl-8">
+                    {/* Pin Control */}
+                    {(isPinned || (isHost && !participant.isLocal)) && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className={cn(
+                                        "flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
+                                        !isPinned && "opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10", // Ghost-like when unpinned
+                                        isPinned && "bg-primary text-white border border-white/10"
+                                    )}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isHost && !participant.isLocal) onPinUser?.(isPinned ? null : participant.uid);
+                                    }}
+                                >
+                                    <Pin className="w-3.5 h-3.5" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-black bg-white dark:text-white dark:bg-black">
+                                {isPinned ? "Unpin User" : "Pin User"}
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* Mic Status & Control */}
+                    {(!isMicOn || (isHost && !participant.isLocal)) && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className={cn(
+                                        "flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
+                                        !isMicOn && "bg-destructive/80 text-white border border-white/10",
+                                        isMicOn && "opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10 cursor-pointer",
+                                        !isMicOn && isHost && !participant.isLocal && "cursor-not-allowed opacity-100" // Can't unmute remote
+                                    )}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isMicOn && isHost && !participant.isLocal) onToggleRemoteMic?.(participant.uid);
+                                    }}
+                                >
+                                    {isMicOn ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{!isMicOn ? "Mic Off" : (isHost && !participant.isLocal ? "Mute User" : "Mic On")}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* Camera Status & Control */}
+                    {(!isCameraOn || (isHost && !participant.isLocal)) && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className={cn(
+                                        "flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
+                                        !isCameraOn && "bg-neutral-800/80 text-white border border-white/10",
+                                        isCameraOn && "opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10 cursor-pointer"
+                                    )}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isCameraOn && isHost && !participant.isLocal) onToggleRemoteCamera?.(participant.uid);
+                                    }}
+                                >
+                                    {isCameraOn ? <Video className="w-3.5 h-3.5" /> : <VideoOff className="w-3.5 h-3.5" />}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{!isCameraOn ? "Camera Off" : (isHost && !participant.isLocal ? "Disable Camera" : "Camera On")}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* Fullscreen Control */}
+                    {(!isHost || (isHost && !participant.isLocal)) && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/40 hover:bg-black/60 text-white border border-white/10 w-7 h-7"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleBrowserFullscreen();
+                                    }}
+                                >
+                                    <Maximize2 className="w-3.5 h-3.5" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Fullscreen</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+                </div>
+            </TooltipProvider>
 
             {/* Name Overlay (Bottom Left) */}
             <div className="absolute bottom-3 left-3 z-10">
-                <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 border border-white/10 flex items-center gap-2">
+                <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 border border-white/10 flex items-center gap-2 rounded-full">
                     <span className="text-sm font-medium text-white truncate max-w-[120px]">
                         {participant.name || (participant.isLocal ? "You" : `User ${participant.uid}`)}
                     </span>
-                    {isMicOn && <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />}
+                    {isMicOn && <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
                 </div>
             </div>
-
-            {/* Fullscreen Button (Bottom Right) - For non-host viewers */}
-            {!isHost && (
-                <div className="absolute top-2 right-10 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Button
-                        size="icon"
-                        variant="secondary"
-                        className="w-7 h-7 backdrop-blur-md bg-black/40 hover:bg-black/60 border border-white/10"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleBrowserFullscreen();
-                        }}
-                        title="Fullscreen"
-                    >
-                        <Maximize2 className="w-3.5 h-3.5" />
-                    </Button>
-                </div>
-            )}
-
-            {/* Host Controls (Hover only) - Pin, mute, disable camera, AND fullscreen */}
-            {isHost && !participant.isLocal && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 z-20">
-                    {/* Pin Button */}
-                    <Button
-                        size="icon"
-                        variant={isPinned ? "default" : "secondary"}
-                        className={cn(
-                            "w-10 h-10 backdrop-blur-md",
-                            isPinned && "bg-primary hover:bg-primary/90"
-                        )}
-                        onClick={() => onPinUser?.(isPinned ? null : participant.uid)}
-                        title={isPinned ? "Unpin User" : "Pin User"}
-                    >
-                        <Pin className="w-4 h-4" />
-                    </Button>
-                    {/* Mic Toggle - only shown when mic is ON (can only mute) */}
-                    {isMicOn && (
-                        <Button
-                            size="icon"
-                            variant="secondary"
-                            className="w-10 h-10 backdrop-blur-md"
-                            onClick={() => onToggleRemoteMic?.(participant.uid)}
-                            title="Mute Participant"
-                        >
-                            <Mic className="w-4 h-4" />
-                        </Button>
-                    )}
-                    {/* Camera Toggle - only shown when camera is ON (can only turn off) */}
-                    {isCameraOn && (
-                        <Button
-                            size="icon"
-                            variant="secondary"
-                            className="w-10 h-10 backdrop-blur-md"
-                            onClick={() => onToggleRemoteCamera?.(participant.uid)}
-                            title="Disable Camera"
-                        >
-                            <Video className="w-4 h-4" />
-                        </Button>
-                    )}
-                    {/* Fullscreen Button */}
-                    <Button
-                        size="icon"
-                        variant="secondary"
-                        className="w-10 h-10 backdrop-blur-md"
-                        onClick={handleBrowserFullscreen}
-                        title="Fullscreen"
-                    >
-                        <Maximize2 className="w-4 h-4" />
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }
