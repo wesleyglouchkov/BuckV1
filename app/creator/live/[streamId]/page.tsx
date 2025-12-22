@@ -32,7 +32,8 @@ export default function CreatorLivePage() {
     const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [isLoadingStream, setIsLoadingStream] = useState(false);
-    const [agoraToken, setAgoraToken] = useState<string>(""); // Token from backend for Agora
+    const [agoraToken, setAgoraToken] = useState<string>(""); // Token from backend for Agora RTC
+    const [rtmToken, setRtmToken] = useState<string>(""); // Separate token for RTM signaling
     const [uid, setUid] = useState<number>(0);
     const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
 
@@ -52,6 +53,9 @@ export default function CreatorLivePage() {
                     if (response.token) {
                         setUid(response.uid);
                         setAgoraToken(response.token);
+                        if (response.rtmToken) {
+                            setRtmToken(response.rtmToken);
+                        }
                     }
                     if (response.stream.isLive) {
                         setIsLive(true);
@@ -128,6 +132,9 @@ export default function CreatorLivePage() {
                 const tokenResponse = await creatorService.getStreamToken(urlStreamId, session.user.id, 'publisher');
                 if (tokenResponse.success && tokenResponse.token) {
                     setAgoraToken(tokenResponse.token);
+                    if (tokenResponse.rtmToken) {
+                        setRtmToken(tokenResponse.rtmToken);
+                    }
                 }
                 setIsLive(true);
                 toast.success("You're live! 🎬");
@@ -298,6 +305,7 @@ export default function CreatorLivePage() {
                                     appId={appId}
                                     channelName={urlStreamId}
                                     token={agoraToken}
+                                    rtmToken={rtmToken}
                                     uid={uid}
                                     streamId={urlStreamId}
                                     isLive={isLive}

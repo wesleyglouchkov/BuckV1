@@ -25,6 +25,7 @@ export interface AgoraViewerProps {
     appId: string;
     channelName: string;
     token: string;
+    rtmToken: string; // Separate token for RTM signaling
     uid: number;
     role: "publisher" | "subscriber";
     hostUid?: number; // Optional: Explicit host UID
@@ -37,6 +38,7 @@ function StreamLogic({
     appId,
     channelName,
     token,
+    rtmToken,
     uid,
     role,
     hostUid,
@@ -95,7 +97,7 @@ function StreamLogic({
     const hasInitializedRTM = useRef(false);
 
     useEffect(() => {
-        if (!appId || !uid || !channelName || !token) return;
+        if (!appId || !uid || !channelName || !rtmToken) return;
         if (hasInitializedRTM.current) return; // Prevent duplicate initialization
 
         hasInitializedRTM.current = true;
@@ -106,7 +108,7 @@ function StreamLogic({
             const sm = new SignalingManager(appId, uid, channelName);
             signalingRef.current = sm;
 
-            sm.login(token).then(() => {
+            sm.login(rtmToken).then(() => {
                 // Listen for host commands
                 sm.onMessage((msg) => {
                     if (msg.type === "MUTE_USER" && msg.payload.userId.toString() === uid.toString()) {
@@ -131,7 +133,7 @@ function StreamLogic({
                 signalingRef.current.logout();
             }
         };
-    }, [appId, uid, channelName, token]);
+    }, [appId, uid, channelName, rtmToken]);
 
     // Identify Host and other participants
     // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.

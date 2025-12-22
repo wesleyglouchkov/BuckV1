@@ -15,7 +15,7 @@ import StreamChat from "@/components/live/StreamChat";
 import RecordingConsentDialog from "@/components/live/RecordingConsentDialog";
 import { type AgoraViewerProps } from '../../../components/live/AgoraViewer'
 import { streamService } from "@/services/stream";
-import { ThemeToggle } from "@/components/ui/theme-toggle";  
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 interface StreamDetails {
     id: string;
     title: string;
@@ -31,6 +31,7 @@ interface StreamDetails {
 
 interface TokenData {
     token: string;
+    rtmToken: string; // Separate token for RTM signaling
     uid: number;
     channelId: string;
     appId: string;
@@ -64,6 +65,7 @@ export default function LiveStreamPage() {
                 if (tokenResponse.success) {
                     setTokenData({
                         token: tokenResponse.token,
+                        rtmToken: tokenResponse.rtmToken || "",
                         uid: tokenResponse.uid,
                         channelId: tokenResponse.channelId,
                         appId: tokenResponse.appId,
@@ -133,6 +135,7 @@ export default function LiveStreamPage() {
             if (tokenResponse.success) {
                 setTokenData({
                     token: tokenResponse.token,
+                    rtmToken: tokenResponse.rtmToken || "",
                     uid: tokenResponse.uid,
                     channelId: tokenResponse.channelId,
                     appId: tokenResponse.appId,
@@ -246,6 +249,7 @@ export default function LiveStreamPage() {
                                         appId={tokenData.appId}
                                         channelName={tokenData.channelId}
                                         token={tokenData.token}
+                                        rtmToken={tokenData.rtmToken}
                                         uid={tokenData.uid}
                                         role={viewerRole}
                                         session={session}

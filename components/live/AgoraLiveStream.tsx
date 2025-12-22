@@ -24,6 +24,7 @@ interface AgoraLiveStreamProps {
     appId: string;
     channelName: string;
     token: string;
+    rtmToken: string; // Separate token for RTM signaling
     uid: number;
     streamId: string;
     isLive: boolean;
@@ -81,6 +82,7 @@ function LiveBroadcast({
     appId,
     channelName,
     token,
+    rtmToken,
     uid,
     onStreamEnd,
     onRecordingReady,
@@ -179,7 +181,7 @@ function LiveBroadcast({
     const hasInitializedRTM = useRef(false);
 
     useEffect(() => {
-        if (!appId || !uid || !channelName || !token) return;
+        if (!appId || !uid || !channelName || !token || !rtmToken) return;
         if (hasInitializedRTM.current) return;
 
         hasInitializedRTM.current = true;
@@ -188,7 +190,7 @@ function LiveBroadcast({
             const sm = new SignalingManager(appId, uid, channelName);
             signalingRef.current = sm;
 
-            sm.login(token).catch(err => {
+            sm.login(rtmToken).catch(err => {
                 console.warn("Signaling login failed - remote controls may not work:", err);
                 hasInitializedRTM.current = false;
             });
@@ -200,7 +202,7 @@ function LiveBroadcast({
                 signalingRef.current.logout();
             }
         };
-    }, [appId, uid, channelName, token]);
+    }, [appId, uid, channelName, token, rtmToken]);
 
     const handleToggleRemoteMic = async (remoteUid: string | number) => {
         if (!signalingRef.current) return;
@@ -573,6 +575,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 appId={props.appId}
                 channelName={props.channelName}
                 token={props.token}
+                rtmToken={props.rtmToken}
                 uid={props.uid}
                 onStreamEnd={props.onStreamEnd}
                 onRecordingReady={props.onRecordingReady}

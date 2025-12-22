@@ -142,6 +142,7 @@ export default function CreatorLivePreviewPage() {
                                 appId={appId}
                                 channelName="preview"
                                 token=""
+                                rtmToken=""
                                 uid={Math.floor(Math.random() * 100000)}
                                 streamId="preview"
                                 isLive={false}
