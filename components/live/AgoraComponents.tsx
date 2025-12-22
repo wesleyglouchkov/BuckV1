@@ -60,7 +60,6 @@ export function ParticipantTile({
                             <div
                                 ref={videoRef}
                                 className="w-full h-full"
-                                style={{ transform: 'scaleX(-1)' }}
                             />
                         ) : (
                             <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-800">

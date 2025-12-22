@@ -377,16 +377,18 @@ function LiveBroadcast({
             cameraOn: isVideoEnabled,
             micOn: isAudioEnabled
         },
-        ...remoteUsers.map(user => ({
-            uid: user.uid,
-            name: `User ${user.uid}`, // In a real app, map this to an actual name
-            videoTrack: user.videoTrack,
-            audioTrack: user.audioTrack,
-            isLocal: false,
-            cameraOn: user.hasVideo,
-            micOn: user.hasAudio,
-            agoraUser: user
-        }))
+        ...remoteUsers.map(user => {
+            return {
+                uid: user.uid,
+                name: `User ${user.uid}`,
+                videoTrack: user.videoTrack,
+                audioTrack: user.audioTrack,
+                isLocal: false,
+                cameraOn: user.hasVideo,
+                micOn: user.hasAudio,
+                agoraUser: user
+            };
+        })
     ];
 
 

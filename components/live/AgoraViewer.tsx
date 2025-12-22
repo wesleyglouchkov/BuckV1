@@ -77,12 +77,36 @@ function StreamLogic({
 
     const client = useRTCClient();
 
-    // Handle role switching
+    // Track if client role has been set (needed before publishing in ILS mode)
+    const [isClientRoleSet, setIsClientRoleSet] = useState(false);
+
+    // Debug: Log role and track status
+    useEffect(() => {
+        console.log("Viewer Debug:", {
+            role,
+            hasLocalCameraTrack: !!localCameraTrack,
+            hasLocalMicrophoneTrack: !!localMicrophoneTrack,
+            isVideoEnabled,
+            isAudioEnabled,
+            clientUid: client?.uid,
+            isClientRoleSet
+        });
+    }, [role, localCameraTrack, localMicrophoneTrack, isVideoEnabled, isAudioEnabled, client?.uid, isClientRoleSet]);
+
+    // Handle role switching - MUST complete before publishing in ILS mode
     useEffect(() => {
         if (client) {
             const targetRole = role === "publisher" ? "host" : "audience";
+            setIsClientRoleSet(false); // Reset while changing
             client.setClientRole(targetRole)
-                .catch(err => console.error("Failed to set client role:", err));
+                .then(() => {
+                    console.log("Viewer: Client role set successfully to:", targetRole);
+                    setIsClientRoleSet(true);
+                })
+                .catch(err => {
+                    console.error("Failed to set client role:", err);
+                    setIsClientRoleSet(false);
+                });
         }
     }, [client, role]);
 
@@ -106,8 +130,10 @@ function StreamLogic({
         }
     }, [client, client?.uid, uid]);
 
-    // Publish tracks if role is publisher
-    usePublish([localCameraTrack, localMicrophoneTrack], role === "publisher");
+    // Publish tracks if role is publisher AND client role has been set
+    // In ILS mode, you MUST be a "host" before publishing
+    const canPublish = role === "publisher" && isClientRoleSet;
+    usePublish([localCameraTrack, localMicrophoneTrack], canPublish);
 
     // Effect to enable/disable tracks based on state
     useEffect(() => {
