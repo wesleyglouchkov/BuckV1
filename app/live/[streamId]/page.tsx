@@ -112,18 +112,22 @@ export default function LiveStreamPage() {
 
     // Handle consent to upgrade to publisher (camera & mic)
     const handleConsent = async (participateWithVideo: boolean) => {
-        if (!session?.user?.id || !streamDetails) return;
+        console.log("handleConsent called with:", participateWithVideo);
+        if (!streamDetails) {
+            console.error("streamDetails is missing");
+            return;
+        }
 
         setShowConsentDialog(false);
-
-        // If user chose not to participate with video, they stay as subscriber (already joined)
         if (!participateWithVideo) return;
+
+        const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
 
         try {
             // Get publisher token from backend
             const tokenResponse = await streamService.getViewerToken(
                 streamId,
-                session.user.id,
+                userId,
                 "publisher"
             );
             if (tokenResponse.success) {

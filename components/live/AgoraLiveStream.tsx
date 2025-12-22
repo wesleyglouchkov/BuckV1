@@ -13,8 +13,12 @@ import {
     LocalUser,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Wifi, WifiOff } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, Settings, Maximize2, Wifi, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ParticipantGrid } from "./AgoraComponents";
+import { useRemoteUsers } from "agora-rtc-react";
+import { toast } from "sonner";
+import { SignalingManager } from "@/lib/agora-rtm";
 
 interface AgoraLiveStreamProps {
     appId: string;
@@ -95,7 +99,7 @@ function LiveBroadcast({
 
     // Connection & quality hooks
     const isConnected = useIsConnected();
-    // const networkQuality = useNetworkQuality();
+    const remoteUsers = useRemoteUsers();
     const audioLevel = useVolumeLevel(localMicrophoneTrack ?? undefined);
 
     // Effect to enable/disable camera track when toggle changes
@@ -112,13 +116,13 @@ function LiveBroadcast({
         }
     }, [localMicrophoneTrack, isAudioEnabled]);
 
-    const [isHost, setIsHost] = useState(false);
+    const [isHostJoined, setIsHostJoined] = useState(false);
 
     // Ensure client role is set to host for the creator BEFORE joining
     useEffect(() => {
         if (client) {
             client.setClientRole("host")
-                .then(() => setIsHost(true))
+                .then(() => setIsHostJoined(true))
                 .catch(err => console.error("Failed to set client role to host:", err));
         }
     }, [client]);
@@ -128,10 +132,10 @@ function LiveBroadcast({
         channel: channelName,
         token: token || null,
         uid
-    }, isHost);
+    }, isHostJoined);
 
     // Publish tracks only when role is host
-    usePublish([localCameraTrack, localMicrophoneTrack], isHost);
+    usePublish([localCameraTrack, localMicrophoneTrack], isHostJoined);
 
     // Start recording
     const startRecording = useCallback(() => {
@@ -170,104 +174,192 @@ function LiveBroadcast({
         }
     }, [localCameraTrack, localMicrophoneTrack, isRecording, startRecording]);
 
+    // --- Signaling (RTM) Implementation ---
+    const signalingRef = useRef<SignalingManager | null>(null);
+    const hasInitializedRTM = useRef(false);
+
+    useEffect(() => {
+        if (!appId || !uid || !channelName || !token) return;
+        if (hasInitializedRTM.current) return;
+
+        hasInitializedRTM.current = true;
+
+        const timeoutId = setTimeout(() => {
+            console.log("RTM Host Init:", { channelName, uid }); // DEBUG
+            const sm = new SignalingManager(appId, uid, channelName);
+            signalingRef.current = sm;
+
+            sm.login(token).catch(err => {
+                console.warn("Signaling login failed - remote controls may not work:", err);
+                hasInitializedRTM.current = false;
+            });
+        }, 500);
+
+        return () => {
+            clearTimeout(timeoutId);
+            if (signalingRef.current) {
+                signalingRef.current.logout();
+            }
+        };
+    }, [appId, uid, channelName, token]);
+
+    const handleToggleRemoteMic = async (remoteUid: string | number) => {
+        if (!signalingRef.current) return;
+
+        // Find current state from participants list
+        const participant = participants.find(p => p.uid.toString() === remoteUid.toString());
+        const isCurrentlyOn = participant?.micOn ?? true;
+
+        try {
+            await signalingRef.current.sendMessage({
+                type: "MUTE_USER",
+                payload: {
+                    userId: remoteUid,
+                    mediaType: "audio",
+                    mute: isCurrentlyOn // If it's on, we want to mute (mute=true)
+                }
+            });
+            toast.success(`${isCurrentlyOn ? 'Mute' : 'Unmute'} command sent to User ${remoteUid}`);
+        } catch (err) {
+            toast.error("Failed to send mute command");
+        }
+    };
+
+    const handleToggleRemoteCamera = async (remoteUid: string | number) => {
+        if (!signalingRef.current) return;
+
+        // Find current state
+        const participant = participants.find(p => p.uid.toString() === remoteUid.toString());
+        const isCurrentlyOn = participant?.cameraOn ?? true;
+
+        try {
+            await signalingRef.current.sendMessage({
+                type: "MUTE_USER",
+                payload: {
+                    userId: remoteUid,
+                    mediaType: "video",
+                    mute: isCurrentlyOn
+                }
+            });
+            toast.success(`${isCurrentlyOn ? 'Disable' : 'Enable'} camera command sent to User ${remoteUid}`);
+        } catch (err) {
+            toast.error("Failed to send camera command");
+        }
+    };
+
     const endStream = async () => {
         mediaRecorderRef.current?.stop();
         setIsRecording(false);
         await client.leave();
         localCameraTrack?.close();
         localMicrophoneTrack?.close();
+        if (signalingRef.current) {
+            signalingRef.current.logout();
+        }
         onStreamEnd();
     };
 
+    // Prepare participants list
+    const participants = [
+        {
+            uid,
+            name: "You (Host)",
+            videoTrack: localCameraTrack || undefined,
+            audioTrack: localMicrophoneTrack || undefined,
+            isLocal: true,
+            cameraOn: isVideoEnabled,
+            micOn: isAudioEnabled
+        },
+        ...remoteUsers.map(user => ({
+            uid: user.uid,
+            name: `User ${user.uid}`, // In a real app, map this to an actual name
+            videoTrack: user.videoTrack,
+            audioTrack: user.audioTrack,
+            isLocal: false,
+            cameraOn: user.hasVideo,
+            micOn: user.hasAudio,
+            agoraUser: user
+        }))
+    ];
+
+
     return (
-        <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
-            <LocalUser
-                audioTrack={localMicrophoneTrack}
-                videoTrack={localCameraTrack}
-                cameraOn={isVideoEnabled}
-                micOn={isAudioEnabled}
-                playAudio={false}
-                playVideo={isVideoEnabled}
-                className="w-full h-full"
-            />
+        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl rounded-2xl group/main">
+            {/* Main Participant Grid */}
+            <div className="absolute inset-0 p-4 flex items-center justify-center">
+                <ParticipantGrid
+                    participants={participants}
+                    isHost={true}
+                    maxVisible={5}
+                    onToggleRemoteMic={handleToggleRemoteMic}
+                    onToggleRemoteCamera={handleToggleRemoteCamera}
+                />
+            </div>
 
-            {/* Placeholder when video is off */}
-            {!isVideoEnabled && (
-                <div className="absolute flex flex-col items-center justify-center inset-0 bg-card z-10">
-                    <div className="w-24 h-24 flex-col rounded-full bg-muted flex gap-4 items-center justify-center">
-                        <VideoOff className="w-12 h-12 text-muted-foreground" />
-                    </div>
-                    <p className="text-center text-sm text-muted-foreground mt-2">
-                        Your video is not enabled, press on the video button to enable it.
-                    </p>
-                </div>
-            )}
-
-            {/* Top Bar with Status */}
-            <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-                <div className="flex items-center gap-3">
+            {/* Top Bar with Status - Premium Visuals */}
+            <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-30 pointer-events-none">
+                <div className="flex items-center gap-3 pointer-events-auto">
                     {/* Live Badge */}
-                    <div className="bg-destructive text-destructive-foreground px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
-                        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        <span className="font-semibold text-sm">LIVE</span>
+                    <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                        <span className="font-bold text-xs tracking-wider">LIVE</span>
                     </div>
 
-                    {/* Connection Status
-                    <div className="bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2">
-                        {isConnected ? (
-                            <NetworkIndicator quality={networkQuality.uplinkNetworkQuality} />
-                        ) : (
-                            <div className="flex items-center gap-1.5 text-xs text-yellow-500">
-                                <WifiOff className="w-3 h-3" />
-                                <span>Connecting...</span>
-                            </div>
-                        )}
-                    </div> */}
+                    {/* Viewer Count */}
+                    <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+                        <Users className="w-3.5 h-3.5 text-neutral-400" />
+                        <span className="text-white text-xs font-semibold">{remoteUsers.length} online</span>
+                    </div>
                 </div>
 
                 {/* Recording + Audio Level */}
-                <div className="flex items-center gap-3">
-                    {isAudioEnabled && (
-                        <div className="bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                            <AudioLevelIndicator level={audioLevel * 100} />
-                        </div>
-                    )}
-
+                <div className="flex items-center gap-3 pointer-events-auto">
                     {isRecording && (
-                        <div className="bg-destructive/90 text-destructive-foreground px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                            <Radio className="w-3 h-3 animate-pulse" />
-                            <p className="mt-1">REC</p>
+                        <div className="bg-destructive/20 backdrop-blur-md border border-destructive/30 text-destructive-foreground px-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold">
+                            <Radio className="w-3.5 h-3.5 animate-pulse" />
+                            <span>REC</span>
                         </div>
                     )}
+                    <div className="bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10">
+                        <Settings className="w-4 h-4 text-neutral-400 cursor-pointer hover:text-white transition-colors" />
+                    </div>
                 </div>
             </div>
 
-            {/* Controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-6 z-20">
-                <div className="flex items-center justify-center gap-4">
-                    <Button
-                        onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                        variant={isVideoEnabled ? "secondary" : "destructive"}
-                        size="icon"
-                        className="w-14 h-14 rounded-full"
-                    >
-                        {isVideoEnabled ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
-                    </Button>
+            {/* Bottom Controls - Floating Glassmorphism */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-xl px-8 py-4 rounded-3xl border border-white/10 shadow-2xl z-30 opacity-0 group-hover/main:opacity-100 transition-all duration-300 translate-y-4 group-hover/main:translate-y-0">
+                <Button
+                    onClick={() => setIsVideoEnabled(!isVideoEnabled)}
+                    variant={isVideoEnabled ? "secondary" : "destructive"}
+                    size="icon"
+                    className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                >
+                    {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                </Button>
 
-                    <Button
-                        onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                        variant={isAudioEnabled ? "secondary" : "destructive"}
-                        size="icon"
-                        className="w-14 h-14 rounded-full"
-                    >
-                        {isAudioEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
-                    </Button>
+                <Button
+                    onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                    variant={isAudioEnabled ? "secondary" : "destructive"}
+                    size="icon"
+                    className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                >
+                    {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                </Button>
 
-                    <Button onClick={endStream} variant="destructive" size="icon" className="w-14 h-14 rounded-full">
-                        <PhoneOff className="w-6 h-6" />
-                    </Button>
-                </div>
+                <div className="w-px h-8 bg-white/10 mx-2" />
+
+                <Button
+                    onClick={endStream}
+                    variant="destructive"
+                    size="icon"
+                    className="w-12 h-12 rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                >
+                    <PhoneOff className="w-5 h-5" />
+                </Button>
             </div>
+
+            {/* Background Grain/Texture for Premium Feel */}
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
         </div>
     );
 }

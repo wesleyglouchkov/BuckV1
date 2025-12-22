@@ -13,8 +13,11 @@ import AgoraRTC, {
     RemoteUser,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon } from "lucide-react";
-import Loader from "@/components/Loader";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2 } from "lucide-react";
+import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
+import { toast } from "sonner";
+import { SignalingManager } from "@/lib/agora-rtm";
+import { useRef } from "react";
 
 export interface AgoraViewerProps {
     appId: string;
@@ -22,6 +25,7 @@ export interface AgoraViewerProps {
     token: string;
     uid: number;
     role: "publisher" | "subscriber";
+    hostUid?: number; // Optional: Explicit host UID
     onLeave: () => void;
     onRequestUpgrade: () => void;
 }
@@ -32,29 +36,25 @@ function StreamLogic({
     token,
     uid,
     role,
+    hostUid,
     onLeave,
     onRequestUpgrade,
 }: AgoraViewerProps) {
     // Track state
+    // Track state
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-    // Get remote users (The Host should be one of them)
-    // Note: If this component is used by the Host, they won't see themselves as a remote user.
-    // But per requirements, this is for "non creator (members)".
+    // Get remote users
     const remoteUsers = useRemoteUsers();
 
     // Local tracks - only initialized if role is publisher
-    // We pass 'role === "publisher"' to hooks to conditionally create tracks, 
-    // BUT Agora hooks don't support conditional execution easily. 
-    // Best practice: Always call hooks, but control enablement/publishing.
     const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher");
 
-    // Get client instance to manage role
     const client = useRTCClient();
 
-    // Handle role switching (Host/Audience)
+    // Handle role switching
     useEffect(() => {
         if (client) {
             const targetRole = role === "publisher" ? "host" : "audience";
@@ -87,108 +87,181 @@ function StreamLogic({
         }
     }, [localMicrophoneTrack, isAudioEnabled]);
 
+    // --- Signaling (RTM) Implementation ---
+    const signalingRef = useRef<SignalingManager | null>(null);
+    const hasInitializedRTM = useRef(false);
+
+    useEffect(() => {
+        if (!appId || !uid || !channelName || !token) return;
+        if (hasInitializedRTM.current) return; // Prevent duplicate initialization
+
+        hasInitializedRTM.current = true;
+
+        // Small delay to let React stabilize and prevent "login too frequent"
+        const timeoutId = setTimeout(() => {
+            console.log("RTM Viewer Init:", { channelName, uid }); // DEBUG
+            const sm = new SignalingManager(appId, uid, channelName);
+            signalingRef.current = sm;
+
+            sm.login(token).then(() => {
+                // Listen for host commands
+                sm.onMessage((msg) => {
+                    if (msg.type === "MUTE_USER" && msg.payload.userId.toString() === uid.toString()) {
+                        if (msg.payload.mediaType === "audio") {
+                            setIsAudioEnabled(!msg.payload.mute);
+                            toast.info("The host has muted your microphone");
+                        } else if (msg.payload.mediaType === "video") {
+                            setIsVideoEnabled(!msg.payload.mute);
+                            toast.info("The host has disabled your camera");
+                        }
+                    }
+                });
+            }).catch(err => {
+                console.warn("Signaling login failed - remote controls may not work:", err);
+                hasInitializedRTM.current = false; // Allow retry on error
+            });
+        }, 500);
+
+        return () => {
+            clearTimeout(timeoutId);
+            if (signalingRef.current) {
+                signalingRef.current.logout();
+            }
+        };
+    }, [appId, uid, channelName, token]);
+
+    // Identify Host and other participants
+    // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.
+    const hostUser = hostUid
+        ? remoteUsers.find(u => u.uid === hostUid)
+        : remoteUsers[0];
+
+    const otherRemoteUsers = hostUid
+        ? remoteUsers.filter(u => u.uid !== hostUid)
+        : remoteUsers.slice(1);
+
+    // Prepare participants list for the grid
+    const participants = [
+        ...(role === "publisher" ? [{
+            uid,
+            name: "You",
+            videoTrack: localCameraTrack || undefined,
+            audioTrack: localMicrophoneTrack || undefined,
+            isLocal: true,
+            cameraOn: isVideoEnabled,
+            micOn: isAudioEnabled
+        }] : []),
+        ...otherRemoteUsers.map(user => ({
+            uid: user.uid,
+            name: `User ${user.uid}`,
+            videoTrack: user.videoTrack,
+            audioTrack: user.audioTrack,
+            isLocal: false,
+            cameraOn: user.hasVideo,
+            micOn: user.hasAudio,
+            agoraUser: user
+        }))
+    ];
+
     return (
-        <div className="relative w-full aspect-video bg-black overflow-hidden border border-border shadow-lg group">
-            {/* View Area - Logic depends on what we want to see */}
-
-            {/* 1. If we are a publisher (Member with Cam), we usually want to see the HOST primarily, 
-               and ourselves in a small PIP (Picture-in-Picture) or side-by-side. 
-               For simplicity in this step, let's render the HOST full screen, and ourselves floating.
-            */}
-
-            {/* Render Remote Users (The Host) */}
-            {remoteUsers.map((user) => (
-                <div key={user.uid} className="absolute inset-0 w-full h-full z-0">
-                    <RemoteUser user={user} className="w-full h-full object-cover" />
-                    {/* Optional: Label for Host */}
-                    <div className="absolute top-4 left-4 z-10 bg-black/50 text-white px-2 py-1 rounded text-sm">
-                        Host
+        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl rounded-2xl group/main">
+            {/* 1. HOST (Main Screen) */}
+            <div className="absolute inset-0 z-0">
+                {hostUser ? (
+                    <div className="w-full h-full relative">
+                        <ParticipantTile
+                            participant={{
+                                uid: hostUser.uid,
+                                name: "Host",
+                                videoTrack: hostUser.videoTrack,
+                                audioTrack: hostUser.audioTrack,
+                                isLocal: false,
+                                cameraOn: hostUser.hasVideo,
+                                micOn: hostUser.hasAudio,
+                                agoraUser: hostUser
+                            }}
+                            className="w-full h-full rounded-none border-none"
+                        />
+                        {/* Overlay to identify host clearly */}
+                        <div className="absolute top-6 left-6 z-20">
+                            <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                <span className="font-bold text-xs tracking-wider">HOST LIVE</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            ))}
-
-            {/* Fallback if no host is live/visible yet */}
-            {remoteUsers.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center text-white z-0">
-                    <div className="text-center flex flex-col items-center gap-4">
-                        <Loader />
-                        <p>Waiting for host...</p>
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-white z-0">
+                        <div className="text-center flex flex-col items-center gap-6">
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                <Users className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-xl font-bold tracking-tight">Waiting for Host</h3>
+                                <p className="text-neutral-400 text-sm">The broadcast will begin shortly...</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
-            {/* Self View (PIP) - Only if Publisher */}
-            {role === "publisher" && (
-                <div className="absolute top-4 right-4 w-48 aspect-video bg-gray-900 rounded-lg overflow-hidden border border-white/20 shadow-xl z-20">
-                    <LocalUser
-                        audioTrack={localMicrophoneTrack}
-                        videoTrack={localCameraTrack}
-                        cameraOn={isVideoEnabled}
-                        micOn={isAudioEnabled}
-                        playAudio={false} // Don't play own audio loopback
-                        playVideo={isVideoEnabled}
-                        className="w-full h-full"
-                    />
-                    {/* Local Mute Indicators for PIP */}
-                    <div className="absolute bottom-2 right-2 flex gap-1">
-                        {!isAudioEnabled && <div className="bg-red-500/80 p-1 rounded-full"><MicOff className="w-3 h-3 text-white" /></div>}
-                        {!isVideoEnabled && <div className="bg-red-500/80 p-1 rounded-full"><VideoOff className="w-3 h-3 text-white" /></div>}
-                    </div>
-                </div>
-            )}
-
+            {/* 2. PARTICIPANTS (Side Grid / Bottom Grid) */}
+            <div className="absolute bottom-24 right-6 left-6 md:left-auto md:bottom-6 md:w-[30%] md:min-w-[200px] md:max-w-[400px] z-20 transition-all duration-300">
+                <ParticipantGrid
+                    participants={participants}
+                    maxVisible={4}
+                />
+            </div>
 
             {/* Controls Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 to-transparent z-30 transition-opacity opacity-0 group-hover:opacity-100">
-                <div className="flex items-center justify-center gap-4">
-                    {/* Only show Cam/Mic controls if Publisher */}
-                    {role === "publisher" && (
-                        <>
-                            <Button
-                                onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                                variant={isVideoEnabled ? "secondary" : "destructive"}
-                                size="icon"
-                                className="rounded-full"
-                            >
-                                {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-                            </Button>
-
-                            <Button
-                                onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                                variant={isAudioEnabled ? "secondary" : "destructive"}
-                                size="icon"
-                                className="rounded-full"
-                            >
-                                {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-                            </Button>
-                        </>
-                    )}
-
-                    {/* Join with Video Button - Only if Subscriber */}
-                    {role === "subscriber" && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-xl px-8 py-4 rounded-3xl border border-white/10 shadow-2xl z-30 opacity-0 group-hover/main:opacity-100 transition-all duration-300 translate-y-4 group-hover/main:translate-y-0">
+                {role === "publisher" && (
+                    <>
                         <Button
-                            onClick={onRequestUpgrade}
-                            variant="default"
-                            className="bg-primary/90 hover:bg-primary text-primary-foreground gap-2"
+                            onClick={() => setIsVideoEnabled(!isVideoEnabled)}
+                            variant={isVideoEnabled ? "secondary" : "destructive"}
+                            size="icon"
+                            className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
                         >
-                            <VideoIcon className="w-5 h-5" />
-                            Join with Camera
+                            {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                         </Button>
-                    )}
 
+                        <Button
+                            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                            variant={isAudioEnabled ? "secondary" : "destructive"}
+                            size="icon"
+                            className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                        >
+                            {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                        </Button>
+                        <div className="w-px h-8 bg-white/10 mx-2" />
+                    </>
+                )}
 
-                    {/* Leave Button */}
+                {role === "subscriber" && (
                     <Button
-                        onClick={onLeave}
-                        variant="destructive"
-                        size="icon"
-                        className="rounded-full ml-4"
-                        title="Leave Stream"
+                        onClick={onRequestUpgrade}
+                        variant="default"
+                        className="h-12 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
                     >
-                        <PhoneOff className="w-5 h-5" />
+                        <VideoIcon className="w-5 h-5" />
+                        Join Stream
                     </Button>
-                </div>
+                )}
+
+                <Button
+                    onClick={onLeave}
+                    variant="destructive"
+                    size="icon"
+                    className="w-12 h-12 rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                >
+                    <PhoneOff className="w-5 h-5" />
+                </Button>
             </div>
+
+            {/* Background Texture */}
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
         </div>
     );
 }

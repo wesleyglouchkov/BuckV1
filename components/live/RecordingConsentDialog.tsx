@@ -24,7 +24,7 @@ export default function RecordingConsentDialog({
     streamTitle,
 }: RecordingConsentDialogProps) {
     return (
-        <Dialog open={open} onOpenChange={() => { }}>
+        <Dialog open={open} onOpenChange={(val) => !val && onConsent(false)}>
             <DialogContent className="sm:max-w-lg" onPointerDownOutside={(e) => e.preventDefault()}>
                 <DialogHeader className="text-center sm:text-center">
                     <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
