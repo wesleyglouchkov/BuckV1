@@ -229,10 +229,10 @@ export default function CreatorLivePage() {
                             <SkeletonLiveStream />
                         </div>
                         <div className="space-y-4">
-                            <div className="rounded-xl border border-border/20 p-4 space-y-3">
-                                <div className="h-6 w-24 bg-muted rounded animate-pulse" />
-                                <div className="h-4 w-full bg-muted rounded animate-pulse" />
-                                <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+                            <div className=" border border-border/20 p-4 space-y-3">
+                                <div className="h-6 w-24 bg-muted animate-pulse" />
+                                <div className="h-4 w-full bg-muted animate-pulse" />
+                                <div className="h-4 w-3/4 bg-muted animate-pulse" />
                             </div>
                         </div>
                     </div>
@@ -314,7 +314,7 @@ export default function CreatorLivePage() {
                                     onPermissionChange={handlePermissionChange}
                                 />
                             ) : (
-                                <div className="w-full aspect-video bg-card rounded-xl border border-border" />
+                                <div className="w-full aspect-video bg-card border border-border" />
                             )}
 
                             {/* PREVIEW: Overlay */}

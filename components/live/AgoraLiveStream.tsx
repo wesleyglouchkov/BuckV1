@@ -418,9 +418,9 @@ function LiveBroadcast({
 
 
     return (
-        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl rounded-2xl group/main">
+        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-primary shadow-2xl group/main">
             {/* Main Participant Grid */}
-            <div className="absolute inset-0 p-4 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center">
                 <ParticipantGrid
                     participants={participants}
                     isHost={true}

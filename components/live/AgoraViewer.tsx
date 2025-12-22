@@ -370,7 +370,7 @@ function StreamLogic({
     ];
 
     return (
-        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl rounded-2xl group/main">
+        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl group/main">
             {/* 1. HOST (Main Screen) */}
             <div ref={hostContainerRef} className="absolute inset-0 z-0 group/host">
                 {hostUser ? (
