@@ -15,7 +15,7 @@ import StreamChat from "@/components/live/StreamChat";
 import RecordingConsentDialog from "@/components/live/RecordingConsentDialog";
 import { type AgoraViewerProps } from '../../../components/live/AgoraViewer'
 import { streamService } from "@/services/stream";
-import { ThemeToggle } from "@/components/ui/theme-toggle"; 
+import { ThemeToggle } from "@/components/ui/theme-toggle";  
 interface StreamDetails {
     id: string;
     title: string;
@@ -229,7 +229,7 @@ export default function LiveStreamPage() {
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
                         </Button>
-                        <ThemeToggle/>
+                        <ThemeToggle />
                     </div>
                 </div>
             </div>
@@ -248,6 +248,7 @@ export default function LiveStreamPage() {
                                         token={tokenData.token}
                                         uid={tokenData.uid}
                                         role={viewerRole}
+                                        session={session}
                                         onLeave={handleLeave}
                                         onRequestUpgrade={() => setShowConsentDialog(true)}
                                     />

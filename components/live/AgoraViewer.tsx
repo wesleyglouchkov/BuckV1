@@ -18,6 +18,8 @@ import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora-rtm";
 import { useRef } from "react";
+import { Session } from "next-auth";
+import { isViewerLoggedIn } from "@/lib/utils";
 
 export interface AgoraViewerProps {
     appId: string;
@@ -26,6 +28,7 @@ export interface AgoraViewerProps {
     uid: number;
     role: "publisher" | "subscriber";
     hostUid?: number; // Optional: Explicit host UID
+    session: Session | null; // User session for checking login status
     onLeave: () => void;
     onRequestUpgrade: () => void;
 }
@@ -37,6 +40,7 @@ function StreamLogic({
     uid,
     role,
     hostUid,
+    session,
     onLeave,
     onRequestUpgrade,
 }: AgoraViewerProps) {
@@ -139,7 +143,11 @@ function StreamLogic({
         ? remoteUsers.filter(u => u.uid !== hostUid)
         : remoteUsers.slice(1);
 
+    // Check if viewer is logged in
+    const viewerIsLoggedIn = isViewerLoggedIn(session);
+
     // Prepare participants list for the grid
+    // Only show other participants (non-host users) if the viewer is logged in
     const participants = [
         ...(role === "publisher" ? [{
             uid,
@@ -150,7 +158,8 @@ function StreamLogic({
             cameraOn: isVideoEnabled,
             micOn: isAudioEnabled
         }] : []),
-        ...otherRemoteUsers.map(user => ({
+        
+        ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => ({
             uid: user.uid,
             name: `User ${user.uid}`,
             videoTrack: user.videoTrack,
@@ -159,7 +168,7 @@ function StreamLogic({
             cameraOn: user.hasVideo,
             micOn: user.hasAudio,
             agoraUser: user
-        }))
+        })) : [])
     ];
 
     return (
