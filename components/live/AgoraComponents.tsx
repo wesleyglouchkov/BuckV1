@@ -37,21 +37,30 @@ export function ParticipantTile({
 
     return (
         <div className={cn(
-            "relative aspect-video bg-neutral-900 rounded-xl overflow-hidden border border-white/10 group transition-all duration-300 hover:border-white/20 shadow-lg",
+            "relative aspect-video bg-neutral-900 overflow-hidden border border-white/10 group transition-all duration-300 hover:border-white/20 shadow-lg",
             className
         )}>
             {/* Video Rendering */}
             <div className="absolute inset-0 w-full h-full">
                 {participant.isLocal ? (
-                    <LocalUser
-                        videoTrack={participant.videoTrack as ILocalVideoTrack}
-                        audioTrack={participant.audioTrack as ILocalAudioTrack}
-                        cameraOn={isCameraOn}
-                        micOn={isMicOn}
-                        playVideo={isCameraOn}
-                        playAudio={false}
-                        className="w-full h-full object-cover"
-                    />
+                    isCameraOn ? (
+                        <LocalUser
+                            videoTrack={participant.videoTrack as ILocalVideoTrack}
+                            audioTrack={participant.audioTrack as ILocalAudioTrack}
+                            cameraOn={true}
+                            micOn={isMicOn}
+                            playVideo={true}
+                            playAudio={false}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
+                            <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
+                                <UserIcon className="w-8 h-8 text-neutral-400" />
+                            </div>
+                            <p className="text-xs text-neutral-500">Camera Off</p>
+                        </div>
+                    )
                 ) : (
                     participant.agoraUser && isCameraOn ? (
                         <RemoteUser
@@ -62,7 +71,7 @@ export function ParticipantTile({
                         />
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
-                            <div className="w-16 h-16 rounded-full bg-neutral-700 flex items-center justify-center mb-2">
+                            <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
                                 <UserIcon className="w-8 h-8 text-neutral-400" />
                             </div>
                             <p className="text-xs text-neutral-500">Camera Off</p>
@@ -74,12 +83,12 @@ export function ParticipantTile({
             {/* Status Indicators (Always visible) */}
             <div className="absolute top-2 right-2 flex gap-1.5 z-10">
                 {!isMicOn && (
-                    <div className="bg-destructive/80 backdrop-blur-md p-1.5 rounded-lg border border-white/10 shadow-lg">
+                    <div className="bg-destructive/80 backdrop-blur-md p-1.5 border border-white/10 shadow-lg">
                         <MicOff className="w-3.5 h-3.5 text-white" />
                     </div>
                 )}
                 {!isCameraOn && (
-                    <div className="bg-neutral-800/80 backdrop-blur-md p-1.5 rounded-lg border border-white/10 shadow-lg">
+                    <div className="bg-neutral-800/80 backdrop-blur-md p-1.5 border border-white/10 shadow-lg">
                         <VideoOff className="w-3.5 h-3.5 text-white" />
                     </div>
                 )}
@@ -87,11 +96,11 @@ export function ParticipantTile({
 
             {/* Name Overlay (Bottom Left) */}
             <div className="absolute bottom-3 left-3 z-10">
-                <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
+                <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 border border-white/10 flex items-center gap-2">
                     <span className="text-sm font-medium text-white truncate max-w-[120px]">
                         {participant.name || (participant.isLocal ? "You" : `User ${participant.uid}`)}
                     </span>
-                    {isMicOn && <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
+                    {isMicOn && <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />}
                 </div>
             </div>
 
@@ -101,7 +110,7 @@ export function ParticipantTile({
                     <Button
                         size="icon"
                         variant={isMicOn ? "secondary" : "destructive"}
-                        className="w-10 h-10 rounded-full backdrop-blur-md"
+                        className="w-10 h-10 backdrop-blur-md"
                         onClick={() => onToggleRemoteMic?.(participant.uid)}
                         title={isMicOn ? "Mute Participant" : "Unmute Participant"}
                     >
@@ -110,7 +119,7 @@ export function ParticipantTile({
                     <Button
                         size="icon"
                         variant={isCameraOn ? "secondary" : "destructive"}
-                        className="w-10 h-10 rounded-full backdrop-blur-md"
+                        className="w-10 h-10 backdrop-blur-md"
                         onClick={() => onToggleRemoteCamera?.(participant.uid)}
                         title={isCameraOn ? "Disable Camera" : "Enable Camera"}
                     >
