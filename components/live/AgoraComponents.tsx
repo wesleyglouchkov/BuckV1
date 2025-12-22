@@ -43,40 +43,44 @@ export function ParticipantTile({
             {/* Video Rendering */}
             <div className="absolute inset-0 w-full h-full">
                 {participant.isLocal ? (
-                    isCameraOn ? (
+                    <>
                         <LocalUser
                             videoTrack={participant.videoTrack as ILocalVideoTrack}
                             audioTrack={participant.audioTrack as ILocalAudioTrack}
-                            cameraOn={true}
+                            cameraOn={isCameraOn}
                             micOn={isMicOn}
-                            playVideo={true}
+                            playVideo={isCameraOn}
                             playAudio={false}
                             className="w-full h-full object-cover"
                         />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
-                            <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
-                                <UserIcon className="w-8 h-8 text-neutral-400" />
+                        {!isCameraOn && (
+                            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-800">
+                                <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
+                                    <UserIcon className="w-8 h-8 text-neutral-400" />
+                                </div>
+                                <p className="text-xs text-neutral-500">Camera Off</p>
                             </div>
-                            <p className="text-xs text-neutral-500">Camera Off</p>
-                        </div>
-                    )
+                        )}
+                    </>
                 ) : (
-                    participant.agoraUser && isCameraOn ? (
-                        <RemoteUser
-                            user={participant.agoraUser}
-                            playVideo={true}
-                            playAudio={true}
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
-                            <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
-                                <UserIcon className="w-8 h-8 text-neutral-400" />
+                    <>
+                        {participant.agoraUser && (
+                            <RemoteUser
+                                user={participant.agoraUser}
+                                playVideo={isCameraOn}
+                                playAudio={true}
+                                className="w-full h-full object-cover"
+                            />
+                        )}
+                        {!isCameraOn && (
+                            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-800">
+                                <div className="w-16 h-16 bg-neutral-700 flex items-center justify-center mb-2">
+                                    <UserIcon className="w-8 h-8 text-neutral-400" />
+                                </div>
+                                <p className="text-xs text-neutral-500">Camera Off</p>
                             </div>
-                            <p className="text-xs text-neutral-500">Camera Off</p>
-                        </div>
-                    )
+                        )}
+                    </>
                 )}
             </div>
 

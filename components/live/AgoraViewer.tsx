@@ -44,16 +44,16 @@ function StreamLogic({
     onLeave,
     onRequestUpgrade,
 }: AgoraViewerProps) {
-    // Track state
-    const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-    const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+    // Track state - start enabled so tracks can be published
+    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
     // Get remote users
     const remoteUsers = useRemoteUsers();
 
-    // Local tracks - only initialized if role is publisher AND enabled
-    const { localCameraTrack } = useLocalCameraTrack(role === "publisher" && isVideoEnabled);
-    const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher" && isAudioEnabled);
+    // Local tracks - always create if role is publisher
+    const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher");
 
     const client = useRTCClient();
 
@@ -158,7 +158,7 @@ function StreamLogic({
             cameraOn: isVideoEnabled,
             micOn: isAudioEnabled
         }] : []),
-        
+
         ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => ({
             uid: user.uid,
             name: `User ${user.uid}`,
