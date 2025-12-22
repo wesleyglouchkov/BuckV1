@@ -148,6 +148,31 @@ function LiveBroadcast({
     // Publish tracks only when role is host
     usePublish([localCameraTrack, localMicrophoneTrack], isHostJoined);
 
+    // Handle Agora client errors gracefully
+    useEffect(() => {
+        if (!client) return;
+
+        const handleException = (event: { code: string; msg: string; uid?: string | number }) => {
+            // Log in development, suppress in production
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('Agora client exception (handled gracefully):', event);
+            }
+
+            // Handle specific error codes
+            if (event.code === 'INVALID_REMOTE_USER') {
+                // User left the channel while we were trying to subscribe
+                // This is expected during rapid user join/leave scenarios
+                return;
+            }
+        };
+
+        client.on('exception', handleException);
+
+        return () => {
+            client.off('exception', handleException);
+        };
+    }, [client]);
+
     // Start recording
     const startRecording = useCallback(() => {
         if (!localCameraTrack || !localMicrophoneTrack || isRecording) return;

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import AgoraRTC, {
     AgoraRTCProvider,
     useJoin,
@@ -13,7 +13,7 @@ import AgoraRTC, {
     useRTCClient,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2 } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora-rtm";
@@ -92,6 +92,31 @@ function StreamLogic({
             isClientRoleSet
         });
     }, [role, localCameraTrack, localMicrophoneTrack, isVideoEnabled, isAudioEnabled, client?.uid, isClientRoleSet]);
+
+    // Handle Agora client errors gracefully
+    useEffect(() => {
+        if (!client) return;
+
+        const handleException = (event: { code: string; msg: string; uid?: string | number }) => {
+            // Log in development, suppress in production
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('Agora client exception (handled gracefully):', event);
+            }
+
+            // Handle specific error codes
+            if (event.code === 'INVALID_REMOTE_USER') {
+                // User left the channel while we were trying to subscribe
+                // This is expected during rapid user join/leave scenarios
+                return;
+            }
+        };
+
+        client.on('exception', handleException);
+
+        return () => {
+            client.off('exception', handleException);
+        };
+    }, [client]);
 
     // Handle role switching - MUST complete before publishing in ILS mode
     useEffect(() => {
@@ -305,6 +330,20 @@ function StreamLogic({
     // Check if viewer is logged in
     const viewerIsLoggedIn = isViewerLoggedIn(session);
 
+    // Ref for host video container for browser fullscreen
+    const hostContainerRef = useRef<HTMLDivElement>(null);
+
+    // Handle browser fullscreen for host
+    const handleHostFullscreen = () => {
+        if (hostContainerRef.current) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                hostContainerRef.current.requestFullscreen();
+            }
+        }
+    };
+
     // Prepare participants list for the grid
     // Only show other participants (non-host users) if the viewer is logged in
     const participants = [
@@ -333,7 +372,7 @@ function StreamLogic({
     return (
         <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl rounded-2xl group/main">
             {/* 1. HOST (Main Screen) */}
-            <div className="absolute inset-0 z-0">
+            <div ref={hostContainerRef} className="absolute inset-0 z-0 group/host">
                 {hostUser ? (
                     <div className="w-full h-full relative">
                         <ParticipantTile
@@ -355,6 +394,19 @@ function StreamLogic({
                                 <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                                 <span className="font-bold text-xs tracking-wider">HOST LIVE</span>
                             </div>
+                        </div>
+
+                        {/* Fullscreen Button for Host Video */}
+                        <div className="absolute bottom-6 right-6 z-20 opacity-0 group-hover/host:opacity-100 transition-opacity duration-300">
+                            <Button
+                                size="icon"
+                                variant="secondary"
+                                className="w-10 h-10 backdrop-blur-md bg-black/40 hover:bg-black/60 border border-white/10"
+                                onClick={handleHostFullscreen}
+                                title="Fullscreen"
+                            >
+                                <Maximize2 className="w-4 h-4" />
+                            </Button>
                         </div>
                     </div>
                 ) : (
