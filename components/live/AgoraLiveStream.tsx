@@ -16,6 +16,17 @@ import { cn } from "@/lib/utils";
 import { ParticipantGrid } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora-rtm";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Module-level singleton for RTM to prevent multiple instances in Strict Mode
 const rtmSingleton: {
@@ -451,7 +462,7 @@ function LiveBroadcast({
 
 
     return (
-        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-primary shadow-2xl group/main">
+        <div className="relative w-full aspect-video dark:bg-neutral-950 overflow-hidden border border-primary shadow-2xl group/main">
             {/* Main Participant Grid */}
             <div className="absolute inset-0 flex items-center justify-center">
                 <ParticipantGrid
@@ -495,35 +506,52 @@ function LiveBroadcast({
             </div>
 
             {/* Bottom Controls - Floating Glassmorphism */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-xl px-8 py-4 rounded-3xl border border-white/10 shadow-2xl z-30 opacity-0 group-hover/main:opacity-100 transition-all duration-300 translate-y-4 group-hover/main:translate-y-0">
+            <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-black/40 backdrop-blur-xl px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl z-30 transition-all duration-300">
                 <Button
                     onClick={() => setIsVideoEnabled(!isVideoEnabled)}
                     variant={isVideoEnabled ? "secondary" : "destructive"}
                     size="icon"
-                    className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
                 >
-                    {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                    {isVideoEnabled ? <Video className="w-4 h-4 md:w-5 md:h-5" /> : <VideoOff className="w-4 h-4 md:w-5 md:h-5" />}
                 </Button>
 
                 <Button
                     onClick={() => setIsAudioEnabled(!isAudioEnabled)}
                     variant={isAudioEnabled ? "secondary" : "destructive"}
                     size="icon"
-                    className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
                 >
-                    {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                    {isAudioEnabled ? <Mic className="w-4 h-4 md:w-5 md:h-5" /> : <MicOff className="w-4 h-4 md:w-5 md:h-5" />}
                 </Button>
 
-                <div className="w-px h-8 bg-white/10 mx-2" />
+                <div className="w-px h-6 md:h-8 bg-white/10 mx-1 md:mx-2" />
 
-                <Button
-                    onClick={endStream}
-                    variant="destructive"
-                    size="icon"
-                    className="w-12 h-12 rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
-                >
-                    <PhoneOff className="w-5 h-5" />
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                        >
+                            <PhoneOff className="w-4 h-4 md:w-5 md:h-5" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>End Stream</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to end this stream? All participants will be disconnected.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={endStream} className="bg-destructive hover:bg-destructive/90">
+                                End Stream
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
 
             {/* Background Grain/Texture for Premium Feel */}

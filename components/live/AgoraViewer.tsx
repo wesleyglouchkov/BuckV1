@@ -3,15 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import AgoraRTC, {
-    AgoraRTCProvider,
-    useJoin,
-    useLocalCameraTrack,
-    useLocalMicrophoneTrack,
-    usePublish,
-    useRemoteUsers,
-    useRTCClient,
-} from "agora-rtc-react";
+import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalCameraTrack, useLocalMicrophoneTrack, usePublish, useRemoteUsers, useRTCClient } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2 } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
@@ -19,6 +11,7 @@ import { toast } from "sonner";
 import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 // Module-level singleton for RTM to prevent multiple instances in Strict Mode
 const viewerRtmSingleton: {
@@ -326,7 +319,7 @@ function StreamLogic({
 
     // Check if viewer is logged in
     const viewerIsLoggedIn = isViewerLoggedIn(session);
-
+    console.log("Viewer is logged in:", viewerIsLoggedIn);
     // Ref for host video container for browser fullscreen
     const hostContainerRef = useRef<HTMLDivElement>(null);
 
@@ -367,9 +360,9 @@ function StreamLogic({
     ];
 
     return (
-        <div className="relative w-full aspect-video bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl group/main">
+        <div className="relative w-full md:aspect-video flex flex-col bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl group/main">
             {/* 1. HOST (Main Screen) */}
-            <div ref={hostContainerRef} className="absolute inset-0 z-0 group/host">
+            <div ref={hostContainerRef} className="relative w-full shrink-0 aspect-video md:absolute md:inset-0 z-0 group/host">
                 {hostUser ? (
                     <div className="w-full h-full relative">
                         <ParticipantTile
@@ -386,24 +379,11 @@ function StreamLogic({
                             className="w-full h-full rounded-none border-none"
                         />
                         {/* Overlay to identify host clearly */}
-                        <div className="absolute top-6 left-6 z-20">
-                            <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                                <span className="font-bold text-xs tracking-wider">HOST LIVE</span>
+                        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
+                            <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                                <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
+                                <span className="font-bold text-[10px] md:text-xs tracking-wider">HOST LIVE</span>
                             </div>
-                        </div>
-
-                        {/* Fullscreen Button for Host Video */}
-                        <div className="absolute bottom-6 right-6 z-20 opacity-0 group-hover/host:opacity-100 transition-opacity duration-300">
-                            <Button
-                                size="icon"
-                                variant="secondary"
-                                className="w-10 h-10 backdrop-blur-md bg-black/40 hover:bg-black/60 border border-white/10"
-                                onClick={handleHostFullscreen}
-                                title="Fullscreen"
-                            >
-                                <Maximize2 className="w-4 h-4" />
-                            </Button>
                         </div>
                     </div>
                 ) : (
@@ -423,7 +403,7 @@ function StreamLogic({
             </div>
 
             {/* 2. PARTICIPANTS (Side Grid / Bottom Grid) */}
-            <div className="absolute bottom-24 right-6 left-6 md:left-auto md:bottom-6 md:w-[30%] md:min-w-[200px] md:max-w-[400px] z-20 transition-all duration-300">
+            <div className="relative w-full bg-neutral-900/50 p-2 md:p-0 md:bg-transparent md:absolute md:bottom-6 md:right-6 md:left-auto md:w-[30%] md:min-w-[200px] md:max-w-[400px] z-20 transition-all duration-300">
                 <ParticipantGrid
                     participants={participants}
                     maxVisible={4}
@@ -431,27 +411,27 @@ function StreamLogic({
             </div>
 
             {/* Controls Overlay */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-xl px-8 py-4 rounded-3xl border border-white/10 shadow-2xl z-30 opacity-0 group-hover/main:opacity-100 transition-all duration-300 translate-y-4 group-hover/main:translate-y-0">
+            <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-black/40 backdrop-blur-xl px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl z-30 transition-all duration-300">
                 {role === "publisher" && (
                     <>
                         <Button
                             onClick={() => setIsVideoEnabled(!isVideoEnabled)}
                             variant={isVideoEnabled ? "secondary" : "destructive"}
                             size="icon"
-                            className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
                         >
-                            {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                            {isVideoEnabled ? <Video className="w-4 h-4 md:w-5 md:h-5" /> : <VideoOff className="w-4 h-4 md:w-5 md:h-5" />}
                         </Button>
 
                         <Button
                             onClick={() => setIsAudioEnabled(!isAudioEnabled)}
                             variant={isAudioEnabled ? "secondary" : "destructive"}
                             size="icon"
-                            className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10"
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
                         >
-                            {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                            {isAudioEnabled ? <Mic className="w-4 h-4 md:w-5 md:h-5" /> : <MicOff className="w-4 h-4 md:w-5 md:h-5" />}
                         </Button>
-                        <div className="w-px h-8 bg-white/10 mx-2" />
+                        <div className="w-px h-6 md:h-8 bg-white/10 mx-1 md:mx-2" />
                     </>
                 )}
 
@@ -459,21 +439,38 @@ function StreamLogic({
                     <Button
                         onClick={onRequestUpgrade}
                         variant="default"
-                        className="h-12 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                        className="h-10 md:h-12 px-4 md:px-6 rounded-xl md:rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
                     >
-                        <VideoIcon className="w-5 h-5" />
+                        <VideoIcon className="w-4 h-4 md:w-5 md:h-5" />
                         Join Stream
                     </Button>
                 )}
 
-                <Button
-                    onClick={handleLeaveStream}
-                    variant="destructive"
-                    size="icon"
-                    className="w-12 h-12 rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
-                >
-                    <PhoneOff className="w-5 h-5" />
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                        >
+                            <PhoneOff className="w-4 h-4 md:w-5 md:h-5" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Leave Stream</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to leave this stream?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleLeaveStream} className="bg-destructive hover:bg-destructive/90">
+                                Leave
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
 
             {/* Background Texture */}

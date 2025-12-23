@@ -255,7 +255,7 @@ export function ParticipantTile({
                                 user={participant.agoraUser}
                                 playVideo={isCameraOn}
                                 playAudio={true}
-                                className="absolute inset-0 w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover -scale-x-100"
                             />
                         )}
                         {!isCameraOn && (
@@ -280,7 +280,7 @@ export function ParticipantTile({
                                 <div
                                     className={cn(
                                         "flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
-                                        !isPinned && "opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10", // Ghost-like when unpinned
+                                        !isPinned && "bg-black/40 hover:bg-black/60 text-white border border-white/10", // Ghost-like when unpinned
                                         isPinned && "bg-primary text-white border border-white/10"
                                     )}
                                     onClick={(e) => {
@@ -320,7 +320,7 @@ export function ParticipantTile({
                             tooltip="Mute User"
                             isDestructive
                         >
-                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10">
+                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-black/40 hover:bg-black/60 text-white border border-white/10">
                                 <Mic className="w-3.5 h-3.5" />
                             </div>
                         </ConfirmActionWrapper>
@@ -349,7 +349,7 @@ export function ParticipantTile({
                             tooltip="Disable Camera"
                             isDestructive
                         >
-                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10">
+                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-black/40 hover:bg-black/60 text-white border border-white/10">
                                 <Video className="w-3.5 h-3.5" />
                             </div>
                         </ConfirmActionWrapper>
@@ -364,7 +364,7 @@ export function ParticipantTile({
                             tooltip="Remove User"
                             isDestructive
                         >
-                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 bg-destructive/80 hover:bg-destructive text-white border border-white/10 w-7 h-7">
+                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md transition-all duration-300 bg-destructive/80 hover:bg-destructive text-white border border-white/10 w-7 h-7">
                                 <X className="w-3.5 h-3.5" />
                             </div>
                         </ConfirmActionWrapper>
@@ -375,7 +375,7 @@ export function ParticipantTile({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div
-                                    className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/40 hover:bg-black/60 text-white border border-white/10 w-7 h-7"
+                                    className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md transition-all duration-300 bg-black/40 hover:bg-black/60 text-white border border-white/10 w-7 h-7"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleBrowserFullscreen();
@@ -444,16 +444,16 @@ export function ParticipantGrid({
 
     if (showAll) {
         return (
-            <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl p-6 lg:p-10 flex flex-col">
+            <div className="fixed inset-0 z-50 bg-white dark:bg-black/95 backdrop-blur-xl p-6 lg:p-10 flex flex-col">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h2 className="text-2xl font-bold text-white mb-1">All Participants</h2>
-                        <p className="text-neutral-400 text-sm">{participants.length} users in this stream</p>
+                        <h2 className="text-2xl font-bold dark:text-white mb-1">All Participants</h2>
+                        <p className="text-neutral-400 dark:text-neutral-500 text-sm">{participants.length} users in this stream</p>
                     </div>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 rounded-full w-12 h-12"
+                        className="dark:text-white hover:bg-white/10 rounded-full w-12 h-12"
                         onClick={() => setShowAll(false)}
                     >
                         <X className="w-6 h-6" />
