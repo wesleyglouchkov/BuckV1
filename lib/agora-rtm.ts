@@ -2,14 +2,23 @@
 
 import AgoraRTM from "agora-rtm-sdk";
 
-export type SignalingMessage = {
-    type: "MUTE_USER";
-    payload: {
-        userId: string | number;
-        mediaType: "audio" | "video";
-        mute: boolean;
+export type SignalingMessage =
+    | {
+        type: "MUTE_USER";
+        payload: {
+            userId: string | number;
+            mediaType: "audio" | "video";
+            mute: boolean;
+        };
+    }
+    | {
+        type: "KICK_USER";
+        payload: {
+            userId: string | number;
+            mediaType: "all";
+            mute: boolean;
+        };
     };
-};
 
 export class SignalingManager {
     private client: any = null;

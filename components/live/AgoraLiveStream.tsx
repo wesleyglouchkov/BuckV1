@@ -380,6 +380,39 @@ function LiveBroadcast({
         }
     };
 
+    const handleRemoveRemoteUser = async (remoteUid: string | number) => {
+        if (!isRTMReady || !rtmSingleton.instance) {
+            console.error("RTM: Signaling not ready", { isRTMReady, hasInstance: !!rtmSingleton.instance });
+            toast.error("Signaling still connecting. Please wait a moment and try again.");
+            return;
+        }
+
+        if (!rtmSingleton.instance.isConnected()) {
+            console.error("RTM: Not connected to signaling");
+            toast.error("Not connected to signaling service. Reconnecting...");
+            return;
+        }
+
+        try {
+            const message = {
+                type: "KICK_USER" as const,
+                payload: {
+                    userId: remoteUid,
+                    mediaType: "all" as const, // Placeholder
+                    mute: true // Placeholder
+                }
+            };
+
+            await rtmSingleton.instance.sendMessage(message);
+
+            toast.success(`Removed User ${remoteUid} from the stream`, { description: "User will be disconnected shortly" });
+        } catch (err) {
+            console.error("RTM: Failed to send kick command:", err);
+            toast.error("Failed to remove user", { description: "Please check your connection and try again" });
+        }
+    };
+
+
 
     const endStream = async () => {
         mediaRecorderRef.current?.stop();
@@ -427,6 +460,7 @@ function LiveBroadcast({
                     maxVisible={5}
                     onToggleRemoteMic={handleToggleRemoteMic}
                     onToggleRemoteCamera={handleToggleRemoteCamera}
+                    onRemoveRemoteUser={handleRemoveRemoteUser}
                 />
             </div>
 

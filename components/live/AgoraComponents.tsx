@@ -12,6 +12,17 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
 // Error boundary to catch Agora subscription errors gracefully
@@ -104,6 +115,56 @@ interface Participant {
     agoraUser?: IAgoraRTCRemoteUser;
 }
 
+// Wrapper for actions requiring confirmation
+function ConfirmActionWrapper({
+    children,
+    title,
+    description,
+    onConfirm,
+    isDestructive = false,
+    tooltip
+}: {
+    children: React.ReactNode,
+    title: string,
+    description: string,
+    onConfirm: () => void,
+    isDestructive?: boolean,
+    tooltip: string
+}) {
+    return (
+        <AlertDialog>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        {children}
+                    </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{tooltip}</p>
+                </TooltipContent>
+            </Tooltip>
+            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogDescription>{description}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onConfirm();
+                        }}
+                        className={isDestructive ? "bg-destructive hover:bg-destructive/90" : ""}
+                    >
+                        Confirm
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}
+
 interface ParticipantTileProps {
     participant: Participant;
     isHost?: boolean;
@@ -112,6 +173,7 @@ interface ParticipantTileProps {
     onToggleRemoteCamera?: (uid: string | number) => void;
     onPinUser?: (uid: string | number | null) => void;
     onFullscreen?: (uid: string | number) => void;
+    onRemoveRemoteUser?: (uid: string | number) => void;
     className?: string;
 }
 
@@ -123,6 +185,7 @@ export function ParticipantTile({
     onToggleRemoteCamera,
     onPinUser,
     onFullscreen,
+    onRemoveRemoteUser,
     className
 }: ParticipantTileProps) {
     const isCameraOn = participant.cameraOn ?? !!participant.videoTrack;
@@ -178,8 +241,8 @@ export function ParticipantTile({
                         )}
                         {!isCameraOn && (
                             <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-900">
-                                <div className="w-20 h-20 bg-neutral-700/50 rounded-full flex items-center justify-center mb-3 border border-neutral-600/30">
-                                    <UserIcon className="w-10 h-10 text-neutral-400" />
+                                <div className="w-10 h-10 bg-neutral-700/50 rounded-full flex items-center justify-center mb-3 border border-neutral-600/30">
+                                    <UserIcon className="w-5 h-5 text-neutral-400" />
                                 </div>
                                 <p className="text-sm text-neutral-400 font-medium">Camera Off</p>
                             </div>
@@ -198,7 +261,7 @@ export function ParticipantTile({
                         {!isCameraOn && (
                             <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-900">
                                 <div className="w-20 h-20 bg-neutral-700/50 rounded-full flex items-center justify-center mb-3 border border-neutral-600/30">
-                                    <UserIcon className="w-10 h-10 text-neutral-400" />
+                                    <UserIcon className="w-5 h-5 text-neutral-400" />
                                 </div>
                                 <p className="text-sm text-neutral-400 font-medium">Camera Off</p>
                             </div>
@@ -235,52 +298,76 @@ export function ParticipantTile({
                     )}
 
                     {/* Mic Status & Control */}
-                    {(!isMicOn || (isHost && !participant.isLocal)) && (
+                    {/* Status Only (Off) */}
+                    {!isMicOn && (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div
-                                    className={cn(
-                                        "flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
-                                        !isMicOn && "bg-destructive/80 text-white border border-white/10",
-                                        isMicOn && "opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10 cursor-pointer",
-                                        !isMicOn && isHost && !participant.isLocal && "cursor-not-allowed opacity-100" // Can't unmute remote
-                                    )}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isMicOn && isHost && !participant.isLocal) onToggleRemoteMic?.(participant.uid);
-                                    }}
-                                >
-                                    {isMicOn ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+                                <div className="flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-destructive/80 text-white border border-white/10 opacity-100 cursor-not-allowed">
+                                    <MicOff className="w-3.5 h-3.5" />
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>{!isMicOn ? "Mic Off" : (isHost && !participant.isLocal ? "Mute User" : "Mic On")}</p>
+                                <p>Mic Off</p>
                             </TooltipContent>
                         </Tooltip>
                     )}
+                    {/* Control (On -> Mute) - Host Only */}
+                    {isMicOn && isHost && !participant.isLocal && (
+                        <ConfirmActionWrapper
+                            title="Mute User"
+                            description={`Are you sure you want to mute ${participant.name || 'this user'}? You cannot unmute them later.`}
+                            onConfirm={() => onToggleRemoteMic?.(participant.uid)}
+                            tooltip="Mute User"
+                            isDestructive
+                        >
+                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10">
+                                <Mic className="w-3.5 h-3.5" />
+                            </div>
+                        </ConfirmActionWrapper>
+                    )}
 
                     {/* Camera Status & Control */}
-                    {(!isCameraOn || (isHost && !participant.isLocal)) && (
+                    {/* Status Only (Off) */}
+                    {!isCameraOn && (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div
-                                    className={cn(
-                                        "flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
-                                        !isCameraOn && "bg-neutral-800/80 text-white border border-white/10",
-                                        isCameraOn && "opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10 cursor-pointer"
-                                    )}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isCameraOn && isHost && !participant.isLocal) onToggleRemoteCamera?.(participant.uid);
-                                    }}
-                                >
-                                    {isCameraOn ? <Video className="w-3.5 h-3.5" /> : <VideoOff className="w-3.5 h-3.5" />}
+                                <div className="flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-neutral-800/80 text-white border border-white/10 opacity-100 cursor-not-allowed">
+                                    <VideoOff className="w-3.5 h-3.5" />
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>{!isCameraOn ? "Camera Off" : (isHost && !participant.isLocal ? "Disable Camera" : "Camera On")}</p>
+                                <p>Camera Off</p>
                             </TooltipContent>
                         </Tooltip>
+                    )}
+                    {/* Control (On -> Disable) - Host Only */}
+                    {isCameraOn && isHost && !participant.isLocal && (
+                        <ConfirmActionWrapper
+                            title="Disable Camera"
+                            description={`Are you sure you want to disable the camera for ${participant.name || 'this user'}? You cannot enable it later.`}
+                            onConfirm={() => onToggleRemoteCamera?.(participant.uid)}
+                            tooltip="Disable Camera"
+                            isDestructive
+                        >
+                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 opacity-0 group-hover:opacity-100 bg-black/40 hover:bg-black/60 text-white border border-white/10">
+                                <Video className="w-3.5 h-3.5" />
+                            </div>
+                        </ConfirmActionWrapper>
+                    )}
+
+                    {/* Remove User Control - HOST ONLY */}
+                    {isHost && !participant.isLocal && (
+                        <ConfirmActionWrapper
+                            title="Remove User"
+                            description={`Are you sure you want to remove ${participant.name || 'this user'} from the stream? This action cannot be undone.`}
+                            onConfirm={() => onRemoveRemoteUser?.(participant.uid)}
+                            tooltip="Remove User"
+                            isDestructive
+                        >
+                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 bg-destructive/80 hover:bg-destructive text-white border border-white/10 w-7 h-7">
+                                <X className="w-3.5 h-3.5" />
+                            </div>
+                        </ConfirmActionWrapper>
                     )}
 
                     {/* Fullscreen Control */}
@@ -324,6 +411,7 @@ interface ParticipantGridProps {
     maxVisible?: number;
     onToggleRemoteMic?: (uid: string | number) => void;
     onToggleRemoteCamera?: (uid: string | number) => void;
+    onRemoveRemoteUser?: (uid: string | number) => void;
 }
 
 export function ParticipantGrid({
@@ -331,7 +419,8 @@ export function ParticipantGrid({
     isHost,
     maxVisible = 5,
     onToggleRemoteMic,
-    onToggleRemoteCamera
+    onToggleRemoteCamera,
+    onRemoveRemoteUser
 }: ParticipantGridProps) {
     const [showAll, setShowAll] = useState(false);
     const [pinnedUid, setPinnedUid] = useState<string | number | null>(null);
@@ -381,6 +470,7 @@ export function ParticipantGrid({
                                 pinnedUid={pinnedUid}
                                 onToggleRemoteMic={onToggleRemoteMic}
                                 onToggleRemoteCamera={onToggleRemoteCamera}
+                                onRemoveRemoteUser={onRemoveRemoteUser}
                                 onPinUser={handlePinUser}
                             />
                         ))}
@@ -406,6 +496,7 @@ export function ParticipantGrid({
                         pinnedUid={pinnedUid}
                         onToggleRemoteMic={onToggleRemoteMic}
                         onToggleRemoteCamera={onToggleRemoteCamera}
+                        onRemoveRemoteUser={onRemoveRemoteUser}
                         onPinUser={handlePinUser}
                     />
                 ))}

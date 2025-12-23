@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2 } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
-import { SignalingManager } from "@/lib/agora-rtm";
+import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 
@@ -176,8 +176,45 @@ function StreamLogic({
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
 
+    // Cleanup RTM singleton
+    const cleanupViewerRTM = useCallback(() => {
+        if (viewerRtmSingleton.instance) {
+            console.log("RTM Viewer: Cleaning up singleton");
+            viewerRtmSingleton.instance.logout();
+            viewerRtmSingleton.instance = null;
+            viewerRtmSingleton.channelName = null;
+            viewerRtmSingleton.uid = null;
+            viewerRtmSingleton.currentUidRef.current = null;
+            viewerRtmSingleton.isInitializing = false;
+        }
+    }, []);
+
+    // Handle leaving the stream - cleanup and call parent onLeave
+    const handleLeaveStream = useCallback(async () => {
+        console.log("Viewer: Leaving stream...");
+
+        // Cleanup RTM
+        cleanupViewerRTM();
+
+        // Close local tracks if publisher
+        if (role === "publisher") {
+            localCameraTrack?.close();
+            localMicrophoneTrack?.close();
+        }
+
+        // Leave Agora channel
+        try {
+            await client.leave();
+            console.log("Viewer: Left Agora channel");
+        } catch (err) {
+            console.warn("Viewer: Error leaving channel:", err);
+        }
+
+        router.push('/explore');
+    }, [cleanupViewerRTM, client, localCameraTrack, localMicrophoneTrack, role, onLeave]);
+
     // Message handler for RTM commands from host - uses ref to avoid stale closure
-    const handleRTMMessage = useCallback((msg: { type: string; payload: { userId: string | number; mediaType: string; mute: boolean } }) => {
+    const handleRTMMessage = useCallback((msg: SignalingMessage) => {
         console.log("RTM: Message received in viewer:", msg);
 
         const targetUid = msg.payload.userId.toString();
@@ -208,8 +245,12 @@ function StreamLogic({
                         : "The host has disabled your camera"
                 );
             }
+        } else if (msg.type === "KICK_USER" && targetUid === myUid) {
+            console.log("RTM: Kick command received!");
+            toast.error("You have been removed from the stream by the host.");
+            handleLeaveStream();
         }
-    }, [uid]);
+    }, [uid, handleLeaveStream]);
 
     useEffect(() => {
         if (!appId || !uid || !channelName || !rtmToken) {
@@ -279,43 +320,6 @@ function StreamLogic({
 
         // Don't cleanup on Strict Mode unmount - singleton persists
     }, [appId, uid, channelName, rtmToken, role, handleRTMMessage]);
-
-    // Cleanup RTM singleton
-    const cleanupViewerRTM = useCallback(() => {
-        if (viewerRtmSingleton.instance) {
-            console.log("RTM Viewer: Cleaning up singleton");
-            viewerRtmSingleton.instance.logout();
-            viewerRtmSingleton.instance = null;
-            viewerRtmSingleton.channelName = null;
-            viewerRtmSingleton.uid = null;
-            viewerRtmSingleton.currentUidRef.current = null;
-            viewerRtmSingleton.isInitializing = false;
-        }
-    }, []);
-
-    // Handle leaving the stream - cleanup and call parent onLeave
-    const handleLeaveStream = useCallback(async () => {
-        console.log("Viewer: Leaving stream...");
-
-        // Cleanup RTM
-        cleanupViewerRTM();
-
-        // Close local tracks if publisher
-        if (role === "publisher") {
-            localCameraTrack?.close();
-            localMicrophoneTrack?.close();
-        }
-
-        // Leave Agora channel
-        try {
-            await client.leave();
-            console.log("Viewer: Left Agora channel");
-        } catch (err) {
-            console.warn("Viewer: Error leaving channel:", err);
-        }
-
-        router.push('/explore');
-    }, [cleanupViewerRTM, client, localCameraTrack, localMicrophoneTrack, role, onLeave]);
 
     // Identify Host and other participants
     // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.
