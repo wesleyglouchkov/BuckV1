@@ -229,23 +229,16 @@ function StreamLogic({
                 console.log("RTM: Setting audio to:", newState);
                 setIsAudioEnabled(newState);
 
-                toast.info(
-                    newState
-                        ? "The host has unmuted your microphone"
-                        : "The host has muted your microphone"
-                );
-            } else if (msg.payload.mediaType === "video") {
+                toast.info(newState ? "The host has unmuted your microphone" : "The host has muted your microphone");
+            }
+            else if (msg.payload.mediaType === "video") {
                 const newState = !msg.payload.mute;
                 console.log("RTM: Setting video to:", newState);
                 setIsVideoEnabled(newState);
-
-                toast.info(
-                    newState
-                        ? "The host has enabled your camera"
-                        : "The host has disabled your camera"
-                );
+                toast.info(newState ? "The host has enabled your camera" : "The host has disabled your camera");
             }
-        } else if (msg.type === "KICK_USER" && targetUid === myUid) {
+        }
+        else if (msg.type === "KICK_USER" && targetUid === myUid) {
             console.log("RTM: Kick command received!");
             toast.error("You have been removed from the stream by the host.");
             handleLeaveStream();
