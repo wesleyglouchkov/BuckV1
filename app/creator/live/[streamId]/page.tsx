@@ -36,6 +36,7 @@ export default function CreatorLivePage() {
     const [rtmToken, setRtmToken] = useState<string>(""); // Separate token for RTM signaling
     const [uid, setUid] = useState<number>(0);
     const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
+    const [isChatVisible, setIsChatVisible] = useState(true);
 
     // For scheduled streams, fetch stream data on load
     // For live streams (redirected from preview), the stream is already active
@@ -222,7 +223,7 @@ export default function CreatorLivePage() {
     // Show loading only for auth
     if (status === "loading") {
         return (
-            <div className="min-h-screen bg-background p-6">
+            <div className="bg-background p-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2">
@@ -271,10 +272,15 @@ export default function CreatorLivePage() {
                             <ArrowLeft className="w-5 h-5 dark:text-white" />
                         </Button>
                         <div>
-                            <h1 className="font-semibold text-foreground">
+                            <h1 className="font-semibold text-foreground flex items-center gap-3">
                                 {isLive ? streamTitle : "Stream Preview"}
+                                {(isLive || streamType) && (
+                                    <span className="px-3 py-0.5 bg-primary/10 text-primary text-[10px] font-bold tracking-[0.15em] uppercase shadow-[0_0_10px_currentColor]">
+                                        {streamType || "General"}
+                                    </span>
+                                )}
                             </h1>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="mt-1 text-xs text-muted-foreground mt-0.5">
                                 {isLive ? "Broadcasting live" : "Test your setup before going live"}
                             </p>
                         </div>
@@ -293,11 +299,14 @@ export default function CreatorLivePage() {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="container mx-auto p-2">
+                {/* Stream Info Header */}
+
+
+                <div className="flex flex-col lg:flex-row">
 
                     {/* Live Stream and Preview Overlay */}
-                    <div className="lg:col-span-2 space-y-4">
+                    <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">
                         <div className="relative">
                             {/* AgoraLiveStream handles preview mode internally when isLive=false */}
                             {!isStopped ? (
@@ -312,9 +321,13 @@ export default function CreatorLivePage() {
                                     onStreamEnd={handleStreamEnd}
                                     onRecordingReady={handleRecordingReady}
                                     onPermissionChange={handlePermissionChange}
+                                    isChatVisible={isChatVisible}
+                                    setIsChatVisible={setIsChatVisible}
+                                    streamTitle={streamTitle}
+                                    streamType={streamType}
                                 />
                             ) : (
-                                <div className="w-full aspect-video bg-card border border-border" />
+                                <div className="w-full h-[85vh] bg-card border border-border" />
                             )}
 
                             {/* PREVIEW: Overlay */}
@@ -331,43 +344,40 @@ export default function CreatorLivePage() {
                                 />
                             )}
                         </div>
-
-                        {/* Stream Setup - Below Video when LIVE only */}
-                        {isLive && (
-                            <Card>
-                                <CardContent className="p-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex-1">
-                                            <p className="text-sm text-muted-foreground">Title</p>
-                                            <p className="font-medium">{streamTitle}</p>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm text-muted-foreground">Type</p>
-                                            <p className="font-medium">{streamType}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                     </div>
 
-                    {/* Right Sidebar */}
-                    <div className="space-y-4">
-                        {isLive ? (
-                            <StreamChat
-                                streamId={urlStreamId}
-                                currentUserId={session?.user?.id}
-                                currentUsername={session?.user?.name || "Creator"}
-                                isCreator={true}
-                            />
-                        ) : (
-                            <StreamSetupCard
-                                title={streamTitle}
-                                onTitleChange={setStreamTitle}
-                                type={streamType}
-                                onTypeChange={setStreamType}
-                            />
-                        )}
+                    {/* Right Sidebar - Smooth Animation */}
+                    <div
+                        className={`
+                            transition-all duration-500 ease-in-out overflow-hidden
+                            
+                            /* Mobile: Fixed Dialog Overlay */
+                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-[100dvh] w-full
+                            ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
+
+                            /* Desktop: Sidebar */
+                            lg:static lg:h-[85vh] lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
+                            ${isChatVisible ? "lg:w-[25%] lg:opacity-100 lg:pointer-events-auto" : "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:ml-0"}
+                        `}
+                    >
+                        <div className="w-full h-full">
+                            {isLive ? (
+                                <StreamChat
+                                    streamId={urlStreamId}
+                                    currentUserId={session?.user?.id}
+                                    currentUsername={session?.user?.name || "Creator"}
+                                    isCreator={true}
+                                    onClose={() => setIsChatVisible(false)}
+                                />
+                            ) : (
+                                <StreamSetupCard
+                                    title={streamTitle}
+                                    onTitleChange={setStreamTitle}
+                                    type={streamType}
+                                    onTypeChange={setStreamType}
+                                />
+                            )}
+                        </div>
                     </div>
 
                 </div>

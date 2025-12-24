@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle } from "lucide-react";
+import { Send, MessageCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatMessage {
@@ -20,6 +20,7 @@ interface StreamChatProps {
     currentUserId?: string;
     currentUsername?: string;
     isCreator?: boolean;
+    onClose?: () => void;
 }
 
 export default function StreamChat({
@@ -27,6 +28,7 @@ export default function StreamChat({
     currentUserId,
     currentUsername = "Anonymous",
     isCreator = false,
+    onClose,
 }: StreamChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -75,18 +77,28 @@ export default function StreamChat({
     };
 
     return (
-        <div className="flex flex-col h-full bg-card border border-border overflow-hidden">
+        <div className="flex lg:border-l border-primary flex-col h-full bg-card overflow-hidden">
             {/* Header */}
             <div className="px-4 py-3 border-b border-border bg-card">
                 <div className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold text-foreground">Live Chat</h3>
-                    {isConnected && (
-                        <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            Connected
-                        </span>
-                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                        {isConnected && (
+                            <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                <span className="mt-1">Connected</span>
+                            </span>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 lg:hidden dark:text-white"
+                            onClick={onClose}
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -140,7 +152,7 @@ export default function StreamChat({
             {/* Input */}
             <form
                 onSubmit={handleSendMessage}
-                className="p-3 border-t border-border bg-card"
+                className="p-3 border-none bg-card"
             >
                 <div className="flex gap-2">
                     <Input

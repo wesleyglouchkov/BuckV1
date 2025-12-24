@@ -11,7 +11,7 @@ import {
     useRemoteUsers,
 } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, Settings, Wifi } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, Settings, Wifi, ArrowRightFromLine, ArrowLeftToLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ParticipantGrid } from "./AgoraComponents";
 import { toast } from "sonner";
@@ -52,6 +52,10 @@ interface AgoraLiveStreamProps {
     onStreamEnd: (replayUrl?: string) => void;
     onRecordingReady?: (blob: Blob) => void;
     onPermissionChange?: (hasPermission: boolean) => void;
+    isChatVisible?: boolean;
+    setIsChatVisible?: (visible: boolean) => void;
+    streamTitle?: string;
+    streamType?: string;
 }
 
 // Network quality indicator component
@@ -107,6 +111,10 @@ function LiveBroadcast({
     uid,
     onStreamEnd,
     onRecordingReady,
+    isChatVisible,
+    setIsChatVisible,
+    streamTitle,
+    streamType,
 }: Omit<AgoraLiveStreamProps, "isLive" | "streamId">) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -462,7 +470,7 @@ function LiveBroadcast({
 
 
     return (
-        <div className="relative w-full aspect-video dark:bg-neutral-950 overflow-hidden border border-primary shadow-2xl group/main">
+        <div className="relative w-full h-[85vh] dark:bg-neutral-950 overflow-hidden shadow-2xl group/main">
             {/* Main Participant Grid */}
             <div className="absolute inset-0 flex items-center justify-center">
                 <ParticipantGrid
@@ -472,6 +480,7 @@ function LiveBroadcast({
                     onToggleRemoteMic={handleToggleRemoteMic}
                     onToggleRemoteCamera={handleToggleRemoteCamera}
                     onRemoveRemoteUser={handleRemoveRemoteUser}
+                    onCloseChat={() => setIsChatVisible?.(false)}
                 />
             </div>
 
@@ -481,28 +490,17 @@ function LiveBroadcast({
                     {/* Live Badge */}
                     <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
                         <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                        <span className="font-bold text-xs tracking-wider">LIVE</span>
+                        <span className="mt-1 font-bold text-xs tracking-wider">LIVE</span>
                     </div>
 
                     {/* Viewer Count */}
                     <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                        <Users className="w-3.5 h-3.5 text-neutral-400" />
-                        <span className="text-white text-xs font-semibold">{remoteUsers.length} online</span>
+                        <Users className="w-3.5 h-3.5 text-white" />
+                        <span className="mt-1 text-white text-xs font-semibold">{remoteUsers.length} online</span>
                     </div>
                 </div>
 
-                {/* Recording + Audio Level */}
-                <div className="flex items-center gap-3 pointer-events-auto">
-                    {isRecording && (
-                        <div className="bg-destructive/20 backdrop-blur-md border border-destructive/30 text-destructive-foreground px-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold">
-                            <Radio className="w-3.5 h-3.5 animate-pulse" />
-                            <span>REC</span>
-                        </div>
-                    )}
-                    <div className="bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10">
-                        <Settings className="w-4 h-4 text-neutral-400 cursor-pointer hover:text-white transition-colors" />
-                    </div>
-                </div>
+
             </div>
 
             {/* Bottom Controls - Floating Glassmorphism */}
@@ -552,6 +550,37 @@ function LiveBroadcast({
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+            </div>
+            {/* Controls (Bottom Right) - REC & Chat Toggle */}
+            <div className="absolute bottom-6 right-6 z-30 flex items-center gap-3 pointer-events-auto">
+                {isRecording && (
+                    <div className="bg-destructive/20 backdrop-blur-md border border-destructive/30 text-destructive-foreground px-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold">
+                        <Radio className="w-3.5 h-3.5 animate-pulse" />
+                        <span className="mt-1">REC</span>
+                    </div>
+                )}
+                <div
+                    className="bg-primary px-3 py-1.5 backdrop-blur-md rounded-full border border-white/10 cursor-pointer hover:bg-primary/80 transition-all"
+                    onClick={() => {
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        setIsChatVisible?.(!isChatVisible);
+                    }}
+                >
+                    {isChatVisible ? (
+                        <div className="flex items-center gap-2">
+                            <ArrowRightFromLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
+                            <span className="text-xs font-medium mt-0.5 text-white">Hide Chat</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-white">
+                            <ArrowLeftToLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
+                            <span className="text-xs font-medium mt-0.5 text-white">Chat</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Background Grain/Texture for Premium Feel */}
@@ -682,7 +711,7 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
     }
 
     return (
-        <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
+        <div className="relative w-full h-[85vh] bg-card overflow-hidden border border-border shadow-lg">
             <video
                 ref={videoRef}
                 autoPlay
@@ -755,7 +784,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
     // Wait for token before joining Agora channel
     if (!props.token || !client) {
         return (
-            <div className="relative w-full aspect-video bg-card overflow-hidden border border-border shadow-lg">
+            <div className="relative w-full h-[85vh] bg-card overflow-hidden border border-border shadow-lg">
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
                     <p className="text-muted-foreground text-sm">Connecting to stream...</p>
@@ -774,6 +803,10 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 uid={props.uid}
                 onStreamEnd={props.onStreamEnd}
                 onRecordingReady={props.onRecordingReady}
+                isChatVisible={props.isChatVisible}
+                setIsChatVisible={props.setIsChatVisible}
+                streamTitle={props.streamTitle}
+                streamType={props.streamType}
             />
         </AgoraRTCProvider>
     );

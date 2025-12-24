@@ -224,7 +224,7 @@ export function ParticipantTile({
         <div
             ref={tileRef}
             className={cn(
-                "relative aspect-video bg-neutral-800 overflow-hidden border border-primary group transition-all duration-300 hover:border-white/20 shadow-lg",
+                "relative  aspect-video bg-neutral-800 overflow-hidden group transition-all duration-300 hover:border-white/20 shadow-lg",
                 isPinned && "z-30 scale-105 ring-2 ring-primary shadow-xl shadow-primary/20 ",
                 className
             )}
@@ -412,6 +412,7 @@ interface ParticipantGridProps {
     onToggleRemoteMic?: (uid: string | number) => void;
     onToggleRemoteCamera?: (uid: string | number) => void;
     onRemoveRemoteUser?: (uid: string | number) => void;
+    onCloseChat?: () => void;
 }
 
 export function ParticipantGrid({
@@ -420,7 +421,8 @@ export function ParticipantGrid({
     maxVisible = 5,
     onToggleRemoteMic,
     onToggleRemoteCamera,
-    onRemoveRemoteUser
+    onRemoveRemoteUser,
+    onCloseChat
 }: ParticipantGridProps) {
     const [showAll, setShowAll] = useState(false);
     const [pinnedUid, setPinnedUid] = useState<string | number | null>(null);
@@ -448,7 +450,7 @@ export function ParticipantGrid({
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h2 className="text-2xl font-bold dark:text-white mb-1">All Participants</h2>
-                        <p className="text-neutral-400 dark:text-neutral-500 text-sm">{participants.length} users in this stream</p>
+                        <p className="text-neutral-400 dark:text-neutral-500 text-sm">Total {participants.length} users in this stream</p>
                     </div>
                     <Button
                         variant="ghost"
@@ -503,14 +505,17 @@ export function ParticipantGrid({
 
                 {hasMore && (
                     <button
-                        onClick={() => setShowAll(true)}
-                        className="relative aspect-video rounded-xl bg-neutral-900/50 border border-dashed border-white/20 flex flex-col items-center justify-center gap-2 hover:bg-neutral-800/50 hover:border-white/40 transition-all group overflow-hidden"
+                        onClick={() => {
+                            onCloseChat?.();
+                            setShowAll(true);
+                        }}
+                        className="cursor-pointer relative aspect-video bg-neutral-900/50 border border-dashed border-white/20 flex flex-col items-center justify-center gap-2 hover:bg-neutral-800/50 hover:border-white/40 transition-all group overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
                             <MoreHorizontal className="w-6 h-6 text-neutral-400 group-hover:text-white" />
                         </div>
-                        <span className="text-sm font-medium text-neutral-400 group-hover:text-white">
+                        <span className="text-sm font-medium text-white group-hover:text-white">
                             +{moreCount} More
                         </span>
                     </button>
