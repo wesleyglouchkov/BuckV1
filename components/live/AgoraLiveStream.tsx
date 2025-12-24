@@ -496,7 +496,7 @@ function LiveBroadcast({
                     {/* Viewer Count */}
                     <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
                         <Users className="w-3.5 h-3.5 text-white" />
-                        <span className="mt-1 text-white text-xs font-semibold">{remoteUsers.length} online</span>
+                        <span className="mt-1 text-white text-xs font-semibold">{remoteUsers.length + 1} online</span>
                     </div>
                 </div>
 

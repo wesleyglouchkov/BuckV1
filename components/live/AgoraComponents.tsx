@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, Component, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { RemoteUser, IRemoteVideoTrack, IRemoteAudioTrack, ILocalVideoTrack, ILocalAudioTrack, IAgoraRTCRemoteUser } from "agora-rtc-react";
 import { Mic, MicOff, Video, VideoOff, MoreHorizontal, X, User as UserIcon, Pin, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -175,6 +176,7 @@ interface ParticipantTileProps {
     onFullscreen?: (uid: string | number) => void;
     onRemoveRemoteUser?: (uid: string | number) => void;
     className?: string;
+    customControls?: React.ReactNode;
 }
 
 export function ParticipantTile({
@@ -186,7 +188,8 @@ export function ParticipantTile({
     onPinUser,
     onFullscreen,
     onRemoveRemoteUser,
-    className
+    className,
+    customControls
 }: ParticipantTileProps) {
     const isCameraOn = participant.cameraOn ?? !!participant.videoTrack;
     const isMicOn = participant.micOn ?? !!participant.audioTrack;
@@ -272,7 +275,8 @@ export function ParticipantTile({
 
             {/* Unified Controls & Status Overlay (Top Right) */}
             <TooltipProvider>
-                <div className="absolute top-2 right-2 flex gap-1.5 z-20 flex-wrap justify-end pl-8">
+                <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20 flex-wrap justify-end pl-8">
+                   
                     {/* Pin Control */}
                     {(isPinned || (isHost && !participant.isLocal)) && (
                         <Tooltip>
@@ -389,6 +393,9 @@ export function ParticipantTile({
                             </TooltipContent>
                         </Tooltip>
                     )}
+
+                     {/* Custom Controls (Injected) */}
+                    {customControls}
                 </div>
             </TooltipProvider>
 
@@ -445,8 +452,8 @@ export function ParticipantGrid({
     };
 
     if (showAll) {
-        return (
-            <div className="fixed inset-0 z-50 bg-white dark:bg-black/95 backdrop-blur-xl p-6 lg:p-10 flex flex-col">
+        return createPortal(
+            <div className="fixed inset-0 z-9999 bg-white dark:bg-black/95 backdrop-blur-xl p-6 lg:p-10 flex flex-col animate-in fade-in duration-200">
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h2 className="text-2xl font-bold dark:text-white mb-1">All Participants</h2>
@@ -478,7 +485,8 @@ export function ParticipantGrid({
                         ))}
                     </div>
                 </div>
-            </div>
+            </div>,
+            document.body
         );
     }
 

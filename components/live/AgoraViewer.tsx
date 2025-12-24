@@ -364,7 +364,7 @@ function StreamLogic({
     ];
 
     return (
-        <div className="relative w-full h-[85vh] flex flex-col bg-neutral-950 overflow-hidden shadow-2xl group/main">
+        <div className="relative w-full max-sm:h-[92vh] h-[85vh] flex flex-col bg-neutral-950 overflow-hidden shadow-2xl group/main">
             {/* 1. HOST (Main Screen) */}
             <div ref={hostContainerRef} className="relative w-full shrink-0 aspect-video md:absolute md:inset-0 z-0 group/host">
                 {hostUser ? (
@@ -381,14 +381,23 @@ function StreamLogic({
                                 agoraUser: hostUser
                             }}
                             className="w-full h-full rounded-none border-none"
+                            customControls={
+                                <div
+                                    className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-primary text-white border border-white/10 hover:bg-primary/90"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onToggleChat?.();
+                                    }}
+                                >
+                                    {isChatVisible ? (
+                                        <ArrowRightFromLine className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <ArrowLeftToLine className="w-3.5 h-3.5" />
+                                    )}
+                                </div>
+                            }
                         />
-                        {/* Overlay to identify host clearly */}
-                        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
-                            <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                                <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
-                                <span className="font-bold text-[10px] md:text-xs tracking-wider">HOST LIVE</span>
-                            </div>
-                        </div>
+
                     </div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-white z-0">
@@ -478,31 +487,23 @@ function StreamLogic({
                 </AlertDialog>
             </div>
 
-            {/* Chat Toggle (Bottom Right) */}
-            <div className="absolute bottom-6 right-6 z-30 pointer-events-auto">
-                <div
-                    className="bg-primary px-3 py-1.5 backdrop-blur-md border border-white/10 cursor-pointer hover:bg-primary/80 transition-all"
-                    onClick={() => {
-                        window.scrollTo({
-                            top: 0,
-                            behavior: "smooth",
-                        });
-                        onToggleChat?.();
-                    }}
-                >
-                    {isChatVisible ? (
-                        <div className="flex items-center gap-2">
-                            <ArrowRightFromLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
-                            <span className="text-xs font-medium mt-0.5 text-white">Hide Chat</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 text-white">
-                            <ArrowLeftToLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
-                            <span className="text-xs font-medium mt-0.5 text-white">Chat</span>
-                        </div>
-                    )}
+            {/* Viewer Count & Live Badge Overlay */}
+            <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 pointer-events-none flex items-center gap-3">
+                {/* Host Live Badge */}
+                <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
+                    <span className="font-bold text-[10px] md:text-xs tracking-wider">LIVE</span>
+                </div>
+
+                {/* Online User Count */}
+                <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                    <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
+                    <span className="font-semibold text-[10px] md:text-xs tracking-wide">{remoteUsers.length + 1} online</span>
                 </div>
             </div>
+
+            {/* Chat Toggle (Top Right for Viewers) */}
+
 
             {/* Background Texture */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
