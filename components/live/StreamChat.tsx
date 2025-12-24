@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, X } from "lucide-react";
+import { Send, MessageCircle, X, Smile } from "lucide-react";
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import { cn } from "@/lib/utils";
 
 interface ChatMessage {
@@ -34,6 +35,22 @@ export default function StreamChat({
     const [newMessage, setNewMessage] = useState("");
     const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+    // Close emoji picker when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -72,6 +89,7 @@ export default function StreamChat({
 
         setMessages((prev) => [...prev, message]);
         setNewMessage("");
+        setShowEmojiPicker(false);
 
         // In production, send to backend/websocket here
     };
@@ -152,16 +170,37 @@ export default function StreamChat({
             {/* Input */}
             <form
                 onSubmit={handleSendMessage}
-                className="p-3 border-none bg-card"
+                className="p-3 border-none bg-card relative"
             >
+                {showEmojiPicker && (
+                    <div className="absolute bottom-16 right-4 z-50 shadow-xl border border-border rounded-xl overflow-hidden" ref={emojiPickerRef}>
+                        <EmojiPicker
+                            theme={Theme.DARK}
+                            onEmojiClick={(emojiData: EmojiClickData) => {
+                                setNewMessage((prev) => prev + emojiData.emoji);
+                            }}
+                            width={300}
+                            height={400}
+                        />
+                    </div>
+                )}
                 <div className="flex gap-2">
-                    <Input
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Send a message..."
-                        className="flex-1"
-                        maxLength={200}
-                    />
+                    <div className="relative flex-1">
+                        <Input
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Send a message..."
+                            className="w-full pr-10" // Add padding for emoji button
+                            maxLength={200}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                        >
+                            <Smile className="w-5 h-5" />
+                        </button>
+                    </div>
                     <Button
                         type="submit"
                         size="default"

@@ -32,6 +32,7 @@
     "cuid": "^3.0.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "emoji-picker-react": "^4.16.1",
     "hls.js": "^1.6.15",
     "lucide-react": "^0.556.0",
     "media-icons": "^1.1.5",

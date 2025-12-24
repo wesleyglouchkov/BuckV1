@@ -560,7 +560,7 @@ function LiveBroadcast({
                     </div>
                 )}
                 <div
-                    className="bg-primary px-3 py-1.5 backdrop-blur-md rounded-full border border-white/10 cursor-pointer hover:bg-primary/80 transition-all"
+                    className="bg-primary px-3 py-1.5 backdrop-blur-md border border-white/10 cursor-pointer hover:bg-primary/80 transition-all"
                     onClick={() => {
                         window.scrollTo({
                             top: 0,

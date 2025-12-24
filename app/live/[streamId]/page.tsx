@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraViewer = dynamic<AgoraViewerProps>(() => import("../../../components/live/AgoraViewer"), { ssr: false });
@@ -49,6 +51,7 @@ export default function LiveStreamPage() {
     const [showConsentDialog, setShowConsentDialog] = useState(false);
     const [viewerRole, setViewerRole] = useState<"publisher" | "subscriber" | null>(null);
     const [hasJoined, setHasJoined] = useState(false);
+    const [isChatVisible, setIsChatVisible] = useState(true);
 
     // Fetch stream details and auto-join as viewer
     useEffect(() => {
@@ -236,36 +239,53 @@ export default function LiveStreamPage() {
 
             {/* Header */}
             <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-                <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
                         <Button
-                            variant="default"
-                            size="default"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => router.push("/explore")}
+                            className="shrink-0"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-5 h-5 dark:text-white" />
                         </Button>
-                        <div>
-                            <h1 className="font-semibold text-foreground">
-                                {streamDetails.title}
-                            </h1>
-                            <p className="text-sm text-muted-foreground">
-                                {streamDetails.creator.name}
-                                {streamDetails.workoutType && ` • ${streamDetails.workoutType}`}
-                            </p>
+                        <div className="min-w-0 flex flex-col">
+                            <div className="flex items-center gap-3">
+                                <h1 className="font-semibold text-foreground truncate">
+                                    {streamDetails.title}
+                                </h1>
+                                {streamDetails.workoutType && (
+                                    <span className="shrink-0 px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold tracking-wider uppercase rounded-sm border border-primary/20">
+                                        {streamDetails.workoutType}
+                                    </span>
+                                )}
+                                {streamDetails.isLive && (
+                                    <span className="shrink-0 flex items-center gap-1.5 px-2 py-0.5 bg-destructive/10 text-destructive text-[10px] font-bold tracking-wider uppercase rounded-full">
+                                        <span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />
+                                        LIVE
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        {streamDetails.isLive && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 text-destructive rounded-full text-sm font-medium">
-                                <span className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
-                                LIVE
+                    <div className="flex items-center gap-4 shrink-0">
+                        {/* Creator Info Compact */}
+                        <div className="flex items-center gap-2 pr-4 border-r border-border/50">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-medium leading-none dark:text-white">{streamDetails.creator.name}</p>
+                                <p className="text-[10px] text-muted-foreground">Host</p>
                             </div>
-                        )}
-                        <Button variant="outline" size="sm" onClick={handleShare}>
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
+                            <UserAvatar
+                                src={streamDetails.creator.avatar}
+                                name={streamDetails.creator.name}
+                                size="sm"
+                            />
+
+                        </div>
+
+                        <Button variant="ghost" size="icon" onClick={handleShare}>
+                            <Share2 className="w-4 h-4 dark:text-white" />
                         </Button>
                         <ThemeToggle />
                     </div>
@@ -273,10 +293,10 @@ export default function LiveStreamPage() {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="container mx-auto p-2">
+                <div className="flex flex-col lg:flex-row">
                     {/* Video Area */}
-                    <div className="lg:col-span-2">
+                    <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">
                         {streamDetails.isLive ?
                             (
                                 hasJoined && tokenData && viewerRole ? (
@@ -290,10 +310,12 @@ export default function LiveStreamPage() {
                                         session={session}
                                         onLeave={handleLeave}
                                         onRequestUpgrade={() => setShowConsentDialog(true)}
+                                        isChatVisible={isChatVisible}
+                                        onToggleChat={() => setIsChatVisible(!isChatVisible)}
                                     />
                                 ) : (
                                     // Condition: Stream is not live and viewer has not joined
-                                    <div className="w-full aspect-video bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
+                                    <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
                                         <div className="text-center space-y-4">
                                             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
                                             <div>
@@ -311,14 +333,16 @@ export default function LiveStreamPage() {
                             :
                             // Condition: Stream is not live and replay is available
                             streamDetails.replayUrl ? (
-                                <VideoPlayer
-                                    src={streamDetails.replayUrl}
-                                    title={streamDetails.title}
-                                />
+                                <div className="w-full h-[85vh]">
+                                    <VideoPlayer
+                                        src={streamDetails.replayUrl}
+                                        title={streamDetails.title}
+                                    />
+                                </div>
                             ) :
                                 (
                                     // Condition: Stream is not live and no replay is available
-                                    <div className="w-full aspect-video bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
+                                    <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
                                         <div className="text-center space-y-4">
                                             <p className="text-muted-foreground">
                                                 This stream has ended and no replay is available.
@@ -332,55 +356,43 @@ export default function LiveStreamPage() {
                     </div>
 
                     {/* Chat Sidebar */}
-                    <div className="h-[500px] lg:h-auto">
-                        {streamDetails.isLive && hasJoined ? (
-                            <StreamChat
-                                streamId={streamId}
-                                currentUserId={session?.user?.id}
-                                currentUsername={session?.user?.name || "Viewer"}
-                                isCreator={false}
-                            />
-                        ) : (
-                            <div className="bg-card border border-border  p-6 h-full flex flex-col items-center justify-center text-center">
-                                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                                    <Users className="w-8 h-8 text-muted-foreground" />
-                                </div>
-                                <h3 className="font-semibold text-foreground mb-2">
-                                    {streamDetails.isLive ? "Join to Chat" : "Chat Unavailable"}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                    {streamDetails.isLive
-                                        ? "Join the stream to participate in the live chat"
-                                        : "Live chat is only available during active streams"}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                    <div
+                        className={`
+                            transition-all duration-500 ease-in-out overflow-hidden
+                            
+                            /* Mobile: Fixed Dialog Overlay */
+                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-[100dvh] w-full
+                            ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
 
-                {/* Creator Info */}
-                <div className="mt-6 bg-card border border-border  p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                            {streamDetails.creator.avatar ? (
-                                <img
-                                    src={streamDetails.creator.avatar}
-                                    alt={streamDetails.creator.name}
-                                    className="w-full h-full rounded-full object-cover"
+                            /* Desktop: Sidebar */
+                            lg:static lg:h-[85vh] lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
+                            ${isChatVisible ? "lg:w-[25%] lg:opacity-100 lg:pointer-events-auto" : "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:ml-0"}
+                        `}
+                    >
+                        <div className="w-full h-full">
+                            {streamDetails.isLive && hasJoined ? (
+                                <StreamChat
+                                    streamId={streamId}
+                                    currentUserId={session?.user?.id}
+                                    currentUsername={session?.user?.name || "Viewer"}
+                                    isCreator={false}
+                                    onClose={() => setIsChatVisible(false)}
                                 />
                             ) : (
-                                <span className="text-xl font-bold text-primary">
-                                    {streamDetails.creator.name.charAt(0)}
-                                </span>
+                                <div className="bg-card border border-border  p-6 h-full flex flex-col items-center justify-center text-center">
+                                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                                        <Users className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="font-semibold text-foreground mb-2">
+                                        {streamDetails.isLive ? "Join to Chat" : "Chat Unavailable"}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        {streamDetails.isLive
+                                            ? "Join the stream to participate in the live chat"
+                                            : "Live chat is only available during active streams"}
+                                    </p>
+                                </div>
                             )}
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-foreground">
-                                {streamDetails.creator.name}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                                {streamDetails.workoutType || "Fitness Creator"}
-                            </p>
                         </div>
                     </div>
                 </div>

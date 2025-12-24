@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalCameraTrack, useLocalMicrophoneTrack, usePublish, useRemoteUsers, useRTCClient } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2 } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
@@ -41,6 +41,8 @@ export interface AgoraViewerProps {
     session: Session | null; // User session for checking login status
     onLeave: () => void;
     onRequestUpgrade: () => void;
+    isChatVisible?: boolean;
+    onToggleChat?: () => void;
 }
 
 function StreamLogic({
@@ -54,6 +56,8 @@ function StreamLogic({
     session,
     onLeave,
     onRequestUpgrade,
+    isChatVisible,
+    onToggleChat,
 }: AgoraViewerProps) {
     const router = useRouter();
 
@@ -360,7 +364,7 @@ function StreamLogic({
     ];
 
     return (
-        <div className="relative w-full md:aspect-video flex flex-col bg-neutral-950 overflow-hidden border border-white/5 shadow-2xl group/main">
+        <div className="relative w-full h-[85vh] flex flex-col bg-neutral-950 overflow-hidden shadow-2xl group/main">
             {/* 1. HOST (Main Screen) */}
             <div ref={hostContainerRef} className="relative w-full shrink-0 aspect-video md:absolute md:inset-0 z-0 group/host">
                 {hostUser ? (
@@ -407,6 +411,7 @@ function StreamLogic({
                 <ParticipantGrid
                     participants={participants}
                     maxVisible={4}
+                    onCloseChat={() => onToggleChat?.()}
                 />
             </div>
 
@@ -473,9 +478,35 @@ function StreamLogic({
                 </AlertDialog>
             </div>
 
+            {/* Chat Toggle (Bottom Right) */}
+            <div className="absolute bottom-6 right-6 z-30 pointer-events-auto">
+                <div
+                    className="bg-primary px-3 py-1.5 backdrop-blur-md border border-white/10 cursor-pointer hover:bg-primary/80 transition-all"
+                    onClick={() => {
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        onToggleChat?.();
+                    }}
+                >
+                    {isChatVisible ? (
+                        <div className="flex items-center gap-2">
+                            <ArrowRightFromLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
+                            <span className="text-xs font-medium mt-0.5 text-white">Hide Chat</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-white">
+                            <ArrowLeftToLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
+                            <span className="text-xs font-medium mt-0.5 text-white">Chat</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* Background Texture */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-        </div>
+        </div >
     );
 }
 
