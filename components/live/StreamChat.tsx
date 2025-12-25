@@ -29,6 +29,7 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const [showLoginDialog, setShowLoginDialog] = useState(false);
+    const [isSending, setIsSending] = useState(false);
 
     // Use provided RTM manager or try to get from the global singleton
     const effectiveRTMManager = rtmManager || getRTMInstance();
@@ -91,14 +92,17 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
             return;
         }
 
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || isSending) return;
 
         try {
+            setIsSending(true);
             await sendMessage(newMessage);
             setNewMessage("");
             setShowEmojiPicker(false);
         } catch (error) {
             console.error("Failed to send message:", error);
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -254,7 +258,7 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
                     <Button
                         type="submit"
                         size="default"
-                        disabled={!newMessage.trim() || (currentUserId ? !isConnected : true)}
+                        disabled={!newMessage.trim() || isSending || (currentUserId ? !isConnected : true)}
                         className="shrink-0"
                     >
                         <Send className="w-4 h-4" />
