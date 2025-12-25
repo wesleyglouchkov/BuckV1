@@ -37,6 +37,8 @@ interface TokenData {
     uid: number;
     channelId: string;
     appId: string;
+    userName?: string;
+    userAvatar?: string;
 }
 
 export default function LiveStreamPage() {
@@ -51,7 +53,7 @@ export default function LiveStreamPage() {
     const [showConsentDialog, setShowConsentDialog] = useState(false);
     const [viewerRole, setViewerRole] = useState<"publisher" | "subscriber" | null>(null);
     const [hasJoined, setHasJoined] = useState(false);
-    const [isChatVisible, setIsChatVisible] = useState(true);
+    const [isChatVisible, setIsChatVisible] = useState(false);
 
     // Fetch stream details and auto-join as viewer
     useEffect(() => {
@@ -72,6 +74,8 @@ export default function LiveStreamPage() {
                         uid: tokenResponse.uid,
                         channelId: tokenResponse.channelId,
                         appId: tokenResponse.appId,
+                        userName: tokenResponse?.userName,
+                        userAvatar: tokenResponse?.userAvatar
                     });
                     setViewerRole(role);
                     setHasJoined(true);
@@ -312,6 +316,8 @@ export default function LiveStreamPage() {
                                         onRequestUpgrade={() => setShowConsentDialog(true)}
                                         isChatVisible={isChatVisible}
                                         onToggleChat={() => setIsChatVisible(!isChatVisible)}
+                                        userName={tokenData.userName}
+                                        userAvatar={tokenData.userAvatar}
                                     />
                                 ) : (
                                     // Condition: Stream is not live and viewer has not joined

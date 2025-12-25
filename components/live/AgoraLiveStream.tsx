@@ -56,6 +56,8 @@ interface AgoraLiveStreamProps {
     setIsChatVisible?: (visible: boolean) => void;
     streamTitle?: string;
     streamType?: string;
+    userName?: string;
+    userAvatar?: string;
 }
 
 // Network quality indicator component
@@ -115,10 +117,14 @@ function LiveBroadcast({
     setIsChatVisible,
     streamTitle,
     streamType,
+    userName,
+    userAvatar
 }: Omit<AgoraLiveStreamProps, "isLive" | "streamId">) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
+    // User Names Map
+    const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const recordedChunksRef = useRef<Blob[]>([]);
@@ -232,6 +238,28 @@ function LiveBroadcast({
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
 
+    // RTM Presence Handler
+    const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean }) => {
+        if (p.isOnline) {
+            setUserNames(prev => {
+                const existing = prev[p.userId];
+                // Use new name if present, otherwise keep existing, otherwise fallback to default
+                const displayName = p.name || existing?.name || `User ${p.userId}`;
+                const displayAvatar = p.avatar || existing?.avatar;
+
+                // Avoid unnecessary state updates
+                if (existing?.name === displayName && existing?.avatar === displayAvatar) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    [p.userId]: { name: displayName, avatar: displayAvatar }
+                };
+            });
+        }
+    }, []);
+
     useEffect(() => {
         if (!appId || !uid || !channelName || !rtmToken) {
             console.log("RTM: Missing required params");
@@ -241,6 +269,14 @@ function LiveBroadcast({
         // If singleton already exists for this channel, reuse it
         if (rtmSingleton.instance && rtmSingleton.channelName === channelName) {
             console.log("RTM: Reusing existing singleton instance");
+            // Re-bind presence listener
+            rtmSingleton.instance.onPresence(handleRTMPresence);
+
+            // Announce self
+            if (userName) {
+                rtmSingleton.instance.setUserPresence(userName, userAvatar);
+            }
+
             setIsRTMReady(true);
             return;
         }
@@ -272,9 +308,16 @@ function LiveBroadcast({
                 const sm = new SignalingManager(appId, uid, channelName);
                 console.log("RTM: SignalingManager created (singleton)");
 
+                sm.onPresence(handleRTMPresence);
+
                 await sm.login(rtmToken);
 
                 console.log("RTM: Login successful, signaling ready");
+
+                if (userName) {
+                    await sm.setUserPresence(userName, userAvatar);
+                }
+
                 rtmSingleton.instance = sm;
                 rtmSingleton.isInitializing = false;
                 setIsRTMReady(true);
@@ -291,7 +334,7 @@ function LiveBroadcast({
         initRTM();
 
         // Don't cleanup on Strict Mode unmount - singleton persists
-    }, [appId, uid, channelName, rtmToken]);
+    }, [appId, uid, channelName, rtmToken, userName, userAvatar, handleRTMPresence]);
 
     // Cleanup singleton only when stream actually ends
     const cleanupRTM = useCallback(() => {
@@ -447,7 +490,7 @@ function LiveBroadcast({
     const participants = [
         {
             uid,
-            name: "You (Host)",
+            name: "You (Host)", // Creator already knows they are host
             videoTrack: localCameraTrack || undefined,
             audioTrack: localMicrophoneTrack || undefined,
             isLocal: true,
@@ -457,7 +500,7 @@ function LiveBroadcast({
         ...remoteUsers.map(user => {
             return {
                 uid: user.uid,
-                name: `User ${user.uid}`,
+                name: userNames[user.uid.toString()]?.name || `User ${user.uid}`,
                 videoTrack: user.videoTrack,
                 audioTrack: user.audioTrack,
                 isLocal: false,
@@ -472,16 +515,18 @@ function LiveBroadcast({
     return (
         <div className="relative w-full h-[85vh] dark:bg-neutral-950 overflow-hidden shadow-2xl group/main">
             {/* Main Participant Grid */}
-            <div className="absolute inset-0 flex items-center justify-center">
-                <ParticipantGrid
-                    participants={participants}
-                    isHost={true}
-                    maxVisible={5}
-                    onToggleRemoteMic={handleToggleRemoteMic}
-                    onToggleRemoteCamera={handleToggleRemoteCamera}
-                    onRemoveRemoteUser={handleRemoveRemoteUser}
-                    onCloseChat={() => setIsChatVisible?.(false)}
-                />
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div className="w-full max-w-6xl max-h-full overflow-y-auto custom-scrollbar flex items-center justify-center">
+                    <ParticipantGrid
+                        participants={participants}
+                        isHost={true}
+                        maxVisible={6}
+                        onToggleRemoteMic={handleToggleRemoteMic}
+                        onToggleRemoteCamera={handleToggleRemoteCamera}
+                        onRemoveRemoteUser={handleRemoveRemoteUser}
+                        onCloseChat={() => setIsChatVisible?.(false)}
+                    />
+                </div>
             </div>
 
             {/* Top Bar with Status - Premium Visuals */}

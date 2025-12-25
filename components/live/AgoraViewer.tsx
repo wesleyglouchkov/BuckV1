@@ -42,9 +42,27 @@ export interface AgoraViewerProps {
     onRequestUpgrade: () => void;
     isChatVisible?: boolean;
     onToggleChat?: () => void;
+    // New optional props for user identity
+    userName?: string;
+    userAvatar?: string;
 }
 
-function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onRequestUpgrade, isChatVisible, onToggleChat}: AgoraViewerProps) {
+function StreamLogic({
+    appId,
+    channelName,
+    token,
+    rtmToken,
+    uid,
+    role,
+    hostUid,
+    session,
+    onLeave,
+    onRequestUpgrade,
+    isChatVisible,
+    onToggleChat,
+    userName,
+    userAvatar
+}: AgoraViewerProps) {
     const router = useRouter();
 
     // Track state - start enabled so tracks can be published
@@ -62,19 +80,6 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
 
     // Track if client role has been set (needed before publishing in ILS mode)
     const [isClientRoleSet, setIsClientRoleSet] = useState(false);
-
-    // Debug: Log role and track status
-    useEffect(() => {
-        console.log("Viewer Debug:", {
-            role,
-            hasLocalCameraTrack: !!localCameraTrack,
-            hasLocalMicrophoneTrack: !!localMicrophoneTrack,
-            isVideoEnabled,
-            isAudioEnabled,
-            clientUid: client?.uid,
-            isClientRoleSet
-        });
-    }, [role, localCameraTrack, localMicrophoneTrack, isVideoEnabled, isAudioEnabled, client?.uid, isClientRoleSet]);
 
     // Handle Agora client errors gracefully
     useEffect(() => {
@@ -158,6 +163,8 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
 
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
+    // Map to store user details: uid -> { name, avatar }
+    const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
 
     // Cleanup RTM singleton
     const cleanupViewerRTM = useCallback(() => {
@@ -228,6 +235,26 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
         }
     }, [uid, handleLeaveStream]);
 
+    // Handle Presence Updates
+    const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean }) => {
+        if (p.isOnline) {
+            setUserNames(prev => {
+                const existing = prev[p.userId];
+                const displayName = p.name || existing?.name || `User ${p.userId}`;
+                const displayAvatar = p.avatar || existing?.avatar;
+
+                if (existing?.name === displayName && existing?.avatar === displayAvatar) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    [p.userId]: { name: displayName, avatar: displayAvatar }
+                };
+            });
+        }
+    }, []);
+
     useEffect(() => {
         if (!appId || !uid || !channelName || !rtmToken) {
             console.log("RTM Viewer: Missing required params");
@@ -235,11 +262,17 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
         }
 
         // If singleton already exists for this channel and user, reuse it
-        if (viewerRtmSingleton.instance &&
-            viewerRtmSingleton.channelName === channelName &&
-            viewerRtmSingleton.uid === uid) {
+        if (viewerRtmSingleton.instance && viewerRtmSingleton.channelName === channelName && viewerRtmSingleton.uid === uid) {
             console.log("RTM Viewer: Reusing existing singleton instance");
+            // Re-attach callbacks to current instance (important for React state closures)
             viewerRtmSingleton.instance.onMessage(handleRTMMessage);
+            viewerRtmSingleton.instance.onPresence(handleRTMPresence);
+
+            // Announce self again to be sure
+            if (userName) {
+                viewerRtmSingleton.instance.setUserPresence(userName, userAvatar);
+            }
+
             setIsRTMReady(true);
             return;
         }
@@ -265,6 +298,7 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
                 if (viewerRtmSingleton.instance) {
                     console.log("RTM Viewer: Instance already exists, skipping");
                     viewerRtmSingleton.instance.onMessage(handleRTMMessage);
+                    viewerRtmSingleton.instance.onPresence(handleRTMPresence);
                     setIsRTMReady(true);
                     viewerRtmSingleton.isInitializing = false;
                     return;
@@ -275,10 +309,17 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
 
                 // Setup message listener FIRST
                 sm.onMessage(handleRTMMessage);
+                sm.onPresence(handleRTMPresence);
 
                 await sm.login(rtmToken);
 
                 console.log("RTM Viewer: Login successful, signaling ready");
+
+                // Set initial presence if we have a name
+                if (userName) {
+                    await sm.setUserPresence(userName, userAvatar);
+                }
+
                 viewerRtmSingleton.instance = sm;
                 viewerRtmSingleton.isInitializing = false;
                 setIsRTMReady(true);
@@ -295,7 +336,7 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
         initRTM();
 
         // Don't cleanup on Strict Mode unmount - singleton persists
-    }, [appId, uid, channelName, rtmToken, role, handleRTMMessage]);
+    }, [appId, uid, channelName, rtmToken, role, handleRTMMessage, handleRTMPresence, userName, userAvatar]);
 
     // Identify Host and other participants
     // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.
@@ -329,7 +370,7 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
     const participants = [
         ...(role === "publisher" ? [{
             uid,
-            name: "You",
+            name: userName || "You",
             videoTrack: localCameraTrack || undefined,
             audioTrack: localMicrophoneTrack || undefined,
             isLocal: true,
@@ -337,16 +378,24 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
             micOn: isAudioEnabled
         }] : []),
 
-        ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => ({
-            uid: user.uid,
-            name: `User ${user.uid}`,
-            videoTrack: user.videoTrack,
-            audioTrack: user.audioTrack,
-            isLocal: false,
-            cameraOn: user.hasVideo,
-            micOn: user.hasAudio,
-            agoraUser: user
-        })) : [])
+        ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => {
+            // Look up name in RTM map
+            const rtmUser = userNames[user.uid.toString()];
+            // Priority: RTM Name -> "User [ID]"
+            const displayName = rtmUser?.name && rtmUser.name !== "undefined" ? rtmUser.name : `User ${user.uid}`;
+            console.log(`Participant ${user.uid} displayName: ${displayName} (RTM: ${rtmUser?.name})`);
+
+            return {
+                uid: user.uid,
+                name: displayName,
+                videoTrack: user.videoTrack,
+                audioTrack: user.audioTrack,
+                isLocal: false,
+                cameraOn: user.hasVideo,
+                micOn: user.hasAudio,
+                agoraUser: user
+            };
+        }) : [])
     ];
 
     return (
@@ -358,7 +407,7 @@ function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, 
                         <ParticipantTile
                             participant={{
                                 uid: hostUser.uid,
-                                name: "Host",
+                                name: userNames[hostUser.uid.toString()]?.name || "Host",
                                 videoTrack: hostUser.videoTrack,
                                 audioTrack: hostUser.audioTrack,
                                 isLocal: false,

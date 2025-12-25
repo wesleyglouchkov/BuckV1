@@ -36,8 +36,9 @@ export default function CreatorLivePage() {
     const [rtmToken, setRtmToken] = useState<string>(""); // Separate token for RTM signaling
     const [uid, setUid] = useState<number>(0);
     const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
-    const [isChatVisible, setIsChatVisible] = useState(true);
-
+    const [isChatVisible, setIsChatVisible] = useState(false);
+    const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
+    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
     // For scheduled streams, fetch stream data on load
     // For live streams (redirected from preview), the stream is already active
     useEffect(() => {
@@ -74,6 +75,53 @@ export default function CreatorLivePage() {
         }
     }, [urlStreamId, session?.user?.id, status]);
 
+    // Handle stream end
+    const handleStreamEnd = useCallback(async () => {
+        // Only run stream end logic if they were actually live
+        if (!isLive) {
+            router.push("/creator/schedule");
+            return;
+        }
+
+        try {
+            // If we have a recording blob, upload it
+            if (recordingBlob) {
+                toast.loading("Uploading recording...");
+
+                const filename = `${urlStreamId}_${Date.now()}.webm`;
+                const { uploadUrl, key } = await creatorService.getS3UploadUrl(urlStreamId, filename);
+
+                // Upload to S3
+                await fetch(uploadUrl, {
+                    method: "PUT",
+                    body: recordingBlob,
+                    headers: {
+                        "Content-Type": "video/webm",
+                    },
+                });
+
+                const s3Url = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${key}`;
+
+                // Update backend: stream ended with replay URL
+                await creatorService.stopStream(urlStreamId, s3Url);
+                toast.dismiss();
+            }
+            else {
+                // Update backend: stream ended without replay
+                await creatorService.stopStream(urlStreamId);
+            }
+
+            setIsLive(false);
+            toast.success("Stream ended successfully!");
+            window.location.href = "/creator/content";
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Failed to end stream properly";
+            toast.error(message);
+            window.location.href = "/creator/schedule";
+        }
+    }, [isLive, recordingBlob, urlStreamId, router]);
+
+
     // Warn user before leaving/refreshing when live OR handle browser back button
     useEffect(() => {
         // Handle page reload/close
@@ -81,25 +129,30 @@ export default function CreatorLivePage() {
             if (!isLive) return;
             e.preventDefault();
             // Most modern browsers will show a generic message, but we set returnValue for compatibility
-            e.returnValue = "You are currently live streaming. Are you sure you want to leave?";
+            e.returnValue = "You are live! Refreshing or leaving will END the broadcast for everyone. Are you sure?";
             return e.returnValue;
         };
 
         // Handle browser back button
-        const handlePopState = () => {
+        const handlePopState = async () => {
             if (!isLive) return;
 
-            const confirmed = window.confirm("You are currently live streaming. Are you sure you want to leave? This will end your stream.");
+            const confirmed = window.confirm("You are live! Leaving this page will END the broadcast for everyone. Are you sure you want to stop the stream?");
             if (!confirmed) {
                 // Push state back to prevent navigation
                 window.history.pushState(null, "", window.location.href);
             } else {
                 // Stop the stream/camera and navigate
                 setIsStopped(true);
-                // Allow the navigation to proceed after cleanup
-                setTimeout(() => {
-                    window.location.href = "/creator/schedule";
-                }, 100);
+                // Attempt to end stream properly
+                await handleStreamEnd();
+            }
+        };
+
+        const handleUnload = () => {
+            if (isLive) {
+                // Attempt best-effort cleanup
+                handleStreamEnd();
             }
         };
 
@@ -108,16 +161,15 @@ export default function CreatorLivePage() {
 
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("popstate", handlePopState);
+        window.addEventListener("unload", handleUnload);
 
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
             window.removeEventListener("popstate", handlePopState);
+            window.removeEventListener("unload", handleUnload);
         };
-    }, [isLive]);
+    }, [isLive, handleStreamEnd]);
 
-    const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
-
-    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
 
     // Handle going live for a SCHEDULED STREAM (stream already exists in DB)
     const handleGoLive = async () => {
@@ -167,51 +219,6 @@ export default function CreatorLivePage() {
             .catch(() => setHasPermission(false));
     };
 
-    // Handle stream end
-    const handleStreamEnd = async () => {
-        // Only run stream end logic if they were actually live
-        if (!isLive) {
-            router.push("/creator/schedule");
-            return;
-        }
-
-        try {
-            // If we have a recording blob, upload it
-            if (recordingBlob) {
-                toast.loading("Uploading recording...");
-
-                const filename = `${urlStreamId}_${Date.now()}.webm`;
-                const { uploadUrl, key } = await creatorService.getS3UploadUrl(urlStreamId, filename);
-
-                // Upload to S3
-                await fetch(uploadUrl, {
-                    method: "PUT",
-                    body: recordingBlob,
-                    headers: {
-                        "Content-Type": "video/webm",
-                    },
-                });
-
-                const s3Url = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${key}`;
-
-                // Update backend: stream ended with replay URL
-                await creatorService.stopStream(urlStreamId, s3Url);
-                toast.dismiss();
-            }
-            else {
-                // Update backend: stream ended without replay
-                await creatorService.stopStream(urlStreamId);
-            }
-
-            setIsLive(false);
-            toast.success("Stream ended successfully!");
-            window.location.href = "/creator/content";
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : "Failed to end stream properly";
-            toast.error(message);
-            window.location.href = "/creator/schedule";
-        }
-    };
 
     // Handle share - just copy link to clipboard
     const handleShare = async () => {
@@ -325,6 +332,8 @@ export default function CreatorLivePage() {
                                     setIsChatVisible={setIsChatVisible}
                                     streamTitle={streamTitle}
                                     streamType={streamType}
+                                    userName={session?.user?.name || "Creator"}
+                                    userAvatar={session?.user?.avatar || undefined}
                                 />
                             ) : (
                                 <div className="w-full h-[85vh] bg-card border border-border" />
