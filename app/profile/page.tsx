@@ -40,7 +40,7 @@ export default function ProfilePage() {
         return [];
     };
     return (
-        <div className={cn("pt-16", isMember)}>
+        <div className={cn("pt-16 min-h-screen bg-background", isMember)}>
             <OpenExploreNavbar
                 session={session}
                 status={status}
@@ -50,7 +50,7 @@ export default function ProfilePage() {
                 menuItems={getMenuItems()}
             />
 
-            <div className="container dark:bg-background mx-auto py-10 px-4">
+            <div className="container mx-auto py-10 px-4">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
                     <p className="text-muted-foreground mt-2 font-bold">
