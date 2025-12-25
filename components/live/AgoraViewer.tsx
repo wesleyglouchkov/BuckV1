@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalCameraTrack, useLocalMicrophoneTrack, usePublish, useRemoteUsers, useRTCClient } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
@@ -45,20 +44,7 @@ export interface AgoraViewerProps {
     onToggleChat?: () => void;
 }
 
-function StreamLogic({
-    appId,
-    channelName,
-    token,
-    rtmToken,
-    uid,
-    role,
-    hostUid,
-    session,
-    onLeave,
-    onRequestUpgrade,
-    isChatVisible,
-    onToggleChat,
-}: AgoraViewerProps) {
+function StreamLogic({ appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onRequestUpgrade, isChatVisible, onToggleChat}: AgoraViewerProps) {
     const router = useRouter();
 
     // Track state - start enabled so tracks can be published
