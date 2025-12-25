@@ -350,7 +350,6 @@ function StreamLogic({
 
     // Check if viewer is logged in
     const viewerIsLoggedIn = isViewerLoggedIn(session);
-    console.log("Viewer is logged in:", viewerIsLoggedIn);
     // Ref for host video container for browser fullscreen
     const hostContainerRef = useRef<HTMLDivElement>(null);
 
@@ -397,6 +396,24 @@ function StreamLogic({
             };
         }) : [])
     ];
+
+    // --- Join / Login Logic ---
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+    const handleJoinRequest = () => {
+        if (viewerIsLoggedIn) {
+            onRequestUpgrade();
+        } else {
+            setShowLoginDialog(true);
+        }
+    };
+
+    const handleLoginRedirect = () => {
+        const currentUrl = window.location.href;
+        const callbackUrl = encodeURIComponent(currentUrl);
+        router.push(`/login?callbackUrl=${callbackUrl}`);
+    };
+
 
     return (
         <div className="relative w-full max-sm:h-[92vh] h-[85vh] flex flex-col bg-neutral-950 overflow-hidden shadow-2xl group/main">
@@ -486,14 +503,34 @@ function StreamLogic({
 
                 {role === "subscriber" && (
                     <Button
-                        onClick={onRequestUpgrade}
+                        onClick={handleJoinRequest}
                         variant="default"
                         className="h-10 md:h-12 px-4 md:px-6 rounded-xl md:rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
                     >
                         <VideoIcon className="w-4 h-4 md:w-5 md:h-5" />
-                        Join Stream
+                        Join Buck Stream
                     </Button>
                 )}
+
+                <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+                    <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-bold">Join Buck Today</AlertDialogTitle>
+                            <AlertDialogDescription className="text-neutral-400">
+                                Create an account or log in to join the stream with video and audio!
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+                            <AlertDialogCancel className="bg-transparent border-neutral-700 hover:bg-neutral-800 hover:text-white text-neutral-300 mt-0">Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleLoginRedirect}
+                                className="bg-primary hover:bg-primary/90 text-white"
+                            >
+                                Log in / Sign up
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
                 <AlertDialog>
                     <AlertDialogTrigger asChild>

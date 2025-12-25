@@ -8,9 +8,12 @@ import { Button, Input } from "@/components/ui";
 import { signIn, getSession, useSession } from "next-auth/react";
 import LoadingSpinner from "../loading";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     emailOrUsername: "",
@@ -62,6 +65,12 @@ export default function LoginPage() {
       }
       else {
         toast.success("Logged in successfully");
+
+        // If callbackUrl exists, redirect there first
+        if (callbackUrl) {
+          window.location.href = callbackUrl;
+          return;
+        }
 
         // Get the updated session to access user role
         const session = await getSession();
@@ -247,7 +256,7 @@ export default function LoginPage() {
           <p className="mt-8 text-center text-muted-foreground">
             Don't have an account?{" "}
             <Link
-              href="/signup"
+              href={callbackUrl ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/signup"}
               className="font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               Sign up for free
