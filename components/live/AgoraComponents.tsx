@@ -195,6 +195,7 @@ export function ParticipantTile({
     const isMicOn = participant.micOn ?? !!participant.audioTrack;
     const tileRef = useRef<HTMLDivElement>(null);
     const isPinned = pinnedUid?.toString() === participant.uid.toString();
+    const displayName = participant.name || `User ${participant.uid}`;
 
     // Use callback ref to play video immediately when DOM element is mounted
     const videoRefCallback = useCallback((node: HTMLDivElement | null) => {
@@ -276,7 +277,7 @@ export function ParticipantTile({
             {/* Unified Controls & Status Overlay (Top Right) */}
             <TooltipProvider>
                 <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20 flex-wrap justify-end pl-8">
-                   
+
                     {/* Pin Control */}
                     {(isPinned || (isHost && !participant.isLocal)) && (
                         <Tooltip>
@@ -319,7 +320,7 @@ export function ParticipantTile({
                     {isMicOn && isHost && !participant.isLocal && (
                         <ConfirmActionWrapper
                             title="Mute User"
-                            description={`Are you sure you want to mute ${participant.name || 'this user'}? You cannot unmute them later.`}
+                            description={`Are you sure you want to mute ${displayName}? You cannot unmute them later.`}
                             onConfirm={() => onToggleRemoteMic?.(participant.uid)}
                             tooltip="Mute User"
                             isDestructive
@@ -348,7 +349,7 @@ export function ParticipantTile({
                     {isCameraOn && isHost && !participant.isLocal && (
                         <ConfirmActionWrapper
                             title="Disable Camera"
-                            description={`Are you sure you want to disable the camera for ${participant.name || 'this user'}? You cannot enable it later.`}
+                            description={`Are you sure you want to disable the camera for ${displayName}? You cannot enable it later.`}
                             onConfirm={() => onToggleRemoteCamera?.(participant.uid)}
                             tooltip="Disable Camera"
                             isDestructive
@@ -363,7 +364,7 @@ export function ParticipantTile({
                     {isHost && !participant.isLocal && (
                         <ConfirmActionWrapper
                             title="Remove User"
-                            description={`Are you sure you want to remove ${participant.name || 'this user'} from the stream? This action cannot be undone.`}
+                            description={`Are you sure you want to remove ${displayName} from the stream? This action cannot be undone.`}
                             onConfirm={() => onRemoveRemoteUser?.(participant.uid)}
                             tooltip="Remove User"
                             isDestructive
@@ -394,7 +395,7 @@ export function ParticipantTile({
                         </Tooltip>
                     )}
 
-                     {/* Custom Controls (Injected) */}
+                    {/* Custom Controls (Injected) */}
                     {customControls}
                 </div>
             </TooltipProvider>

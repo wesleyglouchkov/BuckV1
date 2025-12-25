@@ -45,6 +45,8 @@ export interface AgoraViewerProps {
     // New optional props for user identity
     userName?: string;
     userAvatar?: string;
+    hostName?: string;
+    hostAvatar?: string;
 }
 
 function StreamLogic({
@@ -61,7 +63,9 @@ function StreamLogic({
     isChatVisible,
     onToggleChat,
     userName,
-    userAvatar
+    userAvatar,
+    hostName,
+    hostAvatar
 }: AgoraViewerProps) {
     const router = useRouter();
 
@@ -424,7 +428,7 @@ function StreamLogic({
                         <ParticipantTile
                             participant={{
                                 uid: hostUser.uid,
-                                name: userNames[hostUser.uid.toString()]?.name || "Host",
+                                name: hostName || userNames[hostUser.uid.toString()]?.name || "Host",
                                 videoTrack: hostUser.videoTrack,
                                 audioTrack: hostUser.audioTrack,
                                 isLocal: false,

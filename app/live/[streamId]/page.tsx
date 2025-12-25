@@ -318,6 +318,8 @@ export default function LiveStreamPage() {
                                         onToggleChat={() => setIsChatVisible(!isChatVisible)}
                                         userName={tokenData.userName}
                                         userAvatar={tokenData.userAvatar}
+                                        hostName={streamDetails.creator.name}
+                                        hostAvatar={streamDetails.creator.avatar}
                                     />
                                 ) : (
                                     // Condition: Stream is not live and viewer has not joined
