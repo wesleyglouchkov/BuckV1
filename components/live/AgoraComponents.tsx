@@ -6,24 +6,8 @@ import { RemoteUser, IRemoteVideoTrack, IRemoteAudioTrack, ILocalVideoTrack, ILo
 import { Mic, MicOff, Video, VideoOff, MoreHorizontal, X, User as UserIcon, Pin, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 // Error boundary to catch Agora subscription errors gracefully
@@ -116,22 +100,16 @@ interface Participant {
     agoraUser?: IAgoraRTCRemoteUser;
 }
 
-// Wrapper for actions requiring confirmation
-function ConfirmActionWrapper({
-    children,
-    title,
-    description,
-    onConfirm,
-    isDestructive = false,
-    tooltip
-}: {
+interface ConfirmActionWrapperProps {
     children: React.ReactNode,
     title: string,
     description: string,
     onConfirm: () => void,
     isDestructive?: boolean,
     tooltip: string
-}) {
+}
+// Wrapper for actions requiring confirmation
+function ConfirmActionWrapper({ children, title, description, onConfirm, isDestructive = false, tooltip}: ConfirmActionWrapperProps) {
     return (
         <AlertDialog>
             <Tooltip>
@@ -179,18 +157,7 @@ interface ParticipantTileProps {
     customControls?: React.ReactNode;
 }
 
-export function ParticipantTile({
-    participant,
-    isHost,
-    pinnedUid,
-    onToggleRemoteMic,
-    onToggleRemoteCamera,
-    onPinUser,
-    onFullscreen,
-    onRemoveRemoteUser,
-    className,
-    customControls
-}: ParticipantTileProps) {
+export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRemoteMic,  onToggleRemoteCamera,  onPinUser,  onFullscreen,  onRemoveRemoteUser,  className, customControls}: ParticipantTileProps) {
     const isCameraOn = participant.cameraOn ?? !!participant.videoTrack;
     const isMicOn = participant.micOn ?? !!participant.audioTrack;
     const tileRef = useRef<HTMLDivElement>(null);
@@ -423,15 +390,7 @@ interface ParticipantGridProps {
     onCloseChat?: () => void;
 }
 
-export function ParticipantGrid({
-    participants,
-    isHost,
-    maxVisible = 5,
-    onToggleRemoteMic,
-    onToggleRemoteCamera,
-    onRemoveRemoteUser,
-    onCloseChat
-}: ParticipantGridProps) {
+export function ParticipantGrid({ participants, isHost, maxVisible = 5, onToggleRemoteMic, onToggleRemoteCamera, onRemoveRemoteUser, onCloseChat }: ParticipantGridProps) {
     const [showAll, setShowAll] = useState(false);
     const [pinnedUid, setPinnedUid] = useState<string | number | null>(null);
 
