@@ -1,20 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, X, Smile } from "lucide-react";
+import { Send, MessageCircle, X, Smile, Loader2 } from "lucide-react";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import { cn } from "@/lib/utils";
-
-interface ChatMessage {
-    id: string;
-    userId: string;
-    username: string;
-    message: string;
-    timestamp: Date;
-    isCreator?: boolean;
-}
+import { useStreamChat } from "@/hooks/useStreamChat";
+import { SignalingManager } from "@/lib/agora-rtm";
+import { getRTMInstance } from "@/lib/rtm-singleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface StreamChatProps {
     streamId: string;
@@ -22,22 +18,51 @@ interface StreamChatProps {
     currentUsername?: string;
     isCreator?: boolean;
     onClose?: () => void;
+    rtmManager?: SignalingManager | null; // Shared RTM instance
 }
 
-export default function StreamChat({
-    streamId,
-    currentUserId,
-    currentUsername = "Anonymous",
-    isCreator = false,
-    onClose,
-}: StreamChatProps) {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+export default function StreamChat({ streamId, currentUserId, currentUsername = "Anonymous", isCreator = false, onClose, rtmManager }: StreamChatProps) {
+    const router = useRouter();
+    console.log(currentUserId, '<--- currentUserId')
     const [newMessage, setNewMessage] = useState("");
-    const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
 
+    // Use provided RTM manager or try to get from the global singleton
+    const effectiveRTMManager = rtmManager || getRTMInstance();
+
+    // Generate consistent color from username
+    const getUserColor = (username: string): string => {
+        const colors = [
+            'rgb(239, 68, 68)',   // red
+            'rgb(249, 115, 22)',  // orange
+            'rgb(234, 179, 8)',   // yellow
+            'rgb(34, 197, 94)',   // green
+            'rgb(168, 85, 247)',  // purple
+            'rgb(236, 72, 153)',  // pink
+            'rgb(244, 63, 94)',   // rose
+        ];
+
+        // Create consistent hash from username
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        return colors[Math.abs(hash) % colors.length];
+    };
+
+    // Use the chat hook
+    const { messages, sendMessage, isLoading, isConnected } = useStreamChat({
+        streamId,
+        currentUserId,
+        currentUsername,
+        isCreator,
+        rtmManager: effectiveRTMManager,
+    });
+    console.log(isConnected, 'isConnected')
     // Close emoji picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -57,41 +82,30 @@ export default function StreamChat({
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Simulate connection (in production, use WebSockets or similar)
-    useEffect(() => {
-        setIsConnected(true);
-
-        // Add welcome message
-        setMessages([
-            {
-                id: "welcome",
-                userId: "system",
-                username: "System",
-                message: "Welcome to the live chat! Be respectful and enjoy the stream.",
-                timestamp: new Date(),
-            },
-        ]);
-    }, [streamId]);
-
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!newMessage.trim() || !currentUserId) return;
+        // Check if user is logged in
+        if (!currentUserId) {
+            setShowLoginDialog(true);
+            return;
+        }
 
-        const message: ChatMessage = {
-            id: `msg-${Date.now()}`,
-            userId: currentUserId,
-            username: currentUsername,
-            message: newMessage.trim(),
-            timestamp: new Date(),
-            isCreator,
-        };
+        if (!newMessage.trim()) return;
 
-        setMessages((prev) => [...prev, message]);
-        setNewMessage("");
-        setShowEmojiPicker(false);
+        try {
+            await sendMessage(newMessage);
+            setNewMessage("");
+            setShowEmojiPicker(false);
+        } catch (error) {
+            console.error("Failed to send message:", error);
+        }
+    };
 
-        // In production, send to backend/websocket here
+    const handleLoginRedirect = () => {
+        const currentUrl = window.location.href;
+        const callbackUrl = encodeURIComponent(currentUrl);
+        router.push(`/login?callbackUrl=${callbackUrl}`);
     };
 
     return (
@@ -108,6 +122,12 @@ export default function StreamChat({
                                 <span className="mt-1">Connected</span>
                             </span>
                         )}
+                        {!isConnected && rtmManager && (
+                            <span className="mt-1 flex items-center gap-1.5 text-xs text-yellow-600">
+                                <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                                <span className="mt-1">Connecting...</span>
+                            </span>
+                        )}
                         <Button
                             variant="ghost"
                             size="icon"
@@ -122,12 +142,29 @@ export default function StreamChat({
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {isLoading && (
+                    <div className="flex items-center justify-center h-full">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                    </div>
+                )}
+
+                {!isLoading && messages.length === 0 && (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-muted-foreground">
+                            <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">No messages yet</p>
+                            <p className="text-xs mt-1">Be the first to say something!</p>
+                        </div>
+                    </div>
+                )}
+
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
                         className={cn(
-                            "flex flex-col",
-                            msg.userId === "system" && "items-center"
+                            "flex flex-col px-2 py-1.5 transition-colors",
+                            msg.userId === "system" && "items-center",
+                            msg.userId !== "system" && "hover:bg-muted/30"
                         )}
                     >
                         {msg.userId === "system" ? (
@@ -138,14 +175,14 @@ export default function StreamChat({
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <span
-                                        className={cn(
-                                            "text-sm font-medium",
-                                            msg.isCreator ? "text-primary" : "text-foreground"
-                                        )}
+                                        className="text-sm font-bold"
+                                        style={{
+                                            color: msg.isCreator ? 'rgb(59, 130, 246)' : getUserColor(msg.username)
+                                        }}
                                     >
                                         {msg.username}
                                         {msg.isCreator && (
-                                            <span className="ml-1.5 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                            <span className="ml-1.5 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
                                                 Creator
                                             </span>
                                         )}
@@ -157,7 +194,7 @@ export default function StreamChat({
                                         })}
                                     </span>
                                 </div>
-                                <p className="text-sm text-foreground/90 break-words">
+                                <p className="text-sm text-foreground/90 wrap-break-word">
                                     {msg.message}
                                 </p>
                             </div>
@@ -189,14 +226,27 @@ export default function StreamChat({
                         <Input
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Send a message..."
-                            className="w-full pr-10" // Add padding for emoji button
+                            placeholder={!currentUserId ? "Login to chat..." : "Send a message..."}
+                            className="w-full pr-10"
                             maxLength={200}
+                            disabled={currentUserId ? !isConnected : false}
+                            onFocus={() => {
+                                if (!currentUserId) {
+                                    setShowLoginDialog(true);
+                                }
+                            }}
                         />
                         <button
                             type="button"
-                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            onClick={() => {
+                                if (!currentUserId) {
+                                    setShowLoginDialog(true);
+                                } else {
+                                    setShowEmojiPicker(!showEmojiPicker);
+                                }
+                            }}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                            disabled={currentUserId ? !isConnected : false}
                         >
                             <Smile className="w-5 h-5" />
                         </button>
@@ -204,13 +254,34 @@ export default function StreamChat({
                     <Button
                         type="submit"
                         size="default"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || (currentUserId ? !isConnected : true)}
                         className="shrink-0"
                     >
                         <Send className="w-4 h-4" />
                     </Button>
                 </div>
             </form>
+
+            {/* Login Dialog */}
+            <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+                <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-bold">Join the Conversation</AlertDialogTitle>
+                        <AlertDialogDescription className="text-neutral-400">
+                            Create an account or log in to chat with the creator and other viewers!
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+                        <AlertDialogCancel className="bg-transparent border-neutral-700 hover:bg-neutral-800 hover:text-white text-neutral-300 mt-0">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleLoginRedirect}
+                            className="bg-primary hover:bg-primary/90 text-white"
+                        >
+                            Log in / Sign up
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

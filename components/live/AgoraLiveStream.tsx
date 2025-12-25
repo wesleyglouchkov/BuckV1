@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { ParticipantGrid } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora-rtm";
+import { useViewerCount } from "@/hooks/useViewerCount";
+import { globalRTMSingleton as rtmSingleton } from "@/lib/rtm-singleton";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,18 +30,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-// Module-level singleton for RTM to prevent multiple instances in Strict Mode
-const rtmSingleton: {
-    instance: SignalingManager | null;
-    isInitializing: boolean;
-    channelName: string | null;
-    subscribers: Set<(ready: boolean) => void>;
-} = {
-    instance: null,
-    isInitializing: false,
-    channelName: null,
-    subscribers: new Set(),
-};
+
 
 interface AgoraLiveStreamProps {
     appId: string;
@@ -111,6 +102,7 @@ function LiveBroadcast({
     token,
     rtmToken,
     uid,
+    streamId,
     onStreamEnd,
     onRecordingReady,
     isChatVisible,
@@ -119,7 +111,7 @@ function LiveBroadcast({
     streamType,
     userName,
     userAvatar
-}: Omit<AgoraLiveStreamProps, "isLive" | "streamId">) {
+}: Omit<AgoraLiveStreamProps, "isLive">) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
@@ -237,6 +229,14 @@ function LiveBroadcast({
 
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
+
+    // Viewer count tracking
+    const { viewerCount } = useViewerCount({
+        streamId,
+        rtmManager: rtmSingleton.instance,
+        isHost: true,
+        syncIntervalSeconds: 60,
+    });
 
     // RTM Presence Handler
     const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean }) => {
@@ -541,7 +541,7 @@ function LiveBroadcast({
                     {/* Viewer Count */}
                     <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
                         <Users className="w-3.5 h-3.5 text-white" />
-                        <span className="mt-1 text-white text-xs font-semibold">{remoteUsers.length + 1} online</span>
+                        <span className="mt-1 text-white text-xs font-semibold">{viewerCount} online</span>
                     </div>
                 </div>
 
@@ -846,12 +846,15 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 token={props.token}
                 rtmToken={props.rtmToken}
                 uid={props.uid}
+                streamId={props.streamId}
                 onStreamEnd={props.onStreamEnd}
                 onRecordingReady={props.onRecordingReady}
                 isChatVisible={props.isChatVisible}
                 setIsChatVisible={props.setIsChatVisible}
                 streamTitle={props.streamTitle}
                 streamType={props.streamType}
+                userName={props.userName}
+                userAvatar={props.userAvatar}
             />
         </AgoraRTCProvider>
     );

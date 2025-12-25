@@ -18,6 +18,16 @@ export type SignalingMessage =
             mediaType: "all";
             mute: boolean;
         };
+    }
+    | {
+        type: "CHAT_MESSAGE";
+        payload: {
+            userId: string | number;
+            username: string;
+            message: string;
+            timestamp: number;
+            isCreator?: boolean;
+        };
     };
 
 export interface UserPresence {
@@ -35,7 +45,10 @@ export class SignalingManager {
     private isJoined: boolean = false;
     private isLoggingIn: boolean = false;
     private onMessageCallback: ((message: SignalingMessage) => void) | null = null;
-    private onPresenceCallback: ((presence: UserPresence) => void) | null = null;
+    private onChatMessageCallback: ((message: SignalingMessage & { type: "CHAT_MESSAGE" }) => void) | null = null;
+    private onPresenceCallbacks: Set<(presence: UserPresence) => void> = new Set();
+    private onConnectionChangeCallback: ((connected: boolean) => void) | null = null;
+    private onlineUsers: Map<string, UserPresence> = new Map();
 
     constructor(appId: string, userId: string | number, channelName: string) {
         this.appId = appId;
@@ -64,9 +77,13 @@ export class SignalingManager {
                 console.log("RTM Status Changed:", event);
                 if (event.state === "DISCONNECTED") {
                     this.isJoined = false;
+                    // Notify connection change listeners
+                    this.onConnectionChangeCallback?.(false);
                 }
                 if (event.state === "CONNECTED") {
                     this.isJoined = true;
+                    // Notify connection change listeners
+                    this.onConnectionChangeCallback?.(true);
                 }
             });
 
@@ -93,6 +110,11 @@ export class SignalingManager {
                         if (this.onMessageCallback) {
                             this.onMessageCallback(data);
                         }
+
+                        // Call chat-specific callback for CHAT_MESSAGE
+                        if (data.type === "CHAT_MESSAGE" && this.onChatMessageCallback) {
+                            this.onChatMessageCallback(data as SignalingMessage & { type: "CHAT_MESSAGE" });
+                        }
                     } catch (e) {
                         console.error("RTM Parse Error:", e, "Raw message:", event.message);
                     }
@@ -108,23 +130,36 @@ export class SignalingManager {
 
                 if (event.eventType === "SNAPSHOT") {
                     event.snapshot.forEach((item: any) => {
-                        this.handlePresenceState(item.userId, item.state);
+                        // Exclude self from snapshot
+                        if (item.userId !== this.userId) {
+                            this.handlePresenceState(item.userId, item.state);
+                        }
                     });
                 }
                 else if (event.eventType === "REMOTE_JOIN") {
-                    // User joined, wait for state? Or just mark online
-                    this.handlePresenceState(event.publisher, {});
+                    // User joined, exclude self
+                    if (event.publisher !== this.userId) {
+                        this.handlePresenceState(event.publisher, {});
+                    }
                 }
                 else if (event.eventType === "REMOTE_LEAVE") {
-                    if (this.onPresenceCallback) {
-                        this.onPresenceCallback({
-                            userId: event.publisher,
-                            isOnline: false
+                    // Remove from online users map
+                    this.onlineUsers.delete(event.publisher);
+
+                    if (this.onPresenceCallbacks) {
+                        this.onPresenceCallbacks.forEach(callback => {
+                            callback({
+                                userId: event.publisher,
+                                isOnline: false
+                            });
                         });
                     }
                 }
                 else if (event.eventType === "REMOTE_STATE_CHANGED") {
-                    this.handlePresenceState(event.publisher, event.stateChanged);
+                    // State changed, exclude self
+                    if (event.publisher !== this.userId) {
+                        this.handlePresenceState(event.publisher, event.stateChanged);
+                    }
                 }
             });
 
@@ -176,9 +211,21 @@ export class SignalingManager {
         this.onMessageCallback = callback;
     }
 
+    onChatMessage(callback: (message: SignalingMessage & { type: "CHAT_MESSAGE" }) => void) {
+        console.log("RTM: Chat message callback registered");
+        this.onChatMessageCallback = callback;
+    }
+
     onPresence(callback: (presence: UserPresence) => void) {
         console.log("RTM: Presence callback registered");
-        this.onPresenceCallback = callback;
+        this.onPresenceCallbacks.add(callback);
+    }
+
+    onConnectionChange(callback: (connected: boolean) => void) {
+        console.log("RTM: Connection change callback registered");
+        this.onConnectionChangeCallback = callback;
+        // Immediately call with current status
+        callback(this.isJoined);
     }
 
     private handlePresenceState(userId: string, state: any) {
@@ -187,6 +234,8 @@ export class SignalingManager {
             state = {};
         }
 
+        console.log('RTM: handlePresenceState called', { userId, state, stateType: typeof state });
+
         // state is a Map or Object depending on SDK
         // In RTM 2.x JS, it's usually { key: value, ... }
 
@@ -194,14 +243,22 @@ export class SignalingManager {
         const name = state.name || state.userName;
         const avatar = state.avatar || state.userAvatar;
 
-        if (this.onPresenceCallback) {
-            this.onPresenceCallback({
-                userId,
-                name,
-                avatar,
-                isOnline: true
-            });
-        }
+        console.log('RTM: Parsed presence data', { userId, name, avatar });
+
+        const presence: UserPresence = {
+            userId,
+            name,
+            avatar,
+            isOnline: true
+        };
+
+        // Update online users map
+        this.onlineUsers.set(userId, presence);
+
+        // Notify all presence callbacks
+        this.onPresenceCallbacks.forEach(callback => {
+            callback(presence);
+        });
     }
 
     async setUserPresence(name: string, avatar?: string) {
@@ -291,5 +348,16 @@ export class SignalingManager {
     // Helper method to check connection status
     isConnected(): boolean {
         return this.isJoined;
+    }
+
+    // Get the count of online members (including self)
+    getMemberCount(): number {
+        // +1 for self
+        return this.onlineUsers.size + 1;
+    }
+
+    // Get all online users
+    getOnlineUsers(): UserPresence[] {
+        return Array.from(this.onlineUsers.values());
     }
 }

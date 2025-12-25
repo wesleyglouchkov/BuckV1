@@ -37,4 +37,39 @@ export const streamService = {
         }
     },
 
+    // Chat Implementation
+    getChatMessages: async (streamId: string) => {
+        try {
+            // Public read access for chat
+            const response = await axiosInstance.get(`/streams/${streamId}/chat`);
+            return response.data;
+        } catch (error: unknown) {
+            console.error("Failed to get chat messages", error);
+            // Return empty structure on fail so UI doesn't crash
+            return { success: false, messages: [] };
+        }
+    },
+
+    sendChatMessage: async (streamId: string, message: string) => {
+        try {
+            const axios = await createClientAuthInstance('MEMBER');
+            const response = await axios.post(`/streams/${streamId}/chat`, { message });
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            console.error("Failed to send message", err);
+            throw new Error(err.response?.data?.message || 'Failed to send message');
+        }
+    },
+
+    updateStreamStats: async (streamId: string, viewerCount: number) => {
+        try {
+            const axios = await createClientAuthInstance('CREATOR');
+            const response = await axios.post(`/streams/${streamId}/stats`, { viewerCount });
+            return response.data;
+        } catch (error) {
+            console.error("Failed to update stats", error);
+            return { success: false };
+        }
+    }
 };

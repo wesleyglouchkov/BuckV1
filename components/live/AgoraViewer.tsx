@@ -11,23 +11,9 @@ import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/rtm-singleton";
 
-// Module-level singleton for RTM to prevent multiple instances in Strict Mode
-const viewerRtmSingleton: {
-    instance: SignalingManager | null;
-    isInitializing: boolean;
-    channelName: string | null;
-    uid: number | null;
-    currentUidRef: { current: number | null }; // Track current UID via ref for message handler
-    subscribers: Set<(ready: boolean) => void>;
-} = {
-    instance: null,
-    isInitializing: false,
-    channelName: null,
-    uid: null,
-    currentUidRef: { current: null },
-    subscribers: new Set(),
-};
+
 
 export interface AgoraViewerProps {
     appId: string;

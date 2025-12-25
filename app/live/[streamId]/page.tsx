@@ -382,7 +382,7 @@ export default function LiveStreamPage() {
                                 <StreamChat
                                     streamId={streamId}
                                     currentUserId={session?.user?.id}
-                                    currentUsername={session?.user?.name || "Viewer"}
+                                    currentUsername={session?.user?.username || "Viewer"}
                                     isCreator={false}
                                     onClose={() => setIsChatVisible(false)}
                                 />
