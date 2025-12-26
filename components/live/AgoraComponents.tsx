@@ -368,7 +368,7 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
             </TooltipProvider>
 
             {/* Name Overlay (Bottom Left) */}
-            <div className="absolute bottom-14 left-3 z-10">
+            <div className="absolute bottom-[10px] left-3 z-10">
                 <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 border border-white/10 flex items-center gap-2 rounded-full">
                     <span className="text-sm font-medium text-white truncate max-w-[120px]">
                         {participant.name || (participant.isLocal ? "You" : `User ${participant.uid}`)}
