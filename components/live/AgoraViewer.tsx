@@ -425,7 +425,7 @@ function StreamLogic({
                             className="w-full h-full rounded-none border-none"
                             customControls={
                                 <div
-                                    className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-primary text-white border border-white/10 hover:bg-primary/90"
+                                    className="flex items-center justify-center  cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-primary text-white border border-white/10 hover:bg-primary/90"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onToggleChat?.();
@@ -458,7 +458,7 @@ function StreamLogic({
             </div>
 
             {/* 2. PARTICIPANTS (Side Grid / Bottom Grid) */}
-            <div className="relative w-full bg-neutral-900/50 p-2 md:p-0 md:bg-transparent md:absolute md:bottom-6 md:right-6 md:left-auto md:w-[30%] md:min-w-[200px] md:max-w-[400px] z-20 transition-all duration-300">
+            <div className="relative w-full bg-neutral-900/50 p-2 md:p-0 md:bg-transparent md:absolute md:bottom-14 md:right-6 md:left-auto md:w-[30%] md:min-w-[200px] md:max-w-[400px] z-20 transition-all duration-300">
                 <ParticipantGrid
                     participants={participants}
                     maxVisible={4}
@@ -467,25 +467,25 @@ function StreamLogic({
             </div>
 
             {/* Controls Overlay */}
-            <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-black/40 backdrop-blur-xl px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl z-30 transition-all duration-300">
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1 bg-background/60 backdrop-blur-sm px-2 py-2 border-t border-white/10 z-30 transition-all duration-300">
                 {role === "publisher" && (
                     <>
                         <Button
                             onClick={() => setIsVideoEnabled(!isVideoEnabled)}
                             variant={isVideoEnabled ? "secondary" : "destructive"}
                             size="icon"
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
+                            className="w-9 h-9  shadow-lg ring-1 ring-white/10"
                         >
-                            {isVideoEnabled ? <Video className="w-4 h-4 md:w-5 md:h-5" /> : <VideoOff className="w-4 h-4 md:w-5 md:h-5" />}
+                            {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                         </Button>
 
                         <Button
                             onClick={() => setIsAudioEnabled(!isAudioEnabled)}
                             variant={isAudioEnabled ? "secondary" : "destructive"}
                             size="icon"
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
+                            className="w-9 h-9  shadow-lg ring-1 ring-white/10"
                         >
-                            {isAudioEnabled ? <Mic className="w-4 h-4 md:w-5 md:h-5" /> : <MicOff className="w-4 h-4 md:w-5 md:h-5" />}
+                            {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                         </Button>
                         <div className="w-px h-6 md:h-8 bg-white/10 mx-1 md:mx-2" />
                     </>
@@ -495,9 +495,9 @@ function StreamLogic({
                     <Button
                         onClick={handleJoinRequest}
                         variant="default"
-                        className="h-10 md:h-12 px-4 md:px-6 rounded-xl md:rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
+                        className="h-10 md:h-12 px-4 md:px-6  bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
                     >
-                        <VideoIcon className="w-4 h-4 md:w-5 md:h-5" />
+                        <VideoIcon className="w-4 h-4" />
                         Join Buck Stream
                     </Button>
                 )}
@@ -527,9 +527,9 @@ function StreamLogic({
                         <Button
                             variant="destructive"
                             size="icon"
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                            className="w-9 h-9  shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
                         >
-                            <PhoneOff className="w-4 h-4 md:w-5 md:h-5" />
+                            <PhoneOff className="w-4 h-4" />
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -554,8 +554,16 @@ function StreamLogic({
                 {/* Host Live Badge */}
                 <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
                     <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
-                    <span className="font-bold text-[10px] md:text-xs tracking-wider">LIVE</span>
+                    <span className="font-bold text-[10px] md:text-xs tracking-wider uppercase">Live</span>
                 </div>
+
+                {/* Host Recording Badge */}
+                {hostUser && userNames[hostUser.uid.toString()]?.isRecording && (
+                    <div className="bg-destructive/10 backdrop-blur-md text-destructive px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-destructive/30">
+                        <Radio className="w-3 h-3 md:w-3.5 md:h-3.5 animate-pulse" />
+                        <span className="font-bold text-[10px] md:text-xs uppercase">Rec</span>
+                    </div>
+                )}
 
                 {/* Online User Count */}
                 <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">

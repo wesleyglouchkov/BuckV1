@@ -109,7 +109,7 @@ interface ConfirmActionWrapperProps {
     tooltip: string
 }
 // Wrapper for actions requiring confirmation
-function ConfirmActionWrapper({ children, title, description, onConfirm, isDestructive = false, tooltip}: ConfirmActionWrapperProps) {
+function ConfirmActionWrapper({ children, title, description, onConfirm, isDestructive = false, tooltip }: ConfirmActionWrapperProps) {
     return (
         <AlertDialog>
             <Tooltip>
@@ -157,7 +157,7 @@ interface ParticipantTileProps {
     customControls?: React.ReactNode;
 }
 
-export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRemoteMic,  onToggleRemoteCamera,  onPinUser,  onFullscreen,  onRemoveRemoteUser,  className, customControls}: ParticipantTileProps) {
+export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemoteMic, onToggleRemoteCamera, onPinUser, onFullscreen, onRemoveRemoteUser, className, customControls }: ParticipantTileProps) {
     const isCameraOn = participant.cameraOn ?? !!participant.videoTrack;
     const isMicOn = participant.micOn ?? !!participant.audioTrack;
     const tileRef = useRef<HTMLDivElement>(null);
@@ -251,7 +251,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                             <TooltipTrigger asChild>
                                 <div
                                     className={cn(
-                                        "flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
+                                        "flex items-center justify-center  cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7",
                                         !isPinned && "bg-black/40 hover:bg-black/60 text-white border border-white/10", // Ghost-like when unpinned
                                         isPinned && "bg-primary text-white border border-white/10"
                                     )}
@@ -274,7 +274,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                     {!isMicOn && (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className="flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-destructive/80 text-white border border-white/10 opacity-100 cursor-not-allowed">
+                                <div className="flex items-center justify-center  backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-destructive/80 text-white border border-white/10 opacity-100 cursor-not-allowed">
                                     <MicOff className="w-3.5 h-3.5" />
                                 </div>
                             </TooltipTrigger>
@@ -292,7 +292,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                             tooltip="Mute User"
                             isDestructive
                         >
-                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-black/40 hover:bg-black/60 text-white border border-white/10">
+                            <div className="flex items-center justify-center  cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-black/40 hover:bg-black/60 text-white border border-white/10">
                                 <Mic className="w-3.5 h-3.5" />
                             </div>
                         </ConfirmActionWrapper>
@@ -303,7 +303,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                     {!isCameraOn && (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className="flex items-center justify-center rounded-md backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-neutral-800/80 text-white border border-white/10 opacity-100 cursor-not-allowed">
+                                <div className="flex items-center justify-center  backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-neutral-800/80 text-white border border-white/10 opacity-100 cursor-not-allowed">
                                     <VideoOff className="w-3.5 h-3.5" />
                                 </div>
                             </TooltipTrigger>
@@ -321,7 +321,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                             tooltip="Disable Camera"
                             isDestructive
                         >
-                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-black/40 hover:bg-black/60 text-white border border-white/10">
+                            <div className="flex items-center justify-center  cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-black/40 hover:bg-black/60 text-white border border-white/10">
                                 <Video className="w-3.5 h-3.5" />
                             </div>
                         </ConfirmActionWrapper>
@@ -336,7 +336,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                             tooltip="Remove User"
                             isDestructive
                         >
-                            <div className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md transition-all duration-300 bg-destructive/80 hover:bg-destructive text-white border border-white/10 w-7 h-7">
+                            <div className="flex items-center justify-center  cursor-pointer backdrop-blur-md transition-all duration-300 bg-destructive/80 hover:bg-destructive text-white border border-white/10 w-7 h-7">
                                 <X className="w-3.5 h-3.5" />
                             </div>
                         </ConfirmActionWrapper>
@@ -347,7 +347,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div
-                                    className="flex items-center justify-center rounded-md cursor-pointer backdrop-blur-md transition-all duration-300 bg-black/40 hover:bg-black/60 text-white border border-white/10 w-7 h-7"
+                                    className="flex items-center justify-center  cursor-pointer backdrop-blur-md transition-all duration-300 bg-black/40 hover:bg-black/60 text-white border border-white/10 w-7 h-7"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleBrowserFullscreen();
@@ -368,7 +368,7 @@ export function ParticipantTile({  participant,  isHost,  pinnedUid,  onToggleRe
             </TooltipProvider>
 
             {/* Name Overlay (Bottom Left) */}
-            <div className="absolute bottom-3 left-3 z-10">
+            <div className="absolute bottom-14 left-3 z-10">
                 <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 border border-white/10 flex items-center gap-2 rounded-full">
                     <span className="text-sm font-medium text-white truncate max-w-[120px]">
                         {participant.name || (participant.isLocal ? "You" : `User ${participant.uid}`)}

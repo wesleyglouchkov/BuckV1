@@ -243,7 +243,7 @@ export default function LiveStreamPage() {
 
             {/* Header */}
             <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-                <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+                <div className="w-full px-4 py-3 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                         <Button
                             variant="ghost"
@@ -297,7 +297,7 @@ export default function LiveStreamPage() {
             </div>
 
             {/* Main Content */}
-            <div className="w-full px-4 py-2">
+            <div className="w-full px-4 py-0">
                 <div className="flex flex-col lg:flex-row">
                     {/* Video Area */}
                     <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">

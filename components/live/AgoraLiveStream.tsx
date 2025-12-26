@@ -227,8 +227,15 @@ function LiveBroadcast({
         }
     }, [localCameraTrack, localMicrophoneTrack, isRecording, startRecording]);
 
+
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
+    // Update RTM presence when recording state changes
+    useEffect(() => {
+        if (isRTMReady && rtmSingleton.instance && userName) {
+            rtmSingleton.instance.setUserPresence(userName, userAvatar, isRecording);
+        }
+    }, [isRecording, isRTMReady, userName, userAvatar]);
 
     // Viewer count tracking
     const { viewerCount } = useViewerCount({
@@ -535,7 +542,7 @@ function LiveBroadcast({
                     {/* Live Badge */}
                     <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
                         <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                        <span className="mt-1 font-bold text-xs tracking-wider">LIVE</span>
+                        <span className="mt-1 font-bold text-xs tracking-wider">Live</span>
                     </div>
 
                     {/* Viewer Count */}
@@ -548,83 +555,81 @@ function LiveBroadcast({
 
             </div>
 
-            {/* Bottom Controls - Floating Glassmorphism */}
-            <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-black/40 backdrop-blur-xl px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl z-30 transition-all duration-300">
-                <Button
-                    onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                    variant={isVideoEnabled ? "secondary" : "destructive"}
-                    size="icon"
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
-                >
-                    {isVideoEnabled ? <Video className="w-4 h-4 md:w-5 md:h-5" /> : <VideoOff className="w-4 h-4 md:w-5 md:h-5" />}
-                </Button>
-
-                <Button
-                    onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                    variant={isAudioEnabled ? "secondary" : "destructive"}
-                    size="icon"
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg ring-1 ring-white/10"
-                >
-                    {isAudioEnabled ? <Mic className="w-4 h-4 md:w-5 md:h-5" /> : <MicOff className="w-4 h-4 md:w-5 md:h-5" />}
-                </Button>
-
-                <div className="w-px h-6 md:h-8 bg-white/10 mx-1 md:mx-2" />
-
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button
-                            variant="destructive"
-                            size="icon"
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
-                        >
-                            <PhoneOff className="w-4 h-4 md:w-5 md:h-5" />
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>End Stream</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Are you sure you want to end this stream? All participants will be disconnected.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={endStream} className="bg-destructive hover:bg-destructive/90">
-                                End Stream
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
-            {/* Controls (Bottom Right) - REC & Chat Toggle */}
-            <div className="absolute bottom-6 right-6 z-30 flex items-center gap-3 pointer-events-auto">
-                {isRecording && (
-                    <div className="bg-destructive/20 backdrop-blur-md border border-destructive/30 text-destructive-foreground px-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold">
-                        <Radio className="w-3.5 h-3.5 animate-pulse" />
-                        <span className="mt-1">REC</span>
-                    </div>
-                )}
-                <div
-                    className="bg-primary px-3 py-1.5 backdrop-blur-md border border-white/10 cursor-pointer hover:bg-primary/80 transition-all"
-                    onClick={() => {
-                        window.scrollTo({
-                            top: 0,
-                            behavior: "smooth",
-                        });
-                        setIsChatVisible?.(!isChatVisible);
-                    }}
-                >
-                    {isChatVisible ? (
-                        <div className="flex items-center gap-2">
-                            <ArrowRightFromLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
-                            <span className="text-xs font-medium mt-0.5 text-white">Hide Chat</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 text-white">
-                            <ArrowLeftToLine className="w-4 h-4 text-white hover:text-primary/80 transition-colors" />
-                            <span className="text-xs font-medium mt-0.5 text-white">Chat</span>
+            {/* Bottom Bar - Unified Controls */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-black/60 backdrop-blur-sm px-4 py-2 border-t border-white/10 z-30 transition-all duration-300">
+                {/* Left: REC Indicator */}
+                <div className="flex-1 flex justify-start">
+                    {isRecording && (
+                        <div className="bg-destructive text-white px-2 py-1 flex items-center gap-1.5 text-[10px] font-bold rounded-sm">
+                            <Radio className="w-3 h-3 animate-pulse" />
+                            <span className="mt-1">REC</span>
                         </div>
                     )}
+                </div>
+
+                {/* Center: Main Controls */}
+                <div className="flex items-center gap-1">
+                    <Button
+                        onClick={() => setIsVideoEnabled(!isVideoEnabled)}
+                        variant={isVideoEnabled ? "secondary" : "destructive"}
+                        size="icon"
+                        className="w-9 h-9 shadow-lg ring-1 ring-white/10"
+                    >
+                        {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                    </Button>
+
+                    <Button
+                        onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                        variant={isAudioEnabled ? "secondary" : "destructive"}
+                        size="icon"
+                        className="w-9 h-9 shadow-lg ring-1 ring-white/10"
+                    >
+                        {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                    </Button>
+
+                    <div className="w-px h-6 bg-white/10 mx-1" />
+
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                className="w-9 h-9 shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                            >
+                                <PhoneOff className="w-4 h-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>End Stream</AlertDialogTitle>
+                                <AlertDialogDescription className="text-neutral-400">
+                                    Are you sure you want to end this stream? All participants will be disconnected.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-transparent border-neutral-700 hover:bg-neutral-800 hover:text-white text-neutral-300">Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={endStream} className="bg-destructive hover:bg-destructive/90">
+                                    End Stream
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+
+                {/* Right: Chat Toggle */}
+                <div className="flex-1 flex justify-end">
+                    <Button
+                        variant="default"
+                        size="sm"
+                        className="h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center gap-2"
+                        onClick={() => {
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                            setIsChatVisible?.(!isChatVisible);
+                        }}
+                    >
+                        {isChatVisible ? <ArrowRightFromLine className="w-4 h-4" /> : <ArrowLeftToLine className="w-4 h-4" />}
+                        <span className="hidden sm:inline text-xs font-medium uppercase tracking-wider">{isChatVisible ? "Hide Chat" : "Chat"}</span>
+                    </Button>
                 </div>
             </div>
 

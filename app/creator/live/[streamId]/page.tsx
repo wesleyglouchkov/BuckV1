@@ -306,7 +306,7 @@ export default function CreatorLivePage() {
             </div>
 
             {/* Main Content */}
-            <div className="w-full px-4 py-2">
+            <div className="w-full px-4 py-0">
                 {/* Stream Info Header */}
 
 

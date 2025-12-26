@@ -35,6 +35,7 @@ export interface UserPresence {
     name?: string;
     avatar?: string;
     isOnline: boolean;
+    isRecording?: boolean;
 }
 
 export class SignalingManager {
@@ -239,17 +240,19 @@ export class SignalingManager {
         // state is a Map or Object depending on SDK
         // In RTM 2.x JS, it's usually { key: value, ... }
 
-        // Safe parsing of name/avatar
         const name = state.name || state.userName;
         const avatar = state.avatar || state.userAvatar;
+        // Parse recording state
+        const isRecording = state.isRecording === "true" || state.isRecording === true;
 
-        console.log('RTM: Parsed presence data', { userId, name, avatar });
+        console.log('RTM: Parsed presence data', { userId, name, avatar, isRecording });
 
         const presence: UserPresence = {
             userId,
             name,
             avatar,
-            isOnline: true
+            isOnline: true,
+            isRecording
         };
 
         // Update online users map
@@ -261,11 +264,12 @@ export class SignalingManager {
         });
     }
 
-    async setUserPresence(name: string, avatar?: string) {
+    async setUserPresence(name: string, avatar?: string, isRecording?: boolean) {
         if (!this.client || !this.isJoined) return;
 
         const payload: Record<string, string> = { name };
         if (avatar) payload.avatar = avatar;
+        if (isRecording !== undefined) payload.isRecording = isRecording.toString();
 
         const maxRetries = 5;
         let attempt = 0;
