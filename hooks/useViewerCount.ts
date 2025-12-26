@@ -25,7 +25,8 @@ export function useViewerCount({
 
         const updateCount = () => {
             const count = rtmManager.getMemberCount();
-            setRealtimeCount(count);
+            // Add +1 to include self (host or current viewer)
+            setRealtimeCount(count + 1);
         };
 
         // Update immediately
@@ -54,8 +55,9 @@ export function useViewerCount({
             try {
                 setIsUpdating(true);
                 const count = rtmManager.getMemberCount();
-                await streamService.updateStreamStats(streamId, count);
-                console.log(`Viewer count synced to DB: ${count}`);
+                // Add +1 to include the host
+                await streamService.updateStreamStats(streamId, count + 1);
+                console.log(`Viewer count synced to DB: ${count + 1}`);
             } catch (error) {
                 console.error("Failed to sync viewer count to DB:", error);
             } finally {

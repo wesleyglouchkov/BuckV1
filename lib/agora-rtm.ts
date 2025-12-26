@@ -350,10 +350,10 @@ export class SignalingManager {
         return this.isJoined;
     }
 
-    // Get the count of online members (including self)
+    // Get the count of online members (excluding self, since self is excluded from onlineUsers)
     getMemberCount(): number {
-        // +1 for self
-        return this.onlineUsers.size + 1;
+        // onlineUsers already excludes self, so just return the size
+        return this.onlineUsers.size;
     }
 
     // Get all online users

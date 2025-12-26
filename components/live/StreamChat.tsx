@@ -25,7 +25,6 @@ interface StreamChatProps {
 
 export default function StreamChat({ streamId, currentUserId, currentUsername = "Anonymous", isCreator = false, onClose, rtmManager, isChatVisible = true }: StreamChatProps) {
     const router = useRouter();
-    console.log(currentUserId, '<--- currentUserId')
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -86,7 +85,6 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
             timestamp: latestMessage.timestamp
         });
     }, [messages, isChatVisible]);
-    console.log(isConnected, 'isConnected')
     // Close emoji picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

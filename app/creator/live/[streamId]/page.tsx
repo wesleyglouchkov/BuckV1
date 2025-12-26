@@ -306,7 +306,7 @@ export default function CreatorLivePage() {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto p-2">
+            <div className="w-full px-4 py-2">
                 {/* Stream Info Header */}
 
 
@@ -377,7 +377,7 @@ export default function CreatorLivePage() {
                                     currentUsername={session?.user?.name || "Creator"}
                                     isCreator={true}
                                     onClose={() => setIsChatVisible(false)}
-                                    isChatVisible={isChatVisible} 
+                                    isChatVisible={isChatVisible}
                                 />
                             ) : (
                                 <StreamSetupCard
