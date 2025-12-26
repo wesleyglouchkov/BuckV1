@@ -53,7 +53,7 @@ export default function LiveStreamPage() {
     const [showConsentDialog, setShowConsentDialog] = useState(false);
     const [viewerRole, setViewerRole] = useState<"publisher" | "subscriber" | null>(null);
     const [hasJoined, setHasJoined] = useState(false);
-    const [isChatVisible, setIsChatVisible] = useState(false);
+    const [isChatVisible, setIsChatVisible] = useState(true);
 
     // Fetch stream details and auto-join as viewer
     useEffect(() => {

@@ -44,7 +44,7 @@ export default function CreatorLivePage() {
     const [rtmToken, setRtmToken] = useState<string>(""); // Separate token for RTM signaling
     const [uid, setUid] = useState<number>(0);
     const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
-    const [isChatVisible, setIsChatVisible] = useState(false);
+    const [isChatVisible, setIsChatVisible] = useState(true);
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
     const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
     // For scheduled streams, fetch stream data on load

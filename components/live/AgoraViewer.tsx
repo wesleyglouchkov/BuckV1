@@ -12,6 +12,7 @@ import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/rtm-singleton";
+import Image from "next/image";
 
 
 
@@ -496,7 +497,7 @@ function StreamLogic({
                     <Button
                         onClick={handleJoinRequest}
                         variant="default"
-                        className="h-10 md:h-12 px-4 md:px-6  bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
+                        className="h-10 px-4   bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-102 active:scale-95 text-xs md:text-sm"
                     >
                         <VideoIcon className="w-4 h-4" />
                         Join Buck Stream
@@ -506,7 +507,9 @@ function StreamLogic({
                 <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
                     <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
                         <AlertDialogHeader>
-                            <AlertDialogTitle className="text-xl font-bold">Join Buck Today</AlertDialogTitle>
+                            <AlertDialogTitle className="text-xl font-bold flex items-center gap-2">
+                                <Image src="/buck.svg" alt="Buck" width={60} height={18} className="object-contain w-10 h-10" />
+                                Join Buck Today</AlertDialogTitle>
                             <AlertDialogDescription className="text-neutral-400">
                                 Create an account or log in to join the stream with video and audio!
                             </AlertDialogDescription>
