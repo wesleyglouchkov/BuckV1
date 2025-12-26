@@ -369,7 +369,7 @@ export default function LiveStreamPage() {
                             transition-all duration-500 ease-in-out overflow-hidden
                             
                             /* Mobile: Fixed Dialog Overlay */
-                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-[100dvh] w-full
+                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-dvh w-full
                             ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
 
                             /* Desktop: Sidebar */
@@ -384,6 +384,7 @@ export default function LiveStreamPage() {
                                     currentUserId={session?.user?.id}
                                     currentUsername={session?.user?.username || "Viewer"}
                                     isCreator={false}
+                                    isChatVisible={isChatVisible}
                                     onClose={() => setIsChatVisible(false)}
                                 />
                             ) : (

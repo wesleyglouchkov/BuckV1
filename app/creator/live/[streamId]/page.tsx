@@ -377,6 +377,7 @@ export default function CreatorLivePage() {
                                     currentUsername={session?.user?.name || "Creator"}
                                     isCreator={true}
                                     onClose={() => setIsChatVisible(false)}
+                                    isChatVisible={isChatVisible} 
                                 />
                             ) : (
                                 <StreamSetupCard

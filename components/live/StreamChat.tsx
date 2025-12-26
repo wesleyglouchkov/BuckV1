@@ -11,6 +11,7 @@ import { useStreamChat } from "@/hooks/useStreamChat";
 import { SignalingManager } from "@/lib/agora-rtm";
 import { getRTMInstance } from "@/lib/rtm-singleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ChatNotification } from "./ChatNotification";
 
 interface StreamChatProps {
     streamId: string;
@@ -19,9 +20,10 @@ interface StreamChatProps {
     isCreator?: boolean;
     onClose?: () => void;
     rtmManager?: SignalingManager | null; // Shared RTM instance
+    isChatVisible?: boolean; // For notification visibility
 }
 
-export default function StreamChat({ streamId, currentUserId, currentUsername = "Anonymous", isCreator = false, onClose, rtmManager }: StreamChatProps) {
+export default function StreamChat({ streamId, currentUserId, currentUsername = "Anonymous", isCreator = false, onClose, rtmManager, isChatVisible = true }: StreamChatProps) {
     const router = useRouter();
     console.log(currentUserId, '<--- currentUserId')
     const [newMessage, setNewMessage] = useState("");
@@ -30,11 +32,18 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const [showLoginDialog, setShowLoginDialog] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState<{
+        id: string;
+        username: string;
+        message: string;
+        isCreator?: boolean;
+        timestamp: Date;
+    } | null>(null);
 
     // Use provided RTM manager or try to get from the global singleton
     const effectiveRTMManager = rtmManager || getRTMInstance();
 
-    // Generate consistent color from username
+    // Generate consistent color from username (no blue - reserved for creator)
     const getUserColor = (username: string): string => {
         const colors = [
             'rgb(239, 68, 68)',   // red
@@ -63,6 +72,20 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
         isCreator,
         rtmManager: effectiveRTMManager,
     });
+
+    // Show notification for new messages when chat is hidden
+    useEffect(() => {
+        if (isChatVisible || messages.length === 0) return;
+
+        const latestMessage = messages[messages.length - 1];
+        setNotificationMessage({
+            id: latestMessage.id,
+            username: latestMessage.username,
+            message: latestMessage.message,
+            isCreator: latestMessage.isCreator,
+            timestamp: latestMessage.timestamp
+        });
+    }, [messages, isChatVisible]);
     console.log(isConnected, 'isConnected')
     // Close emoji picker when clicking outside
     useEffect(() => {
@@ -113,12 +136,12 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
     };
 
     return (
-        <div className="flex lg:border-l border-primary flex-col h-full bg-card overflow-hidden">
+        <div className="flex lg:border-l border-primary flex-col h-full bg-card overflow-hidden cursor-pointer">
             {/* Header */}
-            <div className="px-4 py-3 border-b border-border bg-card">
+            <div className="px-4 py-3 border-b border-border bg-card ">
                 <div className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">Live Chat</h3>
+                    <h3 className="font-semibold text-foreground mt-1">Live Chat</h3>
                     <div className="ml-auto flex items-center gap-2">
                         {isConnected && (
                             <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -190,12 +213,6 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
                                                 Creator
                                             </span>
                                         )}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {new Date(msg.timestamp).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
                                     </span>
                                 </div>
                                 <p className="text-sm text-foreground/90 wrap-break-word">
@@ -286,6 +303,12 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Chat Notification Overlay (shows when chat is hidden) */}
+            <ChatNotification
+                message={notificationMessage}
+                onDismiss={() => setNotificationMessage(null)}
+            />
         </div>
     );
 }
