@@ -105,6 +105,11 @@ export function useStreamChat({
         const handleChatMessage = (msg: SignalingMessage & { type: "CHAT_MESSAGE" }) => {
             console.log("Real-time chat message received:", msg);
 
+            // Filter out own messages to prevent duplication (as we add them optimistically)
+            if (currentUserId && msg.payload.userId.toString() === currentUserId.toString()) {
+                return;
+            }
+
             const newMessage: ChatMessage = {
                 id: `rtm-${msg.payload.timestamp}`,
                 userId: msg.payload.userId.toString(),
@@ -123,7 +128,7 @@ export function useStreamChat({
         return () => {
             // Note: We don't cleanup RTM here as it's managed by parent components
         };
-    }, [rtmManager]);
+    }, [rtmManager, currentUserId]);
 
     // Send message function
     const sendMessage = useCallback(
