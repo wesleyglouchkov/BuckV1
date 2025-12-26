@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalCameraTrack, useLocalMicrophoneTrack, usePublish, useRemoteUsers, useRTCClient } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
@@ -153,8 +153,8 @@ function StreamLogic({
 
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
-    // Map to store user details: uid -> { name, avatar }
-    const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
+    // Map to store user details: uid -> { name, avatar, isRecording }
+    const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string; isRecording?: boolean }>>({});
 
     // Cleanup RTM singleton
     const cleanupViewerRTM = useCallback(() => {
@@ -226,20 +226,21 @@ function StreamLogic({
     }, [uid, handleLeaveStream]);
 
     // Handle Presence Updates
-    const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean }) => {
+    const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean, isRecording?: boolean }) => {
         if (p.isOnline) {
             setUserNames(prev => {
                 const existing = prev[p.userId];
                 const displayName = p.name || existing?.name || `User ${p.userId}`;
                 const displayAvatar = p.avatar || existing?.avatar;
+                const isRecording = p.isRecording !== undefined ? p.isRecording : existing?.isRecording;
 
-                if (existing?.name === displayName && existing?.avatar === displayAvatar) {
+                if (existing?.name === displayName && existing?.avatar === displayAvatar && existing?.isRecording === isRecording) {
                     return prev;
                 }
 
                 return {
                     ...prev,
-                    [p.userId]: { name: displayName, avatar: displayAvatar }
+                    [p.userId]: { name: displayName, avatar: displayAvatar, isRecording }
                 };
             });
         }
