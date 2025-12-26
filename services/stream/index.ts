@@ -1,8 +1,7 @@
 import { createClientAuthInstance, axiosInstance } from "@/utils/axios";
 
-// Stream services for public viewers
-
 export const streamService = {
+    
     // Get Stream Details (Public)
     getStreamDetails: async (streamId: string) => {
         try {
@@ -37,7 +36,7 @@ export const streamService = {
         }
     },
 
-    // Chat Implementation
+    // ----------------------Chat Implementation----------------------
     getChatMessages: async (streamId: string) => {
         try {
             // Public read access for chat
@@ -62,6 +61,7 @@ export const streamService = {
         }
     },
 
+    // This run every 1 minute to update viewer count
     updateStreamStats: async (streamId: string, viewerCount: number) => {
         try {
             const axios = await createClientAuthInstance('CREATOR');
