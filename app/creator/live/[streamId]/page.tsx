@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -22,12 +22,20 @@ export default function CreatorLivePage() {
     const { data: session, status } = useSession();
     const params = useParams();
     const router = useRouter();
-    const urlStreamId = params.streamId as string; // ID from URL (for scheduled streams or after going live)
+    const urlStreamId = params.streamId as string;
 
-    // Stream state - no backend call needed for preview
+    // Stream state
     const [streamTitle, setStreamTitle] = useState("");
     const [streamType, setStreamType] = useState("");
     const [isLive, setIsLive] = useState(false);
+
+    // Ref to track live status synchronously for event handlers
+    const isLiveRef = useRef(false);
+    // Sync ref with state
+    useEffect(() => {
+        isLiveRef.current = isLive;
+    }, [isLive]);
+
     const [isGoingLive, setIsGoingLive] = useState(false);
     const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -112,11 +120,13 @@ export default function CreatorLivePage() {
             }
 
             setIsLive(false);
+            isLiveRef.current = false; // Immediately update ref to bypass unload check
             toast.success("Stream ended successfully!");
             window.location.href = "/creator/content";
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to end stream properly";
             toast.error(message);
+            isLiveRef.current = false; // Force update ref even on error
             window.location.href = "/creator/schedule";
         }
     }, [isLive, recordingBlob, urlStreamId, router]);
@@ -126,7 +136,7 @@ export default function CreatorLivePage() {
     useEffect(() => {
         // Handle page reload/close
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (!isLive) return;
+            if (!isLiveRef.current) return;
             e.preventDefault();
             // Most modern browsers will show a generic message, but we set returnValue for compatibility
             e.returnValue = "You are live! Refreshing or leaving will END the broadcast for everyone. Are you sure?";
@@ -135,7 +145,7 @@ export default function CreatorLivePage() {
 
         // Handle browser back button
         const handlePopState = async () => {
-            if (!isLive) return;
+            if (!isLiveRef.current) return;
 
             const confirmed = window.confirm("You are live! Leaving this page will END the broadcast for everyone. Are you sure you want to stop the stream?");
             if (!confirmed) {
@@ -150,7 +160,7 @@ export default function CreatorLivePage() {
         };
 
         const handleUnload = () => {
-            if (isLive) {
+            if (isLiveRef.current) {
                 // Attempt best-effort cleanup
                 handleStreamEnd();
             }
