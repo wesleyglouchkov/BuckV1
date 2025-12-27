@@ -55,6 +55,13 @@ export default function LiveStreamPage() {
     const [hasJoined, setHasJoined] = useState(false);
     const [isChatVisible, setIsChatVisible] = useState(true);
 
+    // Initial chat state based on screen size
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            setIsChatVisible(false);
+        }
+    }, []);
+
     // Fetch stream details and auto-join as viewer
     useEffect(() => {
         const joinStream = async (role: "publisher" | "subscriber" = "subscriber") => {
