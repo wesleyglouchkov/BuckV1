@@ -27,7 +27,7 @@ export default function StreamPreviewOverlay({
     onGrantPermissions,
 }: StreamPreviewOverlayProps) {
     return (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20">
+        <div className="absolute inset-0 bg-background/1 backdrop-blur-xs flex items-center justify-center z-20">
             {/* Logo - Top Left */}
             <Image
                 src='/buck.svg'
