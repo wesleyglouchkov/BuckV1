@@ -135,7 +135,7 @@ export default function CreatorLivePreviewPage() {
             <div className="container mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Preview */}
-                    <div className="lg:col-span-2 space-y-4">
+                    <div className="lg:col-span-2 space-y-4 order-2 lg:order-0">
                         <div className="relative">
                             {/* AgoraLiveStream in preview mode */}
                             <AgoraLiveStream
@@ -166,7 +166,7 @@ export default function CreatorLivePreviewPage() {
                     </div>
 
                     {/* Sidebar - Setup Form */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 order-1 lg:order-0">
                         <StreamSetupCard
                             title={streamTitle}
                             onTitleChange={setStreamTitle}
