@@ -10,7 +10,7 @@ Create a comprehensive live streaming system using Agora ILS (Interactive Live S
 Add to `.env`:
 ```env
 # Agora (for token generation - REQUIRED for security)
-AGORA_APP_ID=e7f6e9aeecf14b2ba10e3f40be9f56e7
+AGORA_APP_ID=sdadad
 AGORA_APP_CERTIFICATE=<your_app_certificate>  # Required for backend token generation
 
 # AWS S3 (for storing replay URLs - frontend uploads directly)

@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Agent Development Guidelines
 
 - Do NOT create `index.ts` barrel files for component exports. Import components directly from their file paths.

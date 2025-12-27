@@ -255,7 +255,7 @@ export class SignalingManager {
             isRecording
         };
 
-        // Update online users map
+        // Update online users map as this user has joined
         this.onlineUsers.set(userId, presence);
 
         // Notify all presence callbacks
