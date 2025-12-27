@@ -304,7 +304,7 @@ export default function CreatorLivePage() {
                                     </span>
                                 )}
                             </h1>
-                            <p className="mt-1 text-xs text-muted-foreground mt-0.5">
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 {isLive ? "Broadcasting live" : "Test your setup before going live"}
                             </p>
                         </div>
@@ -378,7 +378,7 @@ export default function CreatorLivePage() {
                             transition-all duration-500 ease-in-out overflow-hidden
                             
                             /* Mobile: Fixed Dialog Overlay */
-                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-[100dvh] w-full
+                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-dvh w-full
                             ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
 
                             /* Desktop: Sidebar */
