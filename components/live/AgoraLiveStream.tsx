@@ -15,9 +15,9 @@ import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, Settings, Wifi, A
 import { cn } from "@/lib/utils";
 import { ParticipantGrid } from "./AgoraComponents";
 import { toast } from "sonner";
-import { SignalingManager } from "@/lib/agora-rtm";
+import { SignalingManager } from "@/lib/agora/agora-rtm";
 import { useViewerCount } from "@/hooks/useViewerCount";
-import { globalRTMSingleton as rtmSingleton } from "@/lib/rtm-singleton";
+import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
 import {
     AlertDialog,
     AlertDialogAction,

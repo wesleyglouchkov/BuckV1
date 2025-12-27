@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
-import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
+import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/rtm-singleton";
+import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
 import Image from "next/image";
 
 

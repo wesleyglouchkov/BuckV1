@@ -8,8 +8,8 @@ import { Send, MessageCircle, X, Smile, Loader2 } from "lucide-react";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import { cn } from "@/lib/utils";
 import { useStreamChat } from "@/hooks/useStreamChat";
-import { SignalingManager } from "@/lib/agora-rtm";
-import { getRTMInstance } from "@/lib/rtm-singleton";
+import { SignalingManager } from "@/lib/agora/agora-rtm";
+import { getRTMInstance } from "@/lib/agora/rtm-singleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ChatNotification } from "./ChatNotification";
 

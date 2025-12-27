@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useSWR, { mutate } from "swr";
 import { streamService } from "@/services/stream";
-import { SignalingManager, SignalingMessage } from "@/lib/agora-rtm";
+import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
 
 export interface ChatMessage {
     id: string;
