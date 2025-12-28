@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand, DeleteObjectTaggingCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Path } from "./s3-constants";
 
@@ -99,6 +99,16 @@ export async function abortMultipartUpload(key: string, uploadId: string) {
         Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
         UploadId: uploadId,
+    });
+
+    return await s3Client.send(command);
+}
+
+// Remove tags from an S3 object
+export async function deleteS3ObjectTagging(key: string) {
+    const command = new DeleteObjectTaggingCommand({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Key: key,
     });
 
     return await s3Client.send(command);

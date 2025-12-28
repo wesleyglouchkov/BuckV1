@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import * as agoraRecordingClient from "@/lib/agora-recording-client";
+import { deleteS3ObjectTagging } from "@/lib/s3";
+import { S3_PATHS } from "@/lib/s3-constants";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ streamId: string }> }) {
     try {
@@ -19,6 +21,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
 
         // Stop Recording
         const result = await agoraRecordingClient.stop(resourceId, sid, cname, uid);
+        // console.log("Stop Recording result:", result);
+        // Remove "lifecycle=temp" tag from the MP4 file so it is NOT deleted by S3 Lifecycle Rule
+        const fileList = result.serverResponse?.fileList;
+        if (Array.isArray(fileList)) {
+            const mp4File = fileList.find((f: any) => f.fileName?.endsWith(".mp4"));
+            if (mp4File) {
+                // Agora returns the full path in fileName
+                const mp4Key = mp4File.fileName;
+                try {
+                    await deleteS3ObjectTagging(mp4Key);
+                    // console.log("Preserved MP4 recording:", mp4Key);
+                } catch (tagError) {
+                    console.error("Failed to remove tag from MP4:", tagError);
+                }
+            }
+        }
 
         // Update DB
         // await db.stream.update({ where: { id: streamId }, data: { isLive: false, ... } });

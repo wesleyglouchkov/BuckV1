@@ -61,6 +61,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
             accessKey: process.env.AWS_ACCESS_KEY_ID,
             secretKey: process.env.AWS_SECRET_ACCESS_KEY,
             fileNamePrefix: fileNamePrefix,
+            extensionParams: {
+                sse: "aws:kms", // Required to use tagging feature in Agora
+                tag: "lifecycle=temp"
+            }
         };
 
         // Generate Recorder Token
