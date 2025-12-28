@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import StreamPreviewOverlay from "@/components/live/StreamPreviewOverlay";
 import StreamSetupCard from "@/components/live/StreamSetupCard";
 import Loader from "@/components/Loader";
+import StreamExpiredCard from "@/components/live/StreamExpiredCard";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -48,6 +49,7 @@ export default function CreatorLivePage() {
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [streamEndLoaderState, setStreamEndLoaderState] = useState(false);
     const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string; sid: string; uid: string } | null>(null);
+    const [isStreamExpired, setIsStreamExpired] = useState(false);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -70,6 +72,18 @@ export default function CreatorLivePage() {
                 if (response.success && response.stream) {
                     setStreamTitle(response.stream.title || "");
                     setStreamType(response.stream.workoutType || "");
+
+                    // Check if stream has ended
+                    if (response.stream.endTime) {
+                        const endTime = new Date(response.stream.endTime);
+                        const now = new Date();
+                        if (now > endTime) {
+                            setIsStreamExpired(true);
+                            setIsLoadingStream(false);
+                            return;
+                        }
+                    }
+
                     if (response.token) {
                         setUid(response.uid);
                         setAgoraToken(response.token);
@@ -266,6 +280,11 @@ export default function CreatorLivePage() {
     if (status === "unauthenticated") {
         router.push("/login");
         return null;
+    }
+
+    // Show expired stream message
+    if (isStreamExpired) {
+        return <StreamExpiredCard />;
     }
 
     return (
