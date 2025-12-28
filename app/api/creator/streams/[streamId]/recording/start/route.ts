@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import * as agoraRecordingClient from "@/lib/agora/agora-recording-client";
+import { creatorService } from "@/services/creator";
 import { RtcTokenBuilder, RtcRole } from "agora-token";
 
 // Map AWS Region strings to Agora Region Ints
@@ -98,11 +99,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
         const startData = await agoraRecordingClient.start(resourceId, cname, uid, token, storageConfig);
         const { sid } = startData;
 
-        // 4. Save to DB (Pseudo-code)
-        // await db.stream.update({
-        //   where: { id: streamId },
-        //   data: { recordingId: resourceId, recordingSid: sid}
-        // });
+        // 4. Save to Backend
+        await creatorService.updateStreamRecording(streamId, {
+            resourceId: resourceId,
+            recordingSid: sid
+        });
 
         return NextResponse.json({
             success: true,

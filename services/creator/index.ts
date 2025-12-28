@@ -17,6 +17,11 @@ export interface UpdateStreamData {
   timezone?: string;
 }
 
+export interface UpdateStreamRecordingData {
+  resourceId?: string;
+  recordingSid?: string;
+}
+
 export interface UpdateProfileData {
 
   bio?: string;
@@ -166,6 +171,18 @@ export const creatorService = {
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       throw new Error(err.response?.data?.message || 'Failed to change live status');
+    }
+  },
+
+  // Update Stream Recording Details
+  updateStreamRecording: async (streamId: string, data: UpdateStreamRecordingData) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.patch(`/creator/streams/${streamId}/recording`, data);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update stream recording details');
     }
   },
 
