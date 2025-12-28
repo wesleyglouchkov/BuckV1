@@ -21,6 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
 
         // Stop Recording
         const result = await agoraRecordingClient.stop(resourceId, sid, cname, uid);
+
+        let finalRecordingKey: string | null = null;
         // console.log("Stop Recording result:", result);
         // Remove "lifecycle=temp" tag from the MP4 file so it is NOT deleted by S3 Lifecycle Rule
         const fileList = result.serverResponse?.fileList;
@@ -31,19 +33,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
                 const mp4Key = mp4File.fileName;
                 try {
                     await deleteS3ObjectTagging(mp4Key);
+                    finalRecordingKey = mp4Key;
                     // console.log("Preserved MP4 recording:", mp4Key);
                 } catch (tagError) {
                     console.error("Failed to remove tag from MP4:", tagError);
                 }
             }
         }
-
-        // Update DB
-        // await db.stream.update({ where: { id: streamId }, data: { isLive: false, ... } });
-
         return NextResponse.json({
             success: true,
             result,
+            recordingKey: finalRecordingKey,
         });
 
     } catch (error: any) {

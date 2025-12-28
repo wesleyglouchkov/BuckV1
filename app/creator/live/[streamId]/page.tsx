@@ -91,7 +91,7 @@ export default function CreatorLivePage() {
     }, [urlStreamId, session?.user?.id, status]);
 
     // Handle stream end
-    const handleStreamEnd = useCallback(async () => {
+    const handleStreamEnd = useCallback(async (recordingKey?: string) => {
         // Only run stream end logic if they were actually live
         if (!isLive) {
             router.push("/creator/schedule");
@@ -99,27 +99,10 @@ export default function CreatorLivePage() {
         }
 
         try {
-            // If we have a recording blob, upload it
-            if (recordingBlob) {
-                toast.loading("Uploading recording...");
-
-                const filename = `${urlStreamId}_${Date.now()}.webm`;
-                const { uploadUrl, key } = await creatorService.getS3UploadUrl(urlStreamId, filename);
-
-                // Upload to S3
-                await fetch(uploadUrl, {
-                    method: "PUT",
-                    body: recordingBlob,
-                    headers: {
-                        "Content-Type": "video/webm",
-                    },
-                });
-
-                const s3Url = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${key}`;
-
-                // Update backend: stream ended with replay URL
-                await creatorService.stopStream(urlStreamId, s3Url);
-                toast.dismiss();
+            // If we have a backend recording key (from Agora Cloud Recording)
+            if (recordingKey) {
+                // Update backend: stream ended with recording key
+                await creatorService.stopStream(urlStreamId, recordingKey);
             }
             else {
                 // Update backend: stream ended without replay
@@ -136,7 +119,7 @@ export default function CreatorLivePage() {
             isLiveRef.current = false; // Force update ref even on error
             window.location.href = "/creator/schedule";
         }
-    }, [isLive, recordingBlob, urlStreamId, router]);
+    }, [isLive, urlStreamId, router]);
 
 
     // Warn user before leaving/refreshing when live OR handle browser back button

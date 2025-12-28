@@ -484,11 +484,12 @@ function LiveBroadcast({
     };
 
     const endStream = async () => {
+        let recordingKey = undefined;
         // Stop Cloud Recording via Backend
         if (isRecording && recordingDetails) {
             try {
-                toast.loading("Stopping recording...");
-                await fetch(`/api/creator/streams/${streamId}/recording/stop`, {
+                toast.loading("Stopping recording and saving...");
+                const res = await fetch(`/api/creator/streams/${streamId}/recording/stop`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -497,14 +498,24 @@ function LiveBroadcast({
                         uid: recordingDetails.uid
                     })
                 });
-            } catch (e) { console.error(e) }
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.recordingKey) {
+                        recordingKey = data.recordingKey;
+                    }
+                }
+            } catch (e) { console.error("Error stopping recording:", e) }
         }
         setIsRecording(false);
-        await client.leave();
+        try {
+            await client.leave();
+        } catch (e) { console.error("Error leaving channel:", e); }
+
         localCameraTrack?.close();
         localMicrophoneTrack?.close();
         cleanupRTM();
-        onStreamEnd();
+        onStreamEnd(recordingKey);
     };
 
     // Prepare participants list

@@ -170,10 +170,10 @@ export const creatorService = {
   },
 
   // Stop Stream
-  stopStream: async (streamId: string, replayUrl?: string) => {
+  stopStream: async (streamId: string, recordingKey?: string) => {
     try {
       const axios = await createClientAuthInstance('CREATOR');
-      const response = await axios.post(`/creator/streams/${streamId}/stop`, { replayUrl });
+      const response = await axios.post(`/creator/streams/${streamId}/stop`, { replayUrl: recordingKey });
       return response.data;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
