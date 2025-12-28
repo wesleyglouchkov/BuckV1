@@ -47,6 +47,7 @@ export default function CreatorLivePage() {
     const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [streamEndLoaderState, setStreamEndLoaderState] = useState(false);
+    const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string; sid: string; uid: string } | null>(null);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -78,6 +79,14 @@ export default function CreatorLivePage() {
                     }
                     if (response.stream.isLive) {
                         setIsLive(true);
+                    }
+                    // Check for existing cloud recording session
+                    if (response.stream.resourceId && response.stream.recordingSid) {
+                        setRecordingDetails({
+                            resourceId: response.stream.resourceId,
+                            sid: response.stream.recordingSid,
+                            uid: response.stream.recordingUid || "0"
+                        });
                     }
                 }
             } catch {
@@ -339,6 +348,7 @@ export default function CreatorLivePage() {
                                     streamType={streamType}
                                     userName={session?.user?.name || "Creator"}
                                     userAvatar={session?.user?.avatar || undefined}
+                                    initialRecordingDetails={recordingDetails}
                                 />
                             ) : (
                                 <div className="w-full h-[85vh] bg-card border border-border" />

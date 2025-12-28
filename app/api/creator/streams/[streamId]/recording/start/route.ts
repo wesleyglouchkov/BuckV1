@@ -102,7 +102,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
         // 4. Save to Backend
         await creatorService.updateStreamRecording(streamId, {
             resourceId: resourceId,
-            recordingSid: sid
+            recordingSid: sid,
+            recordingUid: uid
         });
 
         return NextResponse.json({

@@ -50,6 +50,7 @@ interface AgoraLiveStreamProps {
     streamType?: string;
     userName?: string;
     userAvatar?: string;
+    initialRecordingDetails?: { resourceId: string; sid: string; uid: string } | null;
 }
 
 // Network quality indicator component
@@ -112,12 +113,13 @@ function LiveBroadcast({
     streamTitle,
     streamType,
     userName,
-    userAvatar
+    userAvatar,
+    initialRecordingDetails
 }: Omit<AgoraLiveStreamProps, "isLive">) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string, sid: string, uid: string } | null>(null);
+    const [isRecording, setIsRecording] = useState(!!initialRecordingDetails);
+    const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string, sid: string, uid: string } | null>(initialRecordingDetails || null);
     // User Names Map
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
     const isStreamEndingRef = useRef(false);
@@ -889,6 +891,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 streamType={props.streamType}
                 userName={props.userName}
                 userAvatar={props.userAvatar}
+                initialRecordingDetails={props.initialRecordingDetails}
             />
         </AgoraRTCProvider>
     );

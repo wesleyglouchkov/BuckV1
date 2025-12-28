@@ -20,6 +20,7 @@ export interface UpdateStreamData {
 export interface UpdateStreamRecordingData {
   resourceId?: string;
   recordingSid?: string;
+  recordingUid?: string;
 }
 
 export interface UpdateProfileData {
