@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import * as agoraRecordingClient from "@/lib/agora-recording-client";
+import * as agoraRecordingClient from "@/lib/agora/agora-recording-client";
 import { deleteS3ObjectTagging } from "@/lib/s3";
 import { S3_PATHS } from "@/lib/s3-constants";
 

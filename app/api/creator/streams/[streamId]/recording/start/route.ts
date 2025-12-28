@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import * as agoraRecordingClient from "@/lib/agora-recording-client";
+import * as agoraRecordingClient from "@/lib/agora/agora-recording-client";
 import { RtcTokenBuilder, RtcRole } from "agora-token";
 
 // Map AWS Region strings to Agora Region Ints
