@@ -50,14 +50,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ str
         const regionStr = process.env.NEXT_PUBLIC_AWS_REGION || "us-east-1";
         const agoraRegion = AWS_REGION_MAP[regionStr] || 0;
 
-        const cleanEmail = session.user.email.replace(/[^a-zA-Z0-9]/g, '_');
-
         // Agora "fileNamePrefix" is an array of folders.
-        // Result: creators/{email}/streams/{streamId}/...
-        // Note: Agora strictly validates this. If email has special chars, it might fail. 
-        // Using simpler path for now: streams/{streamId}
-        const fileNamePrefix = ["streams", cname];
-        console.log("Starting cloud recording with prefix:", fileNamePrefix);
+        // Result: creators/{userId}/streams/{streamId}/...
+        const fileNamePrefix = ["creators", session.user.id, "streams", cname];
 
         const storageConfig = {
             vendor: 1, // AWS S3. - Docs: https://docs.agora.io/en/cloud-recording/reference/restful-api#storageconfig
