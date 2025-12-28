@@ -115,11 +115,10 @@ function LiveBroadcast({
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
+    const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string, sid: string, uid: string } | null>(null);
     // User Names Map
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
 
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const recordedChunksRef = useRef<Blob[]>([]);
     const client = useRTCClient();
 
     // Hooks for tracks - always create them initially
@@ -128,16 +127,16 @@ function LiveBroadcast({
 
     // Remote users and audio level
     const remoteUsers = useRemoteUsers();
-    const audioLevel = useVolumeLevel(localMicrophoneTrack ?? undefined);
+    // const audioLevel = useVolumeLevel(localMicrophoneTrack ?? undefined);
 
-    // Effect to enable/disable camera track when toggle changes
+    // 1a. Effect to enable/disable camera track when toggle changes
     useEffect(() => {
         if (localCameraTrack) {
             localCameraTrack.setEnabled(isVideoEnabled);
         }
     }, [localCameraTrack, isVideoEnabled]);
 
-    // Effect to enable/disable microphone track when toggle changes
+    // 1b. Effect to enable/disable microphone track when toggle changes
     useEffect(() => {
         if (localMicrophoneTrack) {
             localMicrophoneTrack.setEnabled(isAudioEnabled);
@@ -146,7 +145,7 @@ function LiveBroadcast({
 
     const [isHostJoined, setIsHostJoined] = useState(false);
 
-    // Ensure client role is set to host for the creator BEFORE joining
+    // 2. Ensure client role is set to host for the creator BEFORE joining
     useEffect(() => {
         if (client) {
             client.setClientRole("host")
@@ -155,6 +154,7 @@ function LiveBroadcast({
         }
     }, [client]);
 
+    // 3. Join channel only when role is host
     useJoin({
         appid: appId,
         channel: channelName,
@@ -162,10 +162,10 @@ function LiveBroadcast({
         uid
     }, isHostJoined);
 
-    // Publish tracks only when role is host
+    // 4. Publish tracks only when role is host
     usePublish([localCameraTrack, localMicrophoneTrack], isHostJoined);
 
-    // Handle Agora client errors gracefully
+    // 5. Handle Agora client errors gracefully
     useEffect(() => {
         if (!client) return;
 
@@ -190,42 +190,44 @@ function LiveBroadcast({
         };
     }, [client]);
 
-    // Start recording
-    const startRecording = useCallback(() => {
-        if (!localCameraTrack || !localMicrophoneTrack || isRecording) return;
-
-        try {
-            const videoTrack = localCameraTrack.getMediaStreamTrack();
-            const audioTrack = localMicrophoneTrack.getMediaStreamTrack();
-            const stream = new MediaStream([videoTrack, audioTrack]);
-
-            const recorder = new MediaRecorder(stream, {
-                mimeType: "video/webm;codecs=vp8,opus",
-            });
-
-            recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) recordedChunksRef.current.push(e.data);
-            };
-
-            recorder.onstop = () => {
-                const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-                onRecordingReady?.(blob);
-            };
-
-            recorder.start(1000);
-            mediaRecorderRef.current = recorder;
-            setIsRecording(true);
-        } catch (err) {
-            console.error("Recording failed:", err);
-        }
-    }, [localCameraTrack, localMicrophoneTrack, isRecording, onRecordingReady]);
-
-    // Auto-start recording when tracks ready
+    // 6. --- Cloud Recording Logic ---
     useEffect(() => {
-        if (localCameraTrack && localMicrophoneTrack && !isRecording) {
-            startRecording();
+        // Only start recording if we are live, host, and have tracks
+        if (isHostJoined && localCameraTrack && localMicrophoneTrack && !isRecording) {
+            const startCloudRecording = async () => {
+                try {
+                    console.log("Starting cloud recording...");
+                    // Call Backend to start Agora Recorder
+                    const res = await fetch(`/api/creator/streams/${streamId}/recording/start`, {
+                        method: 'POST',
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log("Cloud recording started:", data);
+                        setIsRecording(true);
+                        setRecordingDetails({
+                            resourceId: data.resourceId,
+                            sid: data.sid,
+                            uid: data.uid
+                        });
+                        toast.success("Cloud recording started");
+
+                        // Store resourceId/sid in a ref if needed to stop later
+                        // But usually we just call stop on the backend which looks up DB
+                    } else {
+                        console.error("Failed to start cloud recording", await res.text());
+                        toast.error("Failed to start cloud recording");
+                    }
+
+                } catch (error) {
+                    console.error("Failed to start cloud recording", error);
+                    toast.error("Failed to start recording");
+                }
+            };
+            startCloudRecording();
         }
-    }, [localCameraTrack, localMicrophoneTrack, isRecording, startRecording]);
+    }, [isHostJoined, localCameraTrack, localMicrophoneTrack, isRecording, streamId]);
 
 
     // --- Signaling (RTM) Implementation using Singleton ---
@@ -481,10 +483,22 @@ function LiveBroadcast({
         }
     };
 
-
-
     const endStream = async () => {
-        mediaRecorderRef.current?.stop();
+        // Stop Cloud Recording via Backend
+        if (isRecording && recordingDetails) {
+            try {
+                toast.loading("Stopping recording...");
+                await fetch(`/api/creator/streams/${streamId}/recording/stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resourceId: recordingDetails.resourceId,
+                        sid: recordingDetails.sid,
+                        uid: recordingDetails.uid
+                    })
+                });
+            } catch (e) { console.error(e) }
+        }
         setIsRecording(false);
         await client.leave();
         localCameraTrack?.close();

@@ -1,7 +1,8 @@
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Path } from "./s3-constants";
 
+// S3 Client
 const s3Client = new S3Client({
     region: process.env.NEXT_PUBLIC_AWS_REGION!,
     credentials: {
@@ -10,8 +11,9 @@ const s3Client = new S3Client({
     },
 });
 
-export async function getS3Url(subpath: S3Path, filename: string) {
-    const key = `${subpath}/${filename}`;
+// Get S3 presigned URL to get file from S3
+export async function getS3Url(subpath: string) {
+    const key = `${subpath}`;
     const command = new GetObjectCommand({
         Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
@@ -20,8 +22,9 @@ export async function getS3Url(subpath: S3Path, filename: string) {
     return await getSignedUrl(s3Client, command, { expiresIn: 7200 }); // 2 hours
 }
 
-export async function getUploadUrl(subpath: S3Path, filename: string, contentType: string) {
-    const key = `${subpath}/${filename}`;
+// Get S3 presigned upload URL
+export async function getUploadUrl(subpath: string, contentType: string) {
+    const key = `${subpath}`;
     const command = new PutObjectCommand({
         Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
@@ -31,8 +34,9 @@ export async function getUploadUrl(subpath: S3Path, filename: string, contentTyp
     return await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 minutes for upload start
 }
 
-export async function uploadToS3(subpath: S3Path, file: File | Blob, filename: string) {
-    const key = `${subpath}/${filename}`;
+// Upload file to S3 with uploadUrl
+export async function uploadToS3(subpath: string, file: File | Blob) {
+    const key = `${subpath}`;
     // Note: This function is intended for server-side usage or client-side if polyfills are present, 
     // but typically 'File' is a browser type. 
     // For server-side, you'd usually use Buffer. 
@@ -50,3 +54,53 @@ export async function uploadToS3(subpath: S3Path, file: File | Blob, filename: s
 
     return await s3Client.send(command);
 }
+
+// --- Multipart Upload Helpers (Server-Side Only) ---
+
+// Create multipart upload
+export async function createMultipartUpload(key: string, contentType: string) {
+    const command = new CreateMultipartUploadCommand({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Key: key,
+        ContentType: contentType,
+    });
+
+    return await s3Client.send(command);
+}
+
+// Get multipart upload part URL
+export async function getMultipartUploadPartUrl(key: string, uploadId: string, partNumber: number) {
+    const command = new UploadPartCommand({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Key: key,
+        UploadId: uploadId,
+        PartNumber: partNumber,
+    });
+
+    return await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 minutes per part
+}
+
+export async function completeMultipartUpload(key: string, uploadId: string, parts: { ETag: string; PartNumber: number }[]) {
+    const command = new CompleteMultipartUploadCommand({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Key: key,
+        UploadId: uploadId,
+        MultipartUpload: {
+            Parts: parts,
+        },
+    });
+
+    return await s3Client.send(command);
+}
+
+// Abort multipart upload
+export async function abortMultipartUpload(key: string, uploadId: string) {
+    const command = new AbortMultipartUploadCommand({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Key: key,
+        UploadId: uploadId,
+    });
+
+    return await s3Client.send(command);
+}
+
