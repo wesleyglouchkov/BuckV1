@@ -14,6 +14,7 @@ import { SkeletonLiveStream } from "@/components/ui/skeleton-variants";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import StreamPreviewOverlay from "@/components/live/StreamPreviewOverlay";
 import StreamSetupCard from "@/components/live/StreamSetupCard";
+import Loader from "@/components/Loader";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -45,6 +46,7 @@ export default function CreatorLivePage() {
     const [uid, setUid] = useState<number>(0);
     const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
     const [isChatVisible, setIsChatVisible] = useState(true);
+    const [streamEndLoaderState, setStreamEndLoaderState] = useState(false);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -110,10 +112,12 @@ export default function CreatorLivePage() {
             }
 
             setIsLive(false);
-            isLiveRef.current = false; // Immediately update ref to bypass unload check
-            toast.success("Stream ended successfully!");
-            window.location.href = "/creator/content";
+            isLiveRef.current = false; // Immediately update ref to bypass unload check@
+            window.setTimeout(() => {
+                window.location.href = "/creator/content";
+            }, 1000);
         } catch (error: unknown) {
+            setStreamEndLoaderState(false);
             const message = error instanceof Error ? error.message : "Failed to end stream properly";
             toast.error(message);
             isLiveRef.current = false; // Force update ref even on error
@@ -326,6 +330,7 @@ export default function CreatorLivePage() {
                                     streamId={urlStreamId}
                                     isLive={isLive}
                                     onStreamEnd={handleStreamEnd}
+                                    onStreamEndLoaderStart={() => setStreamEndLoaderState(true)}
                                     onRecordingReady={handleRecordingReady}
                                     onPermissionChange={handlePermissionChange}
                                     isChatVisible={isChatVisible}
@@ -392,6 +397,16 @@ export default function CreatorLivePage() {
 
                 </div>
             </div>
+
+            {/* End Stream Overlay */}
+            {streamEndLoaderState && (
+                <div className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <Loader />
+                        <p className="text-lg font-medium animate-pulse dark:text-white">Ending stream...</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

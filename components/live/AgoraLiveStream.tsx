@@ -41,6 +41,7 @@ interface AgoraLiveStreamProps {
     streamId: string;
     isLive: boolean;
     onStreamEnd: (replayUrl?: string) => void;
+    onStreamEndLoaderStart?: () => void;
     onRecordingReady?: (blob: Blob) => void;
     onPermissionChange?: (hasPermission: boolean) => void;
     isChatVisible?: boolean;
@@ -104,6 +105,7 @@ function LiveBroadcast({
     uid,
     streamId,
     onStreamEnd,
+    onStreamEndLoaderStart,
     onRecordingReady,
     isChatVisible,
     setIsChatVisible,
@@ -118,6 +120,7 @@ function LiveBroadcast({
     const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string, sid: string, uid: string } | null>(null);
     // User Names Map
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
+    const isStreamEndingRef = useRef(false);
 
     const client = useRTCClient();
 
@@ -192,11 +195,10 @@ function LiveBroadcast({
 
     // 6. --- Cloud Recording Logic ---
     useEffect(() => {
-        // Only start recording if we are live, host, and have tracks
-        if (isHostJoined && localCameraTrack && localMicrophoneTrack && !isRecording) {
+        // Only start recording if we are live, host, and have tracks, and NOT currently ending the stream
+        if (isHostJoined && localCameraTrack && localMicrophoneTrack && !isRecording && !isStreamEndingRef.current) {
             const startCloudRecording = async () => {
                 try {
-                    console.log("Starting cloud recording...");
                     // Call Backend to start Agora Recorder
                     const res = await fetch(`/api/creator/streams/${streamId}/recording/start`, {
                         method: 'POST',
@@ -204,7 +206,6 @@ function LiveBroadcast({
 
                     if (res.ok) {
                         const data = await res.json();
-                        console.log("Cloud recording started:", data);
                         setIsRecording(true);
                         setRecordingDetails({
                             resourceId: data.resourceId,
@@ -484,6 +485,8 @@ function LiveBroadcast({
     };
 
     const endStream = async () => {
+        isStreamEndingRef.current = true;
+        onStreamEndLoaderStart?.();
         let recordingKey = undefined;
         // Stop Cloud Recording via Backend
         if (isRecording && recordingDetails) {
@@ -878,6 +881,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 uid={props.uid}
                 streamId={props.streamId}
                 onStreamEnd={props.onStreamEnd}
+                onStreamEndLoaderStart={props.onStreamEndLoaderStart}
                 onRecordingReady={props.onRecordingReady}
                 isChatVisible={props.isChatVisible}
                 setIsChatVisible={props.setIsChatVisible}
