@@ -181,19 +181,7 @@ export const creatorService = {
     }
   },
 
-  // Get S3 Upload URL for Recording (uses local Next.js API route)
-  getS3UploadUrl: async (streamId: string, filename: string) => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/upload-url?filename=${encodeURIComponent(filename)}`);
-      if (!response.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-      return response.json();
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      throw new Error(err.message || 'Failed to get upload URL');
-    }
-  },
+
 
   /*--------------------------------------My Schedule--------------------------------------*/
 
