@@ -6,6 +6,7 @@ import { useState } from "react";
 import OpenExploreNavbar from "@/components/OpenExploreNavbar";
 import { cn } from "@/lib/utils";
 import HelpSupportSidebar from "@/components/HelpSupportSidebar";
+import MobileNavigationDrawer from "@/components/MobileNavigationDrawer";
 
 export default function ProfilePage() {
     const { data: session, status } = useSession();
@@ -48,6 +49,11 @@ export default function ProfilePage() {
                 setMobileMenuOpen={setMobileMenuOpen}
                 roleLabel={getRoleLabel()}
                 menuItems={getMenuItems()}
+            />
+
+            <MobileNavigationDrawer
+                isOpen={mobileMenuOpen}
+                onClose={() => setMobileMenuOpen(false)}
             />
 
             <div className="container mx-auto py-10 px-4">
