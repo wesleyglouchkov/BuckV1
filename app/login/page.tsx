@@ -49,7 +49,9 @@ export default function LoginPage() {
 
     try {
       const result = await signIn("credentials", {
-        emailOrUsername: formData.emailOrUsername,
+        emailOrUsername: formData.emailOrUsername.includes("@")
+          ? formData.emailOrUsername.toLowerCase()
+          : formData.emailOrUsername,
         password: formData.password,
         redirect: false
       });

@@ -112,7 +112,7 @@ export default function SignupPage() {
       await authService.signup({
         name: formData.name,
         username: formData.username,
-        email: formData.email,
+        email: formData.email.toLowerCase(),
         password: formData.password,
         role: role
       });
