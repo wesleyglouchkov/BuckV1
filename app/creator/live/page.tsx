@@ -149,6 +149,10 @@ export default function CreatorLivePreviewPage() {
                                 onStreamEnd={() => { }}
                                 onRecordingReady={() => { }}
                                 onPermissionChange={handlePermissionChange}
+                                recordingDetails={null}
+                                setRecordingDetails={() => { }}
+                                isRecording={false}
+                                setIsRecording={() => { }}
                             />
 
                             {/* Go Live Button Overlay */}

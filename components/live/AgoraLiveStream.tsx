@@ -40,7 +40,7 @@ interface AgoraLiveStreamProps {
     uid: number;
     streamId: string;
     isLive: boolean;
-    onStreamEnd: (replayUrl?: string) => void;
+    onStreamEnd: () => void;
     onStreamEndLoaderStart?: () => void;
     onRecordingReady?: (blob: Blob) => void;
     onPermissionChange?: (hasPermission: boolean) => void;
@@ -50,7 +50,10 @@ interface AgoraLiveStreamProps {
     streamType?: string;
     userName?: string;
     userAvatar?: string;
-    initialRecordingDetails?: { resourceId: string; sid: string; uid: string } | null;
+    isRecording: boolean;
+    setIsRecording: (isRecording: boolean) => void;
+    recordingDetails: { resourceId: string; sid: string; uid: string } | null;
+    setRecordingDetails: (details: { resourceId: string; sid: string; uid: string } | null) => void;
 }
 
 // Network quality indicator component
@@ -114,12 +117,13 @@ function LiveBroadcast({
     streamType,
     userName,
     userAvatar,
-    initialRecordingDetails
+    isRecording,
+    setIsRecording,
+    recordingDetails,
+    setRecordingDetails
 }: Omit<AgoraLiveStreamProps, "isLive">) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isRecording, setIsRecording] = useState(!!initialRecordingDetails);
-    const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string, sid: string, uid: string } | null>(initialRecordingDetails || null);
     // User Names Map
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
     const isStreamEndingRef = useRef(false);
@@ -489,38 +493,19 @@ function LiveBroadcast({
     const endStream = async () => {
         isStreamEndingRef.current = true;
         onStreamEndLoaderStart?.();
-        let recordingKey = undefined;
-        // Stop Cloud Recording via Backend
-        if (isRecording && recordingDetails) {
-            try {
-                toast.loading("Stopping recording and saving...");
-                const res = await fetch(`/api/creator/streams/${streamId}/recording/stop`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        resourceId: recordingDetails.resourceId,
-                        sid: recordingDetails.sid,
-                        uid: recordingDetails.uid
-                    })
-                });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.recordingKey) {
-                        recordingKey = data.recordingKey;
-                    }
-                }
-            } catch (e) { console.error("Error stopping recording:", e) }
-        }
-        setIsRecording(false);
+        // Leave the Agora channel
         try {
             await client.leave();
         } catch (e) { console.error("Error leaving channel:", e); }
 
+        // Cleanup local tracks
         localCameraTrack?.close();
         localMicrophoneTrack?.close();
         cleanupRTM();
-        onStreamEnd(recordingKey);
+
+        // Signal parent to handle recording stop and stream end
+        onStreamEnd();
     };
 
     // Prepare participants list
@@ -891,7 +876,10 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 streamType={props.streamType}
                 userName={props.userName}
                 userAvatar={props.userAvatar}
-                initialRecordingDetails={props.initialRecordingDetails}
+                recordingDetails={props.recordingDetails}
+                setRecordingDetails={props.setRecordingDetails}
+                isRecording={props.isRecording}
+                setIsRecording={props.setIsRecording}
             />
         </AgoraRTCProvider>
     );

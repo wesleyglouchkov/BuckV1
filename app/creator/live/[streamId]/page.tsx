@@ -49,6 +49,7 @@ export default function CreatorLivePage() {
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [streamEndLoaderState, setStreamEndLoaderState] = useState(false);
     const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string; sid: string; uid: string } | null>(null);
+    const [isRecording, setIsRecording] = useState(false);
     const [isStreamExpired, setIsStreamExpired] = useState(false);
 
     // Initial chat state based on screen size
@@ -101,6 +102,7 @@ export default function CreatorLivePage() {
                             sid: response.stream.recordingSid,
                             uid: response.stream.recordingUid || "0"
                         });
+                        setIsRecording(true);
                     }
                 }
             } catch {
@@ -116,7 +118,7 @@ export default function CreatorLivePage() {
     }, [urlStreamId, session?.user?.id, status]);
 
     // Handle stream end
-    const handleStreamEnd = useCallback(async (recordingKey?: string) => {
+    const handleStreamEnd = useCallback(async () => {
         // Only run stream end logic if they were actually live
         if (!isLive) {
             router.push("/creator/schedule");
@@ -124,6 +126,34 @@ export default function CreatorLivePage() {
         }
 
         try {
+            let recordingKey = undefined;
+
+            // Stop Cloud Recording via Backend
+            if (isRecording && recordingDetails) {
+                try {
+                    toast.loading("Stopping recording and saving...");
+                    const res = await fetch(`/api/creator/streams/${urlStreamId}/recording/stop`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            resourceId: recordingDetails.resourceId,
+                            sid: recordingDetails.sid,
+                            uid: recordingDetails.uid
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.recordingKey) {
+                            recordingKey = data.recordingKey;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error stopping recording:", e);
+                }
+            }
+            setIsRecording(false);
+
             // If we have a backend recording key (from Agora Cloud Recording)
             if (recordingKey) {
                 // Update backend: stream ended with recording key
@@ -146,7 +176,7 @@ export default function CreatorLivePage() {
             isLiveRef.current = false; // Force update ref even on error
             window.location.href = "/creator/schedule";
         }
-    }, [isLive, urlStreamId, router]);
+    }, [isLive, urlStreamId, router, isRecording, recordingDetails]);
 
 
     // Warn user before leaving/refreshing when live OR handle browser back button
@@ -367,7 +397,10 @@ export default function CreatorLivePage() {
                                     streamType={streamType}
                                     userName={session?.user?.name || "Creator"}
                                     userAvatar={session?.user?.avatar || undefined}
-                                    initialRecordingDetails={recordingDetails}
+                                    recordingDetails={recordingDetails}
+                                    setRecordingDetails={setRecordingDetails}
+                                    isRecording={isRecording}
+                                    setIsRecording={setIsRecording}
                                 />
                             ) : (
                                 <div className="w-full h-[85vh] bg-card border border-border" />
