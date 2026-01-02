@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { streamService } from "@/services/stream";
 import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
@@ -131,12 +131,23 @@ export function useStreamChat({
     }, [rtmManager, currentUserId]);
 
     // Send message function
+    const lastSentRef = useRef<number>(0);
+    const RATE_LIMIT_MS = 1000; // 1 second between messages
+
     const sendMessage = useCallback(
         async (messageText: string) => {
             if (!messageText.trim() || !currentUserId || !rtmManager) {
                 console.warn("Cannot send message: missing requirements");
                 return;
             }
+
+            // Rate limiting check
+            const now = Date.now();
+            if (now - lastSentRef.current < RATE_LIMIT_MS) {
+                throw new Error("Please wait a moment before sending another message");
+            }
+
+            lastSentRef.current = now;
 
             const timestamp = Date.now();
             const optimisticMessage: ChatMessage = {
@@ -174,6 +185,8 @@ export function useStreamChat({
                 await rtmManager.sendMessage(rtmMessage);
 
                 // 2. Persist to database
+                // Note: With 5000 users, this endpoint will be heavy.
+                // Ideally this should be offloaded to a queue or background job on the backend.
                 await streamService.sendChatMessage(streamId, messageText.trim());
 
                 // Revalidate chat history after successful send

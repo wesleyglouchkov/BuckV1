@@ -12,6 +12,7 @@ import { SignalingManager } from "@/lib/agora/agora-rtm";
 import { getRTMInstance } from "@/lib/agora/rtm-singleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ChatNotification } from "./ChatNotification";
+import { StreamChatMessage } from "./StreamChatMessage";
 
 interface StreamChatProps {
     streamId: string;
@@ -184,41 +185,11 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
                 )}
 
                 {messages.map((msg) => (
-                    <div
+                    <StreamChatMessage
                         key={msg.id}
-                        className={cn(
-                            "flex flex-col px-2 py-1.5 transition-colors",
-                            msg.userId === "system" && "items-center",
-                            msg.userId !== "system" && "hover:bg-muted/30"
-                        )}
-                    >
-                        {msg.userId === "system" ? (
-                            <div className="text-xs text-muted-foreground bg-muted px-3 py-2 rounded-full">
-                                {msg.message}
-                            </div>
-                        ) : (
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <span
-                                        className="text-sm font-bold"
-                                        style={{
-                                            color: msg.isCreator ? 'rgb(59, 130, 246)' : getUserColor(msg.username)
-                                        }}
-                                    >
-                                        {msg.username}
-                                        {msg.isCreator && (
-                                            <span className="ml-1.5 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
-                                                Creator
-                                            </span>
-                                        )}
-                                    </span>
-                                </div>
-                                <p className="text-sm text-foreground/90 wrap-break-word">
-                                    {msg.message}
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                        msg={msg}
+                        color={getUserColor(msg.username)}
+                    />
                 ))}
                 <div ref={messagesEndRef} />
             </div>

@@ -586,7 +586,7 @@ function LiveBroadcast({
             </div>
 
             {/* Bottom Bar - Unified Controls */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-black/60 backdrop-blur-sm px-4 py-2 border-t border-white/10 z-30 transition-all duration-300">
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-background/90 backdrop-blur-sm px-4 py-2 border-t border-white/10 z-30 transition-all duration-300">
                 {/* Left: REC Indicator */}
                 <div className="flex-1 flex justify-start">
                     {isRecording && (
@@ -823,7 +823,7 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
             </div>
 
             {/* Controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-6 z-20">
+            <div className="absolute bottom-0 left-0 right-0 bg-background/60 p-6 z-20">
                 <div className="flex items-center justify-center gap-4">
                     <Button
                         onClick={() => setIsVideoEnabled(!isVideoEnabled)}
