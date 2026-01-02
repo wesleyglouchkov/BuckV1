@@ -24,15 +24,14 @@ export default function CreatorLivePage() {
     const params = useParams();
     const router = useRouter();
     const urlStreamId = params.streamId as string;
+    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
 
     // Stream state
     const [streamTitle, setStreamTitle] = useState("");
     const [streamType, setStreamType] = useState("");
     const [isLive, setIsLive] = useState(false);
     const [isGoingLive, setIsGoingLive] = useState(false);
-    const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-    const [isLoadingStream, setIsLoadingStream] = useState(false);
     const [agoraToken, setAgoraToken] = useState<string>(""); // Token from backend for Agora RTC
     const [rtmToken, setRtmToken] = useState<string>(""); // Separate token for RTM signaling
     const [uid, setUid] = useState<number>(0);
@@ -68,14 +67,13 @@ export default function CreatorLivePage() {
         }
     }, []);
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
-    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
-    // For scheduled streams, fetch stream data on load
+
     // For live streams (redirected from preview), the stream is already active
     useEffect(() => {
         const fetchStreamData = async () => {
             if (!urlStreamId || !session?.user?.id) return;
 
-            setIsLoadingStream(true);
+
             try {
                 // Try to get stream token/data - if stream is already live, this will work
                 const response = await creatorService.getStreamToken(urlStreamId, session.user.id, 'publisher');
@@ -88,8 +86,8 @@ export default function CreatorLivePage() {
                         const endTime = new Date(response.stream.endTime);
                         const now = new Date();
                         if (now > endTime) {
+                            console.log("Stream has ended");
                             setIsStreamExpired(true);
-                            setIsLoadingStream(false);
                             return;
                         }
                     }
@@ -117,7 +115,7 @@ export default function CreatorLivePage() {
             } catch {
                 console.log("Could not fetch stream data - showing preview mode");
             } finally {
-                setIsLoadingStream(false);
+
             }
         };
 
@@ -275,10 +273,7 @@ export default function CreatorLivePage() {
         }
     };
 
-    // Handle recording ready
-    const handleRecordingReady = useCallback((blob: Blob) => {
-        setRecordingBlob(blob);
-    }, []);
+
 
     // Handle permission change
     const handlePermissionChange = useCallback((hasPermission: boolean) => {
@@ -405,7 +400,7 @@ export default function CreatorLivePage() {
                                     isLive={isLive}
                                     onStreamEnd={handleStreamEnd}
                                     onStreamEndLoaderStart={() => setStreamEndLoaderState(true)}
-                                    onRecordingReady={handleRecordingReady}
+
                                     onPermissionChange={handlePermissionChange}
                                     isChatVisible={isChatVisible}
                                     setIsChatVisible={setIsChatVisible}
