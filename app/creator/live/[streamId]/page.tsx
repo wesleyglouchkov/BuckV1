@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Share2 } from "lucide-react";
 import StreamChat from "@/components/live/StreamChat";
 import { creatorService } from "@/services/creator";
@@ -30,14 +29,6 @@ export default function CreatorLivePage() {
     const [streamTitle, setStreamTitle] = useState("");
     const [streamType, setStreamType] = useState("");
     const [isLive, setIsLive] = useState(false);
-
-    // Ref to track live status synchronously for event handlers
-    const isLiveRef = useRef(false);
-    // Sync ref with state
-    useEffect(() => {
-        isLiveRef.current = isLive;
-    }, [isLive]);
-
     const [isGoingLive, setIsGoingLive] = useState(false);
     const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -51,6 +42,24 @@ export default function CreatorLivePage() {
     const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string; sid: string; uid: string } | null>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isStreamExpired, setIsStreamExpired] = useState(false);
+
+    // Refs to track state synchronously for event handlers (like unload)
+    const isLiveRef = useRef(false);
+    const isRecordingRef = useRef(false);
+    const recordingDetailsRef = useRef<{ resourceId: string; sid: string; uid: string } | null>(null);
+
+    // Sync refs with state
+    useEffect(() => {
+        isLiveRef.current = isLive;
+    }, [isLive]);
+
+    useEffect(() => {
+        isRecordingRef.current = isRecording;
+    }, [isRecording]);
+
+    useEffect(() => {
+        recordingDetailsRef.current = recordingDetails;
+    }, [recordingDetails]);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -208,8 +217,15 @@ export default function CreatorLivePage() {
 
         const handleUnload = () => {
             if (isLiveRef.current) {
-                // Attempt best-effort cleanup
-                handleStreamEnd();
+                // Use sendBeacon for reliable delivery during page unload
+                const beaconData = JSON.stringify({
+                    isRecording: isRecordingRef.current,
+                    recordingDetails: recordingDetailsRef.current
+                });
+                navigator.sendBeacon(
+                    `/api/creator/streams/${urlStreamId}/handle-close`,
+                    beaconData
+                );
             }
         };
 
