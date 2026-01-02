@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, Users } from "lucide-react";
+import { ArrowLeft, Share2, Users, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 
@@ -24,6 +25,8 @@ interface StreamDetails {
     workoutType?: string;
     isLive: boolean;
     replayUrl?: string;
+    startTime?: string;
+    endTime?: string;
     creator: {
         id: string;
         name: string;
@@ -355,19 +358,46 @@ export default function LiveStreamPage() {
                                     />
                                 </div>
                             ) :
-                                (
-                                    // Condition: Stream is not live and no replay is available
-                                    <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
-                                        <div className="text-center space-y-4">
-                                            <p className="text-muted-foreground">
-                                                This stream has ended and no replay is available.
-                                            </p>
-                                            <Button onClick={() => router.push("/explore")}>
-                                                Explore More
-                                            </Button>
+
+                                !streamDetails.endTime && streamDetails.startTime ? (
+                                    // Condition: Stream is scheduled and hasn't started/ended
+                                    <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
+                                        <div className="text-center space-y-6 max-w-md px-4">
+                                            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Calendar className="w-10 h-10 text-primary" />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <h2 className="text-2xl font-bold">Upcoming Stream</h2>
+                                                <p className="text-muted-foreground">
+                                                    This stream is scheduled to start on
+                                                </p>
+                                                <div className="text-xl font-semibold text-primary">
+                                                    {format(new Date(streamDetails.startTime!), "MMMM d, yyyy 'at' h:mm a")}
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4">
+                                                <Button onClick={() => router.push("/explore")} variant="outline">
+                                                    Back to Explore
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
+                                ) :
+                                    (
+                                        // Condition: Stream is not live and no replay is available
+                                        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
+                                            <div className="text-center space-y-4">
+                                                <p className="text-muted-foreground">
+                                                    This stream has ended and no replay is available.
+                                                </p>
+                                                <Button onClick={() => router.push("/explore")}>
+                                                    Explore More
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                     </div>
 
                     {/* Chat Sidebar */}

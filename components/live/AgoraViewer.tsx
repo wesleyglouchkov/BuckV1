@@ -408,7 +408,7 @@ function StreamLogic({
 
 
     return (
-        <div className="relative w-full max-sm:h-[88vh] h-[85vh] flex flex-col bg-neutral-950 overflow-hidden shadow-2xl group/main">
+        <div className="relative w-full max-sm:h-[88vh] h-[85vh] flex flex-col bg-background overflow-hidden shadow-2xl group/main">
             {/* 1. HOST (Main Screen) */}
             <div ref={hostContainerRef} className="relative w-full shrink-0 aspect-video md:absolute md:inset-0 z-0 group/host">
                 {hostUser ? (
