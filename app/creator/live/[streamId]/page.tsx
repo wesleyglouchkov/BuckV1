@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2 } from "lucide-react";
@@ -66,63 +67,80 @@ export default function CreatorLivePage() {
             setIsChatVisible(false);
         }
     }, []);
+
+    // FAST-FAIL: Check session storage immediately to prevent "Live" flash on back button
+    useEffect(() => {
+        try {
+            if (typeof window !== 'undefined' && sessionStorage.getItem(`stream-ended-${urlStreamId}`)) {
+                console.log("Found local ended flag - forcing expired state");
+                setIsStreamExpired(true);
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [urlStreamId]);
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
 
-    // For live streams (redirected from preview), the stream is already active
-    useEffect(() => {
-        const fetchStreamData = async () => {
-            if (!urlStreamId || !session?.user?.id) return;
-
-
-            try {
-                // Try to get stream token/data - if stream is already live, this will work
-                const response = await creatorService.getStreamToken(urlStreamId, session.user.id, 'publisher');
-                if (response.success && response.stream) {
-                    setStreamTitle(response.stream.title || "");
-                    setStreamType(response.stream.workoutType || "");
-
-                    // Check if stream has ended
-                    if (response.stream.endTime) {
-                        const endTime = new Date(response.stream.endTime);
-                        const now = new Date();
-                        if (now > endTime) {
-                            console.log("Stream has ended");
-                            setIsStreamExpired(true);
-                            return;
-                        }
-                    }
-
-                    if (response.token) {
-                        setUid(response.uid);
-                        setAgoraToken(response.token);
-                        if (response.rtmToken) {
-                            setRtmToken(response.rtmToken);
-                        }
-                    }
-                    if (response.stream.isLive) {
-                        setIsLive(true);
-                    }
-                    // Check for existing cloud recording session
-                    if (response.stream.resourceId && response.stream.recordingSid) {
-                        setRecordingDetails({
-                            resourceId: response.stream.resourceId,
-                            sid: response.stream.recordingSid,
-                            uid: response.stream.recordingUid || "0"
-                        });
-                        setIsRecording(true);
-                    }
-                }
-            } catch {
-                console.log("Could not fetch stream data - showing preview mode");
-            } finally {
-
-            }
-        };
-
-        if (status === "authenticated") {
-            fetchStreamData();
+    // Data fetching with SWR
+    const fetcher = useCallback(async ([, id, userId]: [string, string, string]) => {
+        // If we locally know it's expired, don't even fetch (optional optimization)
+        if (typeof window !== 'undefined' && sessionStorage.getItem(`stream-ended-${id}`)) {
+            return { success: true, stream: { isLive: false, endTime: new Date().toISOString() } };
         }
-    }, [urlStreamId, session?.user?.id, status]);
+        return await creatorService.getStreamToken(id, userId, 'publisher');
+    }, []);
+
+    const { data: streamResponse } = useSWR(status === "authenticated" && urlStreamId && session?.user?.id ? ['stream-token', urlStreamId, session.user.id] : null, fetcher, {
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        shouldRetryOnError: false,
+    }
+    );
+
+    // Sync state with fetched data
+    useEffect(() => {
+        if (!streamResponse) return;
+
+        if (streamResponse.success && streamResponse.stream) {
+            setStreamTitle(streamResponse.stream.title || "");
+            setStreamType(streamResponse.stream.workoutType || "");
+
+            if (streamResponse.stream.endTime) {
+                const endTime = new Date(streamResponse.stream.endTime);
+                const now = new Date();
+                if (now > endTime) {
+                    console.log("Stream has ended");
+                    setIsStreamExpired(true);
+                    return;
+                }
+            }
+
+            if (streamResponse.token) {
+                setUid(streamResponse.uid);
+                setAgoraToken(streamResponse.token);
+                if (streamResponse.rtmToken) {
+                    setRtmToken(streamResponse.rtmToken);
+                }
+            }
+
+            if (streamResponse.stream.isLive) {
+                setIsLive(true);
+            } else {
+                // Ensure we respect server state if it says not live
+                setIsLive(false);
+            }
+
+            // Check for existing cloud recording session
+            if (streamResponse.stream.resourceId && streamResponse.stream.recordingSid) {
+                setRecordingDetails({
+                    resourceId: streamResponse.stream.resourceId,
+                    sid: streamResponse.stream.recordingSid,
+                    uid: streamResponse.stream.recordingUid || "0"
+                });
+                setIsRecording(true);
+            }
+        }
+    }, [streamResponse]);
 
     // Handle stream end
     const handleStreamEnd = useCallback(async () => {
@@ -133,6 +151,11 @@ export default function CreatorLivePage() {
         }
 
         try {
+            // Mark locally as ended immediately
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem(`stream-ended-${urlStreamId}`, 'true');
+            }
+
             let recordingKey = undefined;
 
             // Stop Cloud Recording via Backend
