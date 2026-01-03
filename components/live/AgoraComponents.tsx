@@ -226,7 +226,7 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
                                 user={participant.agoraUser}
                                 playVideo={isCameraOn}
                                 playAudio={true}
-                                className="absolute inset-0 w-full h-full object-cover -scale-x-100"
+                                className="absolute inset-0 w-full h-full object-contain -scale-x-100"
                             />
                         )}
                         {!isCameraOn && (
