@@ -380,7 +380,7 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
     );
 }
 
-interface ParticipantGridProps {
+export interface ParticipantGridProps {
     participants: Participant[];
     isHost?: boolean;
     maxVisible?: number;
@@ -388,9 +388,10 @@ interface ParticipantGridProps {
     onToggleRemoteCamera?: (uid: string | number) => void;
     onRemoveRemoteUser?: (uid: string | number) => void;
     onCloseChat?: () => void;
+    className?: string; // Allow custom grid classes
 }
 
-export function ParticipantGrid({ participants, isHost, maxVisible = 5, onToggleRemoteMic, onToggleRemoteCamera, onRemoveRemoteUser, onCloseChat }: ParticipantGridProps) {
+export function ParticipantGrid({ participants, isHost, maxVisible = 5, onToggleRemoteMic, onToggleRemoteCamera, onRemoveRemoteUser, onCloseChat, className }: ParticipantGridProps) {
     const [showAll, setShowAll] = useState(false);
     const [pinnedUid, setPinnedUid] = useState<string | number | null>(null);
 
@@ -456,7 +457,8 @@ export function ParticipantGrid({ participants, isHost, maxVisible = 5, onToggle
                 "grid gap-3 w-full",
                 visibleParticipants.length === 1 ? "grid-cols-1" :
                     visibleParticipants.length === 2 ? "grid-cols-2" :
-                        visibleParticipants.length <= 4 ? "grid-cols-2" : "grid-cols-2 md:grid-cols-3"
+                        visibleParticipants.length <= 4 ? "grid-cols-2" : "grid-cols-2 md:grid-cols-3",
+                className
             )}>
                 {visibleParticipants.map(p => (
                     <ParticipantTile

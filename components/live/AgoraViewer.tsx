@@ -407,10 +407,12 @@ function StreamLogic({
     };
 
 
+    const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
+
     return (
-        <div className="relative w-full max-sm:h-[88vh] h-[85vh] flex flex-col bg-background overflow-hidden shadow-2xl group/main">
-            {/* 1. HOST (Main Screen) */}
-            <div ref={hostContainerRef} className="relative w-full shrink-0 aspect-video md:absolute md:inset-0 z-0 group/host">
+        <div className="relative w-full max-sm:h-[88vh] h-[85vh] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
+            {/* 1. HOST (Main Screen / Left on Desktop) */}
+            <div ref={hostContainerRef} className="flex-1 relative order-1 md:order-1 overflow-hidden bg-black flex items-center justify-center group/host">
                 {hostUser ? (
                     <div className="w-full h-full relative">
                         <ParticipantTile
@@ -424,10 +426,10 @@ function StreamLogic({
                                 micOn: hostUser.hasAudio,
                                 agoraUser: hostUser
                             }}
-                            className="w-full h-full rounded-none border-none"
+                            className="w-full h-full rounded-none border-none aspect-auto md:aspect-auto"
                             customControls={
                                 <div
-                                    className="flex items-center justify-center  cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-primary text-white border border-white/10 hover:bg-primary/90"
+                                    className="flex items-center justify-center cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-primary text-white border border-white/10 hover:bg-primary/90"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onToggleChat?.();
@@ -457,26 +459,43 @@ function StreamLogic({
                         </div>
                     </div>
                 )}
+
+                {/* Viewer Count & Live Badge Overlay */}
+                <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 pointer-events-none flex items-center gap-3">
+                    {/* Host Live Badge */}
+                    <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                        <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
+                        <span className="font-bold text-[10px] md:text-xs tracking-wider uppercase mt-1">Live</span>
+                    </div>
+
+                    {/* Host Recording Badge */}
+                    {hostUser && userNames[hostUser.uid.toString()]?.isRecording && (
+                        <div className="bg-destructive/10 backdrop-blur-md text-destructive px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-destructive/30">
+                            <Radio className="w-3 h-3 md:w-3.5 md:h-3.5 animate-pulse" />
+                            <span className="font-bold text-[10px] md:text-xs uppercase">Rec</span>
+                        </div>
+                    )}
+
+                    {/* Online User Count */}
+                    <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
+                        <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
+                        <span className="font-semibold text-[10px] md:text-xs tracking-wide mt-1">{remoteUsers.length + 1} online</span>
+                    </div>
+                </div>
+
+                {/* Background Texture */}
+                <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             </div>
 
-            {/* 2. PARTICIPANTS (Side Grid / Bottom Grid) */}
-            <div className="relative w-full bg-neutral-900/50 p-2 md:p-0 md:bg-transparent md:absolute md:bottom-14 md:right-6 md:left-auto md:w-[30%] md:min-w-[200px] md:max-w-[400px] z-20 transition-all duration-300">
-                <ParticipantGrid
-                    participants={participants}
-                    maxVisible={4}
-                    onCloseChat={() => onToggleChat?.()}
-                />
-            </div>
-
-            {/* Controls Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1 bg-background/60 backdrop-blur-sm px-2 py-2 border-t border-white/10 z-30 transition-all duration-300">
+            {/* Controls Overlay (Always Visible, Bottom Fixed) */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 bg-background/60 backdrop-blur-md px-4 py-3 border-t border-white/10 z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {role === "publisher" && (
                     <>
                         <Button
                             onClick={() => setIsVideoEnabled(!isVideoEnabled)}
                             variant={isVideoEnabled ? "secondary" : "destructive"}
                             size="icon"
-                            className="w-9 h-9  shadow-lg ring-1 ring-white/10"
+                            className="w-10 h-10 shadow-lg ring-1 ring-white/10"
                         >
                             {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                         </Button>
@@ -485,11 +504,11 @@ function StreamLogic({
                             onClick={() => setIsAudioEnabled(!isAudioEnabled)}
                             variant={isAudioEnabled ? "secondary" : "destructive"}
                             size="icon"
-                            className="w-9 h-9  shadow-lg ring-1 ring-white/10"
+                            className="w-10 h-10 shadow-lg ring-1 ring-white/10"
                         >
                             {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                         </Button>
-                        <div className="w-px h-6 md:h-8 bg-white/10 mx-1 md:mx-2" />
+                        <div className="w-px h-6 bg-white/20 mx-2" />
                     </>
                 )}
 
@@ -497,12 +516,24 @@ function StreamLogic({
                     <Button
                         onClick={handleJoinRequest}
                         variant="default"
-                        className="h-10 px-4   bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-102 active:scale-95 text-xs md:text-sm"
+                        className="h-9 px-4 bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
                     >
                         <VideoIcon className="w-4 h-4" />
-                        Join Buck Stream
+                        Join Stream
                     </Button>
                 )}
+
+                <Button
+                    onClick={() => setIsParticipantsVisible(!isParticipantsVisible)}
+                    variant={isParticipantsVisible ? "secondary" : "ghost"}
+                    size="icon"
+                    className="w-10 h-10 shadow-lg hover:bg-accent hover:text-accent-foreground"
+                    title={isParticipantsVisible ? "Hide Participants" : "Show Participants"}
+                >
+                    <Users className="w-4 h-4 text-white " />
+                </Button>
+
+                <div className="w-px h-6 bg-border mx-2" />
 
                 <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
                     <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
@@ -531,7 +562,7 @@ function StreamLogic({
                         <Button
                             variant="destructive"
                             size="icon"
-                            className="w-9 h-9  shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                            className="w-10 h-10 shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
                         >
                             <PhoneOff className="w-4 h-4" />
                         </Button>
@@ -553,35 +584,28 @@ function StreamLogic({
                 </AlertDialog>
             </div>
 
-            {/* Viewer Count & Live Badge Overlay */}
-            <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 pointer-events-none flex items-center gap-3">
-                {/* Host Live Badge */}
-                <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
-                    <span className="font-bold text-[10px] md:text-xs tracking-wider uppercase">Live</span>
-                </div>
-
-                {/* Host Recording Badge */}
-                {hostUser && userNames[hostUser.uid.toString()]?.isRecording && (
-                    <div className="bg-destructive/10 backdrop-blur-md text-destructive px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-destructive/30">
-                        <Radio className="w-3 h-3 md:w-3.5 md:h-3.5 animate-pulse" />
-                        <span className="font-bold text-[10px] md:text-xs uppercase">Rec</span>
-                    </div>
-                )}
-
-                {/* Online User Count */}
-                <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                    <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
-                    <span className="font-semibold text-[10px] md:text-xs tracking-wide">{remoteUsers.length + 1} online</span>
-                </div>
+            {/* 2. PARTICIPANTS (Side Grid / Bottom on Mobile) */}
+            <div className={`
+                order-2 md:order-2
+                shrink-0
+                bg-neutral-900/50 md:bg-background md:border-l md:border-border
+                flex flex-col
+                transition-all duration-300 ease-in-out
+                z-20
+                overflow-y-auto custom-scrollbar
+                pb-20 md:pb-24
+                ${isParticipantsVisible
+                    ? "w-full md:w-[320px] lg:w-[350px] max-h-[30vh] md:max-h-full opacity-100"
+                    : "w-0 md:w-0 max-h-0 md:max-h-full opacity-0 overflow-hidden border-none"}
+            `}>
+                <ParticipantGrid
+                    participants={participants}
+                    maxVisible={6}
+                    onCloseChat={() => onToggleChat?.()}
+                    className="grid-cols-2 lg:grid-cols-1"
+                />
             </div>
-
-            {/* Chat Toggle (Top Right for Viewers) */}
-
-
-            {/* Background Texture */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-        </div >
+        </div>
     );
 }
 

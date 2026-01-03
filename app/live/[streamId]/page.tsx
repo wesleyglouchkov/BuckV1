@@ -307,7 +307,7 @@ export default function LiveStreamPage() {
             </div>
 
             {/* Main Content */}
-            <div className="w-full px-4 py-0">
+            <div className="w-full px-0 py-0">
                 <div className="flex flex-col lg:flex-row">
                     {/* Video Area */}
                     <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">
