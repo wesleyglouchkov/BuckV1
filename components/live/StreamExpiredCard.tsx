@@ -40,14 +40,14 @@ export default function StreamExpiredCard() {
                         </div>
                         <div className="flex flex-col gap-2 pt-4">
                             <Button
-                                onClick={() => router.push("/creator/schedule")}
+                                onClick={() => window.location.href = "/creator/schedule"}
                                 className="w-full"
                             >
                                 Create New Stream
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={() => router.push("/creator/schedule")}
+                                onClick={() => window.location.href = "/creator/schedule"}
                                 className="w-full"
                             >
                                 Back to Schedule

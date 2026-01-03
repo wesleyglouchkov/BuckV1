@@ -216,7 +216,7 @@ export default function CreatorLivePage() {
             if (!isLiveRef.current) return;
             e.preventDefault();
             // Most modern browsers will show a generic message, but we set returnValue for compatibility
-            e.returnValue = "You are live! Refreshing or leaving will END the broadcast for everyone. Are you sure?";
+            e.returnValue = "You are live! leaving this page might interrupt the stream. Are you sure?";
             return e.returnValue;
         };
 
