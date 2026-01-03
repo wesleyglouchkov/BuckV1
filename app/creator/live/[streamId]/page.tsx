@@ -216,7 +216,7 @@ export default function CreatorLivePage() {
             if (!isLiveRef.current) return;
             e.preventDefault();
             // Most modern browsers will show a generic message, but we set returnValue for compatibility
-            e.returnValue = "You are live! leaving this page might interrupt the stream. Are you sure?";
+            e.returnValue = "You are live! Reloading or leaving will END the stream. Your replay will be saved, but you'll need to create a new stream to go live again.";
             return e.returnValue;
         };
 
@@ -349,6 +349,18 @@ export default function CreatorLivePage() {
     // Show expired stream message
     if (isStreamExpired) {
         return <StreamExpiredCard />;
+    }
+
+    // Show loading while fetching stream data
+    if (!streamResponse) {
+        return (
+            <div className="fixed inset-0 z-100 bg-background flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader />
+                    <p className="text-lg font-medium animate-pulse dark:text-white">Loading stream...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
