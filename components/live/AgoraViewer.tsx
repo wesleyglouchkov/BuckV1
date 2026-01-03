@@ -409,6 +409,13 @@ function StreamLogic({
 
     const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
 
+    // Auto-show participants when user becomes a publisher (joins stream)
+    useEffect(() => {
+        if (role === "publisher") {
+            setIsParticipantsVisible(true);
+        }
+    }, [role]);
+
     return (
         <div className="relative w-full max-sm:h-[88vh] h-[85vh] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
             {/* 1. HOST (Main Screen / Left on Desktop) */}
