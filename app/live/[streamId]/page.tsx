@@ -7,9 +7,16 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, Users, Calendar } from "lucide-react";
+import { ArrowLeft, Share2, Users, Calendar, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ReportDialog } from "@/components/live/ReportDialog";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraViewer = dynamic<AgoraViewerProps>(() => import("../../../components/live/AgoraViewer"), { ssr: false });
@@ -57,6 +64,7 @@ export default function LiveStreamPage() {
     const [viewerRole, setViewerRole] = useState<"publisher" | "subscriber" | null>(null);
     const [hasJoined, setHasJoined] = useState(false);
     const [isChatVisible, setIsChatVisible] = useState(true);
+    const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -301,6 +309,26 @@ export default function LiveStreamPage() {
                         <Button variant="ghost" size="icon" onClick={handleShare}>
                             <Share2 className="w-4 h-4 dark:text-white" />
                         </Button>
+
+                        {/* Report Stream Button - Only for logged-in viewers */}
+                        {session?.user?.id && session.user.id !== streamDetails.creator.id && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <MoreVertical className="w-4 h-4 dark:text-white" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive cursor-pointer"
+                                        onClick={() => setReportDialogOpen(true)}
+                                    >
+                                        Report Stream
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+
                         <ThemeToggle />
                     </div>
                 </div>
@@ -418,6 +446,7 @@ export default function LiveStreamPage() {
                             {streamDetails.isLive && hasJoined ? (
                                 <StreamChat
                                     streamId={streamId}
+                                    streamTitle={streamDetails.title}
                                     currentUserId={session?.user?.id}
                                     currentUsername={session?.user?.username || "Viewer"}
                                     isCreator={false}
@@ -443,6 +472,20 @@ export default function LiveStreamPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Report Dialog */}
+            {reportDialogOpen && (
+                <ReportDialog
+                    open={reportDialogOpen}
+                    onOpenChange={setReportDialogOpen}
+                    reportType="stream"
+                    senderId={streamDetails.creator.id}
+                    senderName={streamDetails.creator.name}
+                    streamId={streamId}
+                    streamTitle={streamDetails.title}
+                    currentUserId={session?.user?.id}
+                />
+            )}
         </div>
     );
 }

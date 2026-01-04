@@ -486,6 +486,7 @@ export default function CreatorLivePage() {
                             {isLive ? (
                                 <StreamChat
                                     streamId={urlStreamId}
+                                    streamTitle={streamTitle}
                                     currentUserId={session?.user?.id}
                                     currentUsername={session?.user?.name || "Creator"}
                                     isCreator={true}

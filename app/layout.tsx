@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Toaster } from "sonner";
+import { ResponsiveToaster } from "@/components/ui/responsive-toaster";
 import NextTopLoader from "nextjs-toploader";
 import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
@@ -21,9 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" 
-          rel="stylesheet" 
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap"
+          rel="stylesheet"
         />
         <script
           dangerouslySetInnerHTML={{
@@ -41,7 +41,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <SessionProvider>
-          <NextTopLoader 
+          <NextTopLoader
             color="hsl(203.8863 88.2845% 53.1373%)"
             initialPosition={0.08}
             crawlSpeed={200}
@@ -52,7 +52,7 @@ export default function RootLayout({
             speed={200}
           />
           {children}
-          <Toaster position="bottom-right" richColors />
+          <ResponsiveToaster />
         </SessionProvider>
       </body>
     </html>

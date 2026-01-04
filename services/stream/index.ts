@@ -71,5 +71,24 @@ export const streamService = {
             console.error("Failed to update stats", error);
             return { success: false };
         }
+    },
+
+    // Report Content (Message or Stream)
+    reportContent: async (data: {
+        senderId: string;
+        reporterId: string;
+        reporterComment: string;
+        livestreamId: string;
+        flaggedMsgId?: string;
+    }) => {
+        try {
+            const axios = await createClientAuthInstance('MEMBER');
+            const response = await axios.post('/users/moderation/report', data);
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            console.error("Failed to report content", err);
+            throw new Error(err.response?.data?.message || 'Failed to report content');
+        }
     }
 };

@@ -26,6 +26,7 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { Calendar as CalendarIcon, Dumbbell } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export interface InitialStreamData {
     id: string;
@@ -93,7 +94,10 @@ export default function ScheduleStreamDialog({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!title || !workoutType || !selectedDate || !selectedTime) return;
+        if (!title || !workoutType || !selectedDate || !selectedTime) {
+            toast.warning("Please fill in all required fields.");
+            return;
+        }
 
         setIsSubmitting(true);
 
@@ -213,6 +217,7 @@ export default function ScheduleStreamDialog({
                                         }}
                                         disabled={(date) => date < today}
                                         initialFocus
+                                        required
                                     />
                                 </PopoverContent>
                             </Popover>

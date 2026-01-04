@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, MessageCircle, X, Smile, Loader2 } from "lucide-react";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
-import { cn } from "@/lib/utils";
-import { useStreamChat } from "@/hooks/useStreamChat";
+import { useStreamChat, ChatMessage } from "@/hooks/useStreamChat";
 import { SignalingManager } from "@/lib/agora/agora-rtm";
 import { getRTMInstance } from "@/lib/agora/rtm-singleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ChatNotification } from "./ChatNotification";
 import { StreamChatMessage } from "./StreamChatMessage";
+import { ReportDialog } from "./ReportDialog";
 
 interface StreamChatProps {
     streamId: string;
+    streamTitle?: string;
     currentUserId?: string;
     currentUsername?: string;
     isCreator?: boolean;
@@ -24,7 +25,7 @@ interface StreamChatProps {
     isChatVisible?: boolean; // For notification visibility
 }
 
-export default function StreamChat({ streamId, currentUserId, currentUsername = "Anonymous", isCreator = false, onClose, rtmManager, isChatVisible = true }: StreamChatProps) {
+export default function StreamChat({ streamId, streamTitle, currentUserId, currentUsername = "Anonymous", isCreator = false, onClose, rtmManager, isChatVisible = true }: StreamChatProps) {
     const router = useRouter();
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,8 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
         isCreator?: boolean;
         timestamp: Date;
     } | null>(null);
+    const [reportDialogOpen, setReportDialogOpen] = useState(false);
+    const [reportingMessage, setReportingMessage] = useState<ChatMessage | null>(null);
 
     // Use provided RTM manager or try to get from the global singleton
     const effectiveRTMManager = rtmManager || getRTMInstance();
@@ -189,6 +192,13 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
                         key={msg.id}
                         msg={msg}
                         color={getUserColor(msg.username)}
+                        currentUserId={currentUserId}
+                        streamId={streamId}
+                        streamTitle={streamTitle}
+                        onReport={(message) => {
+                            setReportingMessage(message);
+                            setReportDialogOpen(true);
+                        }}
                     />
                 ))}
                 <div ref={messagesEndRef} />
@@ -278,6 +288,20 @@ export default function StreamChat({ streamId, currentUserId, currentUsername = 
                 message={notificationMessage}
                 onDismiss={() => setNotificationMessage(null)}
             />
+
+            {/* Report Dialog */}
+          {reportDialogOpen && <ReportDialog
+                open={reportDialogOpen}
+                onOpenChange={setReportDialogOpen}
+                reportType="message"
+                senderId={reportingMessage?.userId || ""}
+                senderName={reportingMessage?.username || ""}
+                messageId={reportingMessage?.id}
+                messageContent={reportingMessage?.message}
+                streamId={streamId}
+                streamTitle={streamTitle}
+                currentUserId={currentUserId}
+            />}
         </div>
     );
 }
