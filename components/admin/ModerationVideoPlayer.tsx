@@ -39,7 +39,7 @@ export default function ModerationVideoPlayer({ src, title, poster }: Moderation
 
     if (!src) {
         return (
-            <div className="w-full aspect-video flex items-center justify-center bg-muted rounded-md border-2 border-primary/20">
+            <div className="w-full aspect-video flex items-center justify-center bg-muted  border-2 border-primary/20">
                 <p className="text-primary">No video source available</p>
             </div>
         );
@@ -47,7 +47,7 @@ export default function ModerationVideoPlayer({ src, title, poster }: Moderation
 
     if (!isReady) {
         return (
-            <div className="w-full aspect-video flex items-center justify-center bg-black rounded-md border-2 border-primary/30">
+            <div className="w-full aspect-video flex items-center justify-center bg-black border-primary/30">
                 <div className="animate-pulse text-primary flex items-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Loading player...
@@ -57,7 +57,7 @@ export default function ModerationVideoPlayer({ src, title, poster }: Moderation
     }
 
     return (
-        <div className="w-full aspect-video overflow-hidden rounded-md">
+        <div className="w-full aspect-video overflow-hidden ">
             <MediaPlayer
                 key={src}
                 title={title || "Moderation Video"}
@@ -67,7 +67,7 @@ export default function ModerationVideoPlayer({ src, title, poster }: Moderation
                 load="idle"
                 playsInline
                 storage={null}
-                className="w-full h-full"
+                className="w-full h-full border-none! rounded-none"
             >
                 <MediaProvider />
                 <BufferingIndicator />

@@ -14,11 +14,34 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Image from "next/image";
 import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
 import { formatDateTime } from "@/utils/dateTimeUtils";
+import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
+import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
+import { Loader2 } from "lucide-react";
 
 export default function CreatorDashboard() {
   const { data: session } = useSession();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedReplay, setSelectedReplay] = useState<any>(null);
+  const [signedReplayUrl, setSignedReplayUrl] = useState<string>("");
+  const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+
+  const handleReplayClick = async (stream: any) => {
+    setSelectedReplay(stream);
+    setIsGeneratingUrl(true);
+    setSignedReplayUrl("");
+
+    try {
+      if (stream.replayUrl) {
+        const url = await getSignedStreamUrl(stream.replayUrl);
+        setSignedReplayUrl(url || "");
+      }
+    } catch (error) {
+      toast.error("Failed to generate playback URL");
+      console.error(error);
+    } finally {
+      setIsGeneratingUrl(false);
+    }
+  };
 
   // SWR data fetching using creatorService
   const { data: dashboardResponse, error: dashboardError, isLoading: dashboardLoading } = useSWR('creator-dashboard',
@@ -71,7 +94,7 @@ export default function CreatorDashboard() {
   return (
     <div className="p-6">
       {/* Greeting Section */}
-      <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-border/20">
+      <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5  p-6 border border-border/20">
         <UserAvatar src={session?.user?.avatar || ''} size="xl" name={session?.user?.name || 'Creator'} />
         <div>
           <h2 className="text-xl font-bold text-foreground">{getGreeting()}, {getUserDisplayName()}!</h2>
@@ -97,7 +120,7 @@ export default function CreatorDashboard() {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Followers & Subscribers Chart */}
-          <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-card pt-6 pr-6 pb-6  border border-border/30 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4 px-6">
               <p className="text-lg font-semibold text-foreground">Community Growth</p>
               <User className="w-5 h-5 text-blue-500" />
@@ -169,7 +192,7 @@ export default function CreatorDashboard() {
           </div>
 
           {/* Revenue Chart */}
-          <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-card pt-6 pr-6 pb-6  border border-border/30 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4 px-6">
               <p className="text-lg font-semibold text-foreground">Revenue Trend</p>
               <DollarSign className="w-5 h-5 text-green-500" />
@@ -237,7 +260,7 @@ export default function CreatorDashboard() {
             ))
           ) : (
             <>
-              <div className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-card p-6  border border-border/20 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   Total Followers
                 </h3>
@@ -248,7 +271,7 @@ export default function CreatorDashboard() {
                 </div>
               </div>
 
-              <div className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-card p-6  border border-border/20 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   Active Subscribers
                 </h3>
@@ -256,7 +279,7 @@ export default function CreatorDashboard() {
                 <p className="text-sm text-muted-foreground mt-1">Monthly recurring</p>
               </div>
 
-              <div className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-card p-6  border border-border/20 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   Total Streams
                 </h3>
@@ -269,7 +292,7 @@ export default function CreatorDashboard() {
       </div>
 
       <div className="mt-8">
-        <div className="bg-card rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+        <div className="bg-card  border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           <div className="p-6 border-b border-border/20">
             <h3 className="text-lg font-semibold text-card-foreground">
               Recent Content
@@ -294,8 +317,8 @@ export default function CreatorDashboard() {
                 <div key={item?.id || index} className="p-4 flex items-center gap-4 hover:bg-accent/50 transition-colors">
                   {/* Thumbnail */}
                   <div
-                    className={`w-24 h-16 bg-muted rounded-md overflow-hidden cursor-pointer relative shrink-0 group ${item.replayUrl ? 'cursor-pointer' : ''}`}
-                    onClick={() => setSelectedReplay(item)}
+                    className={`w-24 h-16 bg-muted  overflow-hidden cursor-pointer relative shrink-0 group ${item.replayUrl ? 'cursor-pointer' : ''}`}
+                    onClick={() => handleReplayClick(item)}
                   >
                     {item.thumbnail ? (
                       <Image
@@ -340,16 +363,6 @@ export default function CreatorDashboard() {
                       <User className="w-3 h-3 text-muted-foreground" />
                       <p className="text-sm mt-1 font-medium text-foreground">{item?.viewerCount || 0} {item?.viewerCount < 2 ? "Viewer" : "Viewers"}</p>
                     </div>
-                    {item.replayUrl && (
-                      <a
-                        href={item.replayUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:underline block"
-                      >
-                        Watch Replay
-                      </a>
-                    )}
                   </div>
                 </div>
               ))
@@ -364,52 +377,71 @@ export default function CreatorDashboard() {
       </div>
       {/* Replay Modal */}
       <Dialog open={!!selectedReplay} onOpenChange={(open) => !open && setSelectedReplay(null)}>
-        <DialogContent className="sm:max-w-3xl bg-card text-card-foreground border-border">
-          <button
-            onClick={() => setSelectedReplay(null)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
-          <DialogHeader>
-            <DialogTitle>{selectedReplay?.title || "Stream Replay"}</DialogTitle>
-          </DialogHeader>
-          {selectedReplay?.replayUrl ? (
-            <>
-              <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
-                <video
-                  src={selectedReplay.replayUrl}
-                  controls
-                  className="w-full h-full"
-                  autoPlay
-                />
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0  shadow-2xl bg-background border border-border">
+          {/* Header */}
+          <div className="relative px-6 pt-6 pb-4 border-b border-border/20 flex items-center justify-between">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              {selectedReplay?.title || "Stream Replay"}
+              {selectedReplay?.workoutType && (
+                <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-sm border border-border/50">
+                  {selectedReplay.workoutType}
+                </span>
+              )}
+            </DialogTitle>
+            <button
+              onClick={() => setSelectedReplay(null)}
+              className="absolute right-4 top-4  opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1 hover:bg-muted"
+            >
+              <X className="h-4 w-4 dark:text-white" />
+              <span className="sr-only">Close</span>
+            </button>
+          </div>
+
+          <div className="overflow-y-auto px-6 py-6 flex-1">
+            {selectedReplay?.replayUrl ? (
+              <div className="w-full space-y-4">
+                {isGeneratingUrl ? (
+                  <div className="w-full aspect-video flex flex-col items-center justify-center bg-black  border-2 border-primary/30">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                    <p className="text-primary text-sm font-medium">Generating secure link...</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className=" overflow-hidden ring-1 ring-border/20 shadow-sm">
+                      <ModerationVideoPlayer
+                        src={signedReplayUrl}
+                        title={selectedReplay.title}
+                        poster={selectedReplay.thumbnail}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-muted/40  border border-border/40">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Secure Link to share valid for 2 hrs:</p>
+                      <code className="select-none text-[10px] sm:text-xs text-muted-foreground truncate flex-1 font-mono  px-2 py-1 rounded ">
+                        {signedReplayUrl}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(signedReplayUrl);
+                          toast.success("Replay URL copied to clipboard");
+                        }}
+                        className="p-2 hover:bg-background  transition-all shadow-sm border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground"
+                        title="Copy to clipboard"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="mt-4">
-                <div className="relative flex items-center bg-muted p-3 rounded-md pr-10 border border-border">
-                  <code className="text-xs sm:text-sm text-foreground truncate flex-1 font-mono">
-                    {selectedReplay.replayUrl}
-                  </code>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(selectedReplay.replayUrl);
-                      toast.success("Replay URL copied to clipboard");
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-foreground"
-                    title="Copy to clipboard"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
-                </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                <Video className="w-12 h-12 mb-4 opacity-20" />
+                <p className="text-lg font-medium">No replay available</p>
+                <p className="text-sm opacity-70">This stream does not have a recorded replay.</p>
               </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <Video className="w-12 h-12 mb-4 opacity-20" />
-              <p className="text-lg font-medium">No replay available</p>
-              <p className="text-sm opacity-70">This stream does not have a recorded replay.</p>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
