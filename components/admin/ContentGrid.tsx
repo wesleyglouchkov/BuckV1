@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Ban, Video, Play, X } from "lucide-react";
+import { VideoSnapshot } from "@/lib/video-thumbnail";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FlaggedContent } from "@/services/admin";
@@ -32,21 +33,29 @@ export function ContentGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {videos.filter((v) => v.flagged).map((v) => (
-        <Card key={v.id} className="border-none hover:shadow-lg ease-in-out duration-200 hover:scale-101 transition-all h-full flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card key={v.id} className="border border-border/40 hover:shadow-lg ease-in-out duration-200 hover:scale-[1.01] transition-all h-full flex flex-col rounded-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Video className="w-4 h-4 text-muted-foreground" />
               <p className="pt-1"> {v.title} </p>
             </CardTitle>
-            <div className="text-xs px-2 py-1 rounded bg-red-500/10 text-red-500 border border-red-500/30">Flagged</div>
+            <div className="text-[10px] uppercase font-bold px-2 py-1 bg-red-500/10 text-red-500 border border-red-500/30">Flagged</div>
           </CardHeader>
           <CardContent className="flex flex-col grow pb-4">
-            <div className="relative aspect-video w-full rounded-md mb-4 overflow-hidden">
-              <img className="h-full w-full object-cover" src={'https://www.epiphan.com/wp-content/uploads/2019/04/How-to-live-stream-an-event-well_FB.jpg'} alt={v.title} />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors">
+            <div className="relative aspect-video w-full mb-4 overflow-hidden border border-border/20 bg-muted">
+              {v.thumbnail ? (
+                <img className="h-full w-full object-cover" src={v.thumbnail} alt={v.title} />
+              ) : v.streamUrl ? (
+                <VideoSnapshot
+                  src={v.streamUrl}
+                />
+              ) : (
+                <img className="h-full w-full object-cover opacity-50" src={'https://www.epiphan.com/wp-content/uploads/2019/04/How-to-live-stream-an-event-well_FB.jpg'} alt={v.title} />
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-all group">
                 <Button
                   variant="default"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 opacity-0 group-hover:opacity-100 transition-opacity rounded-none"
                   onClick={() => openVideo(v)}
                 >
                   <Play className="w-4 h-4 mr-2" />
@@ -62,18 +71,18 @@ export function ContentGrid({
             {/* Warning Count Badge */}
             {getWarningColor && (
               <div className="mb-3">
-                <div className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center ${getWarningColor(v.creator.warningCount)}`}>
+                <div className={`px-3 py-1.5 text-xs font-bold inline-flex items-center border border-current/10 ${getWarningColor(v.creator.warningCount)}`}>
                   {v.creator.warningCount} {v.creator.warningCount < 2 ? "warning" : "warnings already"}
                 </div>
               </div>
             )}
 
-            <div className="mt-3 p-3 rounded-md border border-red-500/30 bg-red-500/5">
+            <div className="mt-3 p-3 border border-red-500/30 bg-red-500/5">
               <p className="text-xs font-semibold text-red-500 mb-1">Reported Info</p>
               <p className="text-sm text-foreground">{v.reporterComment || "Bad comment"}</p>
             </div>
             <div className="mt-auto pt-4 flex items-center gap-2">
-              <Button variant="destructive" size="sm" onClick={() => onWarn(v)}>
+              <Button variant="destructive" size="sm" onClick={() => onWarn(v)} className="rounded-none">
                 <Ban className="w-4 h-4 mr-1" />
                 Warn
               </Button>

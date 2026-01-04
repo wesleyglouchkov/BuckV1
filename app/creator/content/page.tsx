@@ -5,7 +5,7 @@ export default function CreatorContentPage() {
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-foreground">My Content</h1>
                 <p className="text-muted-foreground mt-2">
-                    Manage your uploaded videos, streams, and posts.
+                    Manage your streams
                 </p>
             </div>
             <div className="bg-card border border-border/20 rounded-lg p-6">

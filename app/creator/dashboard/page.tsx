@@ -16,6 +16,8 @@ import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
 import { formatDateTime } from "@/utils/dateTimeUtils";
 import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
 import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
+import { VideoSnapshot } from "@/lib/video-thumbnail";
+import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
 import { Loader2 } from "lucide-react";
 
 export default function CreatorDashboard() {
@@ -51,6 +53,7 @@ export default function CreatorDashboard() {
 
   const dashboardData = dashboardResponse?.data;
   const recentStreams = dashboardData?.recentStreams || [];
+  const signedThumbnails = useSignedThumbnails(recentStreams);
 
   // Process data for charts
   const followersAndSubscribersData = useMemo(() => {
@@ -330,7 +333,14 @@ export default function CreatorDashboard() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-secondary transition-colors group-hover:bg-secondary/80">
-                        <Video className="w-6 h-6 text-muted-foreground dark:text-white" />
+                        {item.replayUrl && signedThumbnails[item.id] ? (
+                          <VideoSnapshot
+                            src={signedThumbnails[item.id]}
+                            className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                          />
+                        ) : (
+                          <Video className="w-6 h-6 text-muted-foreground dark:text-white" />
+                        )}
                       </div>
                     )}
 
@@ -347,7 +357,7 @@ export default function CreatorDashboard() {
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-medium text-foreground truncate">{item?.title || "Untitled Stream"}</p>
                       {item.workoutType && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                        <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium border border-primary/20">
                           {item.workoutType}
                         </span>
                       )}
@@ -383,7 +393,7 @@ export default function CreatorDashboard() {
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {selectedReplay?.title || "Stream Replay"}
               {selectedReplay?.workoutType && (
-                <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-sm border border-border/50">
+                <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 border border-border/50">
                   {selectedReplay.workoutType}
                 </span>
               )}
@@ -392,12 +402,12 @@ export default function CreatorDashboard() {
               onClick={() => setSelectedReplay(null)}
               className="absolute right-4 top-4  opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1 hover:bg-muted"
             >
-              <X className="h-4 w-4 dark:text-white" />
+              <X className="h-4 w-4 dark:text-white cursor-pointer" />
               <span className="sr-only">Close</span>
             </button>
           </div>
 
-          <div className="overflow-y-auto px-6 py-6 flex-1">
+          <div className="overflow-y-auto px-6 pb-6 flex-1">
             {selectedReplay?.replayUrl ? (
               <div className="w-full space-y-4">
                 {isGeneratingUrl ? (
@@ -428,7 +438,7 @@ export default function CreatorDashboard() {
                         className="p-2 hover:bg-background  transition-all shadow-sm border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground"
                         title="Copy to clipboard"
                       >
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-4 w-4 cursor-pointer" />
                       </button>
                     </div>
                   </>
