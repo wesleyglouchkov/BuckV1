@@ -34,10 +34,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# agora
-AGORA_SDK_REFERENCE.md
-FRONTEND_LIVE_STREAMING_PLAN.md
-live-streaming.md
-BACKEND_LIVE_STREAMING_PROMPT.md
-SIGNALLING_DOCS.md
