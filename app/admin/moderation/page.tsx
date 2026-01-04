@@ -11,6 +11,7 @@ import { ContentGrid } from "@/components/admin/ContentGrid";
 import { adminService, type FlaggedMessage, type FlaggedContent } from "@/services/admin";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
+import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
 
 const badWordsFilters = [
     "fuck", "fucking", "motherfucker", "shit", "bitch", "asshole",
@@ -91,7 +92,21 @@ export default function ModerationPage() {
             });
 
             if (response.success) {
-                setVideos(response.data.content);
+                // Sign the S3 URLs for playback
+                const signedContent = await Promise.all(response.data.content.map(async (item) => {
+                    if (item.streamUrl) {
+                        try {
+                            const signedUrl = await getSignedStreamUrl(item.streamUrl);
+                            return { ...item, streamUrl: signedUrl };
+                        } catch (e) {
+                            console.error("Failed to sign url for item", item.id, e);
+                            return item;
+                        }
+                    }
+                    return item;
+                }));
+
+                setVideos(signedContent);
                 setContentPagination({
                     total: response.data.pagination.total,
                     totalPages: response.data.pagination.totalPages,
