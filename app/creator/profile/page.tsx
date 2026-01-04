@@ -4,7 +4,7 @@ import HelpSupportSidebar from "@/components/HelpSupportSidebar";
 
 export default function CreatorProfilePage() {
   return (
-    <div className="container dark:bg-background mx-auto py-10 px-4">
+    <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Creator Profile</h1>
         <p className="text-muted-foreground mt-2">

@@ -225,7 +225,7 @@ export default function CreatorSchedulePage() {
     }
 
     return (
-        <div className="container mx-auto py-10 px-4">
+        <div className="p-6">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">

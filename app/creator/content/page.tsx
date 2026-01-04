@@ -120,7 +120,7 @@ export default function MyStreamsPage() {
     };
 
     return (
-        <div className="container mx-auto py-10 px-4 max-w-7xl">
+        <div className="p-6">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-foreground">My Streams</h1>
                 <p className="text-muted-foreground mt-2">
@@ -153,7 +153,7 @@ export default function MyStreamsPage() {
                         <SelectTrigger className="rounded-none border-border/40 bg-card focus:ring-primary/50 h-11 dark:text-white">
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <SelectValue placeholder="Timeframe"/>
+                                <SelectValue placeholder="Timeframe" />
                             </div>
                         </SelectTrigger>
                         <SelectContent className="rounded-none">
@@ -361,7 +361,7 @@ export default function MyStreamsPage() {
             <Dialog open={!!selectedReplay} onOpenChange={(open) => !open && setSelectedReplay(null)}>
                 <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 shadow-2xl bg-background border border-border rounded-none">
                     {/* Header */}
-                    <div className="relative px-6 pt-6 pb-4 border-b border-border/20 flex items-center justify-between">
+                    <div className="p-6 border-b border-border/20 flex items-center justify-between">
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
                             {selectedReplay?.title || "Stream Replay"}
                             {selectedReplay?.workoutType && (
