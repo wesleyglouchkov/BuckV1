@@ -35,7 +35,6 @@ export default function ModerationPage() {
         id: string;
         name: string;
         email: string;
-        userType: 'creator' | 'member';
         violatingContent?: string;
     } | null>(null);
     const [customWarnMessage, setCustomWarnMessage] = useState("");
@@ -189,7 +188,6 @@ export default function ModerationPage() {
         id: string;
         name: string;
         email: string;
-        userType: 'creator' | 'member';
         violatingContent?: string;
     }) => {
         setWarnTarget(target);
@@ -213,7 +211,6 @@ export default function ModerationPage() {
         try {
             const response = await adminService.issueWarning({
                 userId: warnTarget.id,
-                userType: warnTarget.userType,
                 warningMessage: customWarnMessage,
                 violatingContent: warnTarget.violatingContent,
             });
@@ -280,13 +277,14 @@ export default function ModerationPage() {
                                     formatTimestamp={formatTimestamp}
                                     getWarningColor={getWarningColor}
                                     onView={handleViewMessage}
-                                    onWarn={(m) => openWarnDialog({
-                                        id: m.sender.id,
-                                        name: m.sender.name,
-                                        email: m.sender.email,
-                                        userType: 'member', // Assuming chat messages are from members
-                                        violatingContent: m.content,
-                                    })}
+                                    onWarn={(m) => {
+                                        openWarnDialog({
+                                            id: m.sender.id,
+                                            name: m.sender.name,
+                                            email: m.sender.email,
+                                            violatingContent: m.content,
+                                        });
+                                    }}
                                     pagination={messagePagination}
                                     currentPage={messagePage}
                                     onPageChange={setMessagePage}
@@ -395,7 +393,6 @@ export default function ModerationPage() {
                                                         id: selectedMessage.sender.id,
                                                         name: selectedMessage.sender.name,
                                                         email: selectedMessage.sender.email,
-                                                        userType: 'member',
                                                         violatingContent: selectedMessage.content,
                                                     });
                                                     handleCloseDialog();
@@ -451,8 +448,7 @@ export default function ModerationPage() {
                                         id: v.creator.id,
                                         name: v.creator.name,
                                         email: v.creator.email,
-                                        userType: 'creator',
-                                        violatingContent: `${v.title}: ${v.description || 'No description'}`,
+                                        violatingContent: `Stream: "${v.title}" (${v.workoutType}) - Reporter Comment: ${v.reporterComment}`,
                                     })}
                                     getWarningColor={getWarningColor}
                                 />

@@ -5,6 +5,7 @@ import { Ban, Video, Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FlaggedContent } from "@/services/admin";
+import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
 
 export function ContentGrid({
   videos,
@@ -62,7 +63,7 @@ export function ContentGrid({
             {getWarningColor && (
               <div className="mb-3">
                 <div className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center ${getWarningColor(v.creator.warningCount)}`}>
-                  {v.creator.warningCount} {v.creator.warningCount < 2 ? "warning" : "warnings already"} 
+                  {v.creator.warningCount} {v.creator.warningCount < 2 ? "warning" : "warnings already"}
                 </div>
               </div>
             )}
@@ -96,12 +97,16 @@ export function ContentGrid({
           </DialogHeader>
           {currentVideo && (
             <div className="w-full space-y-4">
-              {/* Use native video player; replace with custom player if needed */}
-              <video
-                controls
-                className="w-full rounded-md"
-                src={currentVideo.streamUrl || "https://www.w3schools.com/html/mov_bbb.mp4"}
-              />
+              {/* Vidstack Video Player */}
+              {currentVideo.streamUrl ? (
+                <ModerationVideoPlayer
+                  src={currentVideo.streamUrl}
+                  title={currentVideo.title}
+                  poster={currentVideo.thumbnail}
+                />
+              ) : (
+                <p className="text-center dark:text-white py-8">Stream not available</p>
+              )}
               {/* Creator + Actions */}
               <div className="flex items-center justify-between gap-4">
                 <div className="text-sm space-y-1">

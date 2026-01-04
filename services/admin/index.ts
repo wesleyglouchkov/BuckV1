@@ -135,6 +135,7 @@ export interface FlaggedMessage {
     email: string;
     username: string;
     warningCount: number;
+    role: 'CREATOR' | 'MEMBER';
   };
   timestamp: string;
   flagged: boolean;
@@ -205,7 +206,6 @@ export interface GetFlaggedContentResponse {
 
 export interface IssueWarningParams {
   userId: string;
-  userType: 'creator' | 'member';
   warningMessage: string;
   violatingContent?: string; // The message/content that triggered the warning
 }
@@ -316,7 +316,6 @@ export const adminService = {
     try {
       const axios = await createClientAuthInstance('ADMIN');
       const response = await axios.patch(`/admin/increment-warnings/${params.userId}`, {
-        userType: params.userType,
         warningMessage: params.warningMessage,
         violatingContent: params.violatingContent,
       });

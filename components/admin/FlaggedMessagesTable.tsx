@@ -10,6 +10,7 @@ export type Message = {
     email: string;
     username: string;
     warningCount: number;
+    role: 'CREATOR' | 'MEMBER';
   };
   timestamp: string;
   flagged: boolean;

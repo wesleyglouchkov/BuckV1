@@ -38,6 +38,32 @@ export default function RootLayout({
             `,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Suppress Vidstack errors globally
+              window.addEventListener('error', function(event) {
+                const msg = event.error?.message || event.message || '';
+                if (msg.includes('$state') || msg.includes('prop2') || 
+                    msg.includes('orientation.lock') || msg.includes('NotSupportedError')) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  event.stopImmediatePropagation();
+                  return false;
+                }
+              }, true);
+              
+              window.addEventListener('unhandledrejection', function(event) {
+                const msg = event.reason?.message || String(event.reason) || '';
+                if (msg.includes('$state') || msg.includes('prop2') || 
+                    msg.includes('orientation.lock') || msg.includes('NotSupportedError')) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }
+              }, true);
+            `,
+          }}
+        />
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <SessionProvider>
