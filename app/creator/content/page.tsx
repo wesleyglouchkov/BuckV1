@@ -361,7 +361,7 @@ export default function MyStreamsPage() {
             <Dialog open={!!selectedReplay} onOpenChange={(open) => !open && setSelectedReplay(null)}>
                 <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 shadow-2xl bg-background border border-border rounded-none">
                     {/* Header */}
-                    <div className="p-6 border-b border-border/20 flex items-center justify-between">
+                    <div className="p-6 pb-2 border-b border-border/20 flex items-center justify-between">
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
                             {selectedReplay?.title || "Stream Replay"}
                             {selectedReplay?.workoutType && (
@@ -380,7 +380,7 @@ export default function MyStreamsPage() {
                     </div>
 
                     <div className="overflow-y-auto px-6 pb-6 flex-1">
-                        <div className="w-full space-y-4 pt-6">
+                        <div className="w-full space-y-4">
                             {isGeneratingUrl ? (
                                 <div className="w-full aspect-video flex flex-col items-center justify-center bg-black border-2 border-primary/30">
                                     <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
