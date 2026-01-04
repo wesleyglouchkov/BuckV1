@@ -39,16 +39,19 @@ export default function ModerationVideoPlayer({ src, title, poster }: Moderation
 
     if (!src) {
         return (
-            <div className="w-full aspect-video flex items-center justify-center bg-muted rounded-md">
-                <p className="text-muted-foreground">No video source available</p>
+            <div className="w-full aspect-video flex items-center justify-center bg-muted rounded-md border-2 border-primary/20">
+                <p className="text-primary">No video source available</p>
             </div>
         );
     }
 
     if (!isReady) {
         return (
-            <div className="w-full aspect-video flex items-center justify-center bg-black rounded-md">
-                <div className="animate-pulse text-white">Loading player...</div>
+            <div className="w-full aspect-video flex items-center justify-center bg-black rounded-md border-2 border-primary/30">
+                <div className="animate-pulse text-primary flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Loading player...
+                </div>
             </div>
         );
     }
