@@ -239,4 +239,17 @@ export const creatorService = {
     }
   },
 
+  // Get Creator's Streams (My Streams Page)
+  getMyStreams: async (params: { page?: number; limit?: number; search?: string; type?: string; timeframe?: string }) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/my-streams', { params });
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch streams');
+    }
+  },
+
+
 };

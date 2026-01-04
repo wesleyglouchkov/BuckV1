@@ -1,16 +1,423 @@
+"use client";
 
-export default function CreatorContentPage() {
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import useSWR from "swr";
+import { creatorService } from "@/services/creator";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+    Search,
+    Filter,
+    ChevronLeft,
+    ChevronRight,
+    Video,
+    Play,
+    Copy,
+    X,
+    Loader2,
+    Calendar,
+    Radio
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { formatDateTime } from "@/utils/dateTimeUtils";
+import { VideoSnapshot } from "@/lib/video-thumbnail";
+import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
+import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
+import { toast } from "sonner";
+
+const WORKOUT_TYPES = [
+    "All Types",
+    "Yoga",
+    "HIIT",
+    "Strength",
+    "Cardio",
+    "Pilates",
+    "Meditation",
+    "Other"
+];
+
+export default function MyStreamsPage() {
+    const { data: session } = useSession();
+    const router = useRouter();
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [workoutType, setWorkoutType] = useState("All Types");
+    const [timeframe, setTimeframe] = useState("all");
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
+    // Handle debouncing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1); // Reset to first page on search
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const [selectedReplay, setSelectedReplay] = useState<any>(null);
+    const [signedReplayUrl, setSignedReplayUrl] = useState<string>("");
+    const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+
+    // Fetch streams with filters
+    const { data: response, isLoading } = useSWR(
+        ['my-streams', page, debouncedSearch, workoutType, timeframe],
+        () => creatorService.getMyStreams({
+            page,
+            limit,
+            search: debouncedSearch || undefined,
+            type: workoutType === "All Types" ? undefined : workoutType,
+            timeframe: timeframe === "all" ? undefined : timeframe
+        })
+    );
+
+    const streams = response?.streams || [];
+    const pagination = response?.pagination || { page: 1, totalPages: 1, total: 0 };
+
+    // Batch sign thumbnails for streams missing images
+    const signedThumbnails = useSignedThumbnails(streams);
+
+    const handleReplayClick = async (stream: any) => {
+        const replayUrl = stream.replayUrl || stream.streamUrl;
+        if (!replayUrl) {
+            toast.error("No replay available for this stream");
+            return;
+        }
+
+        setSelectedReplay(stream);
+        setIsGeneratingUrl(true);
+        setSignedReplayUrl("");
+
+        try {
+            const url = await getSignedStreamUrl(replayUrl);
+            setSignedReplayUrl(url || "");
+        } catch (error) {
+            toast.error("Failed to generate playback URL");
+            console.error(error);
+        } finally {
+            setIsGeneratingUrl(false);
+        }
+    };
+
     return (
-        <div className="container mx-auto py-10 px-4">
+        <div className="container mx-auto py-10 px-4 max-w-7xl">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-foreground">My Streams</h1>
                 <p className="text-muted-foreground mt-2">
-                    Manage your streams
+                    Manage and review your recorded stream replays
                 </p>
             </div>
-            <div className="bg-card border border-border/20 rounded-lg p-6">
-                <p className="text-muted-foreground">Content management coming soon...</p>
+
+            {/* Filters Bar */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by title..."
+                        value={search}
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            setPage(1);
+                        }}
+                        className="pl-10 h-11 rounded-none border-border/40 bg-card hover:bg-accent/5 transition-colors focus:ring-primary/50"
+                    />
+                </div>
+                <div className="w-full md:w-48">
+                    <Select
+                        value={timeframe}
+                        onValueChange={(val) => {
+                            setTimeframe(val);
+                            setPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="rounded-none border-border/40 bg-card focus:ring-primary/50 h-11 dark:text-white">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <SelectValue placeholder="Timeframe"/>
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-none">
+                            <SelectItem value="all">All Streams</SelectItem>
+                            <SelectItem value="upcoming">Upcoming & Live</SelectItem>
+                            <SelectItem value="past">Past Replays</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="w-full md:w-48">
+                    <Select
+                        value={workoutType}
+                        onValueChange={(val) => {
+                            setWorkoutType(val);
+                            setPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="rounded-none border-border/40 bg-card focus:ring-primary/50 h-11 dark:text-white">
+                            <div className="flex items-center gap-2">
+                                <Filter className="h-4 w-4 text-muted-foreground" />
+                                <SelectValue placeholder="Workout Type" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-none">
+                            {WORKOUT_TYPES.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                    {type}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
+
+            {/* Content Table */}
+            <div className="bg-card border border-border/20 shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="border-border/20">
+                            <TableHead className="w-[100px]">Recording</TableHead>
+                            <TableHead>Stream Details</TableHead>
+                            <TableHead className="hidden md:table-cell">Workout Type</TableHead>
+                            <TableHead className="hidden sm:table-cell">Started At</TableHead>
+                            <TableHead className="hidden lg:table-cell">Ended At</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <TableRow key={i} className="animate-pulse">
+                                    <TableCell><div className="w-20 h-12 bg-muted" /></TableCell>
+                                    <TableCell><div className="h-4 w-32 bg-muted mb-1" /><div className="h-3 w-20 bg-muted" /></TableCell>
+                                    <TableCell><div className="h-4 w-16 bg-muted" /></TableCell>
+                                    <TableCell className="hidden sm:table-cell"><div className="h-4 w-24 bg-muted" /></TableCell>
+                                    <TableCell className="hidden lg:table-cell"><div className="h-4 w-24 bg-muted" /></TableCell>
+                                    <TableCell><div className="ml-auto h-8 w-16 bg-muted" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : streams.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                    <Video className="w-10 h-10 opacity-20 mx-auto mb-2" />
+                                    No streams found for the current filters.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            streams.map((stream: any) => {
+                                const hasReplay = !!(stream.replayUrl || stream.streamUrl);
+                                return (
+                                    <TableRow key={stream.id} className="border-border/10 hover:bg-accent/30 transition-colors group">
+                                        <TableCell>
+                                            <div
+                                                className={`w-20 h-12 bg-muted relative overflow-hidden ${hasReplay ? 'cursor-pointer group/thumb' : 'cursor-default grayscale opacity-50'}`}
+                                                onClick={() => hasReplay && handleReplayClick(stream)}
+                                            >
+                                                {stream.thumbnail ? (
+                                                    <Image
+                                                        src={stream.thumbnail}
+                                                        alt={stream.title}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                ) : hasReplay && signedThumbnails[stream.id] ? (
+                                                    <VideoSnapshot
+                                                        src={signedThumbnails[stream.id]}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <Video className="w-5 h-5 text-muted-foreground/50" />
+                                                    </div>
+                                                )}
+                                                {hasReplay && (
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                                                        <Play className="w-6 h-6 text-white fill-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium text-foreground truncate max-w-[150px] lg:max-w-xs">{stream.title}</div>
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {stream.isLive ? (
+                                                    <span className="text-[10px] uppercase font-bold tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.5 border border-red-500/20 flex items-center gap-1">
+                                                        <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" /> Live Now
+                                                    </span>
+                                                ) : stream.isScheduled && (
+                                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 border border-border/20">Scheduled</span>
+                                                )}
+                                                {new Date(stream.startTime) > new Date() && !stream.isLive && (
+                                                    <span className="text-[10px] uppercase tracking-wider text-blue-500 bg-blue-500/10 px-1.5 py-0.5 border border-blue-500/20">Upcoming</span>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            {stream.workoutType && (
+                                                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary border border-primary/20">
+                                                    {stream.workoutType}
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                                            {formatDateTime(stream.startTime)}
+                                        </TableCell>
+                                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                                            {stream.endTime ? formatDateTime(stream.endTime) : <span className="text-[10px] opacity-50">N/A</span>}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {stream.isLive ? (
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    className="rounded-none bg-red-600 text-white hover:bg-red-700 transition-all"
+                                                    onClick={() => router.push(`/creator/live/${stream.id}`)}
+                                                >
+                                                    <Radio className="w-3 h-3 mr-2" />
+                                                    Join Live
+                                                </Button>
+                                            ) : new Date(stream.startTime) > new Date() ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="rounded-none border-border/40 hover:bg-accent transition-all"
+                                                    onClick={() => router.push(`/creator/live/${stream.id}`)}
+                                                >
+                                                    <Video className="w-3 h-3 mr-2" />
+                                                    Start Stream
+                                                </Button>
+                                            ) : hasReplay ? (
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    className="rounded-none bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                                                    onClick={() => handleReplayClick(stream)}
+                                                >
+                                                    <Play className="w-3 h-3 mr-2" />
+                                                    Replay
+                                                </Button>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground italic mr-4">No Replay</span>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                {!isLoading && pagination.totalPages > 1 && (
+                    <div className="p-4 border-t border-border/10 bg-muted/20 flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, pagination.total)}</span> of <span className="font-medium">{pagination.total}</span> entries
+                        </p>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-none disabled:opacity-30"
+                                disabled={page <= 1}
+                                onClick={() => setPage(p => p - 1)}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="flex items-center px-4 text-sm font-medium">
+                                Page {page} of {pagination.totalPages}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-none disabled:opacity-30"
+                                disabled={page >= pagination.totalPages}
+                                onClick={() => setPage(p => p + 1)}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Replay Modal - Shared Logic */}
+            <Dialog open={!!selectedReplay} onOpenChange={(open) => !open && setSelectedReplay(null)}>
+                <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 shadow-2xl bg-background border border-border rounded-none">
+                    {/* Header */}
+                    <div className="relative px-6 pt-6 pb-4 border-b border-border/20 flex items-center justify-between">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            {selectedReplay?.title || "Stream Replay"}
+                            {selectedReplay?.workoutType && (
+                                <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 border border-border/50">
+                                    {selectedReplay.workoutType}
+                                </span>
+                            )}
+                        </DialogTitle>
+                        <button
+                            onClick={() => setSelectedReplay(null)}
+                            className="absolute right-4 top-4 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1 hover:bg-muted"
+                        >
+                            <X className="h-4 w-4 dark:text-white cursor-pointer" />
+                            <span className="sr-only">Close</span>
+                        </button>
+                    </div>
+
+                    <div className="overflow-y-auto px-6 pb-6 flex-1">
+                        <div className="w-full space-y-4 pt-6">
+                            {isGeneratingUrl ? (
+                                <div className="w-full aspect-video flex flex-col items-center justify-center bg-black border-2 border-primary/30">
+                                    <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                                    <p className="text-primary text-sm font-medium">Generating secure link...</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="overflow-hidden ring-1 ring-border/20 shadow-sm">
+                                        <ModerationVideoPlayer
+                                            src={signedReplayUrl}
+                                            title={selectedReplay?.title}
+                                            poster={selectedReplay?.thumbnail}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-3 p-3 bg-muted/40 border border-border/40">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Secure Link to share valid for 2 hrs:</p>
+                                        <code className="select-none text-[10px] sm:text-xs text-muted-foreground truncate flex-1 font-mono px-2 py-1">
+                                            {signedReplayUrl}
+                                        </code>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(signedReplayUrl);
+                                                toast.success("Replay URL copied to clipboard");
+                                            }}
+                                            className="p-2 hover:bg-background transition-all shadow-sm border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground"
+                                            title="Copy to clipboard"
+                                        >
+                                            <Copy className="h-4 w-4 cursor-pointer" />
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
