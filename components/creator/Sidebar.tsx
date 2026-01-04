@@ -13,7 +13,7 @@ const creatorMenu = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
   { icon: Calendar, label: "My Schedule", href: "/creator/schedule" },
   { icon: Users, label: "My Subscribers", href: "/creator/subscribers" },
-  { icon: FileText, label: "My Content", href: "/creator/content" },
+  { icon: FileText, label: "My Streams", href: "/creator/content" },
   { icon: DollarSign, label: "Revenue", href: "/creator/revenue" },
   { icon: User, label: "Account Profile", href: "/creator/profile" },
 ];
