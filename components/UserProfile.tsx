@@ -244,8 +244,7 @@ export default function UserProfile() {
                   {session.user.role?.toLowerCase() || 'Member'}
                 </Badge>
               </span>
-              <span>•</span>
-              <span>Joined {new Date(displayUser.createdAt).toLocaleDateString()}</span>
+              <span>Joined {new Date(displayUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
             </div>
 
             {!isAdmin && (

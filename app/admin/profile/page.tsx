@@ -6,7 +6,7 @@ export default function AdminProfilePage() {
     <div className="container mx-auto px-6 py-6">
      <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
-                <User className="w-8 h-8 text-blue-500 font-bold " />
+                <User className="w-8 h-8 text-primary font-bold " />
                     <h1 className="text-2xl font-bold text-foreground mt-2">Admin Profile</h1>
                 </div>
                 <p className="text-muted-foreground">Manage creators and members</p>

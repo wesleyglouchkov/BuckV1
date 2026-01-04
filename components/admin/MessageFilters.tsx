@@ -36,7 +36,7 @@ export function MessageFilters({
             placeholder="Search by message content, sender name, or email..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-10"
+            className="mt-1 pl-10 pr-10 ring-primary border-primary"
           />
           {searchQuery && (
             <button
