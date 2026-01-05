@@ -250,6 +250,16 @@ export const creatorService = {
       throw new Error(err.response?.data?.message || 'Failed to fetch streams');
     }
   },
-
+  // Delete My Stream
+  deleteMyStream: async (streamId: string) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.delete(`/creator/my-streams/${streamId}`);
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to delete stream');
+    }
+  },
 
 };

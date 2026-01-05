@@ -29,19 +29,31 @@ import {
     Video,
     Play,
     Copy,
+    Radio,
+    Trash2,
     X,
     Loader2,
-    Calendar,
-    Radio
+    Calendar
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { mutate } from "swr";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { formatDateTime } from "@/utils/dateTimeUtils";
 import { VideoSnapshot } from "@/lib/video-thumbnail";
 import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
-import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
+import { getSignedStreamUrl, deleteS3File, deleteS3FolderAction } from "@/app/actions/s3-actions";
 import { toast } from "sonner";
 
 const WORKOUT_TYPES = [
@@ -78,6 +90,8 @@ export default function MyStreamsPage() {
     const [selectedReplay, setSelectedReplay] = useState<any>(null);
     const [signedReplayUrl, setSignedReplayUrl] = useState<string>("");
     const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+    const [streamIdToDelete, setStreamIdToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Fetch streams with filters
     const { data: response, isLoading } = useSWR(
@@ -90,6 +104,44 @@ export default function MyStreamsPage() {
             timeframe: timeframe === "all" ? undefined : timeframe
         })
     );
+
+    const handleDeleteStream = async () => {
+        if (!streamIdToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            // Find the stream to get IDs for folder path
+            const streamToDelete = streams.find((s: any) => s.id === streamIdToDelete);
+
+            // 1. Delete entire stream folder from S3 (via Server Action)
+            // Pattern: creators/{creatorId}/streams/{streamId}
+            if (streamToDelete) {
+                const creatorId = streamToDelete.creatorId;
+                const streamId = streamToDelete.id;
+
+                if (creatorId && streamId) {
+                    const folderPath = `creators/${creatorId}/streams/${streamId}`;
+                    await deleteS3FolderAction(folderPath);
+                } else if (streamToDelete.replayUrl || streamToDelete.streamUrl) {
+                    // Fallback to single file deletion if folder path can't be constructed
+                    await deleteS3File(streamToDelete.replayUrl || streamToDelete.streamUrl);
+                }
+            }
+
+            // 2. Delete from Database (via Backend API)
+            await creatorService.deleteMyStream(streamIdToDelete);
+
+            toast.success("Stream and all associated assets deleted successfully");
+
+            // Mutate the SWR key to refresh the list
+            mutate(['my-streams', page, debouncedSearch, workoutType, timeframe]);
+            setStreamIdToDelete(null);
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete stream");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     const streams = response?.streams || [];
     const pagination = response?.pagination || { page: 1, totalPages: 1, total: 0 };
@@ -283,39 +335,50 @@ export default function MyStreamsPage() {
                                             {stream.endTime ? formatDateTime(stream.endTime) : <span className="text-[10px] opacity-50">N/A</span>}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            {stream.isLive ? (
-                                                <Button
-                                                    variant="default"
-                                                    size="sm"
-                                                    className="rounded-none bg-red-600 text-white hover:bg-red-700 transition-all"
-                                                    onClick={() => router.push(`/creator/live/${stream.id}`)}
-                                                >
-                                                    <Radio className="w-3 h-3 mr-2" />
-                                                    Join Live
-                                                </Button>
-                                            ) : new Date(stream.startTime) > new Date() ? (
+                                            <div className="flex items-center justify-end gap-2">
+                                                {stream.isLive ? (
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="rounded-none bg-red-600 text-white hover:bg-red-700 transition-all"
+                                                        onClick={() => router.push(`/creator/live/${stream.id}`)}
+                                                    >
+                                                        <Radio className="w-3 h-3 mr-2" />
+                                                        Join Live
+                                                    </Button>
+                                                ) : new Date(stream.startTime) > new Date() ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="rounded-none border-border/40 hover:bg-accent transition-all"
+                                                        onClick={() => router.push(`/creator/live/${stream.id}`)}
+                                                    >
+                                                        <Video className="w-3 h-3 mr-2" />
+                                                        Start Stream
+                                                    </Button>
+                                                ) : hasReplay ? (
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="rounded-none bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                                                        onClick={() => handleReplayClick(stream)}
+                                                    >
+                                                        <Play className="w-3 h-3 mr-2" />
+                                                        Replay
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground italic mr-4">No Replay</span>
+                                                )}
+
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="rounded-none border-border/40 hover:bg-accent transition-all"
-                                                    onClick={() => router.push(`/creator/live/${stream.id}`)}
+                                                    className="rounded-none border-border/40 hover:bg-red-500 hover:text-white transition-all p-1.5 h-8 w-8"
+                                                    onClick={() => setStreamIdToDelete(stream.id)}
                                                 >
-                                                    <Video className="w-3 h-3 mr-2" />
-                                                    Start Stream
+                                                    <Trash2 className="w-4 h-4" />
                                                 </Button>
-                                            ) : hasReplay ? (
-                                                <Button
-                                                    variant="default"
-                                                    size="sm"
-                                                    className="rounded-none bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-                                                    onClick={() => handleReplayClick(stream)}
-                                                >
-                                                    <Play className="w-3 h-3 mr-2" />
-                                                    Replay
-                                                </Button>
-                                            ) : (
-                                                <span className="text-xs text-muted-foreground italic mr-4">No Replay</span>
-                                            )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 );
@@ -418,6 +481,35 @@ export default function MyStreamsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            {/* Confirmation Dialog */}
+            <AlertDialog open={!!streamIdToDelete} onOpenChange={(open) => !open && setStreamIdToDelete(null)}>
+                <AlertDialogContent className="rounded-none border-border border-2">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the stream record and its associated video replay from our servers and S3 storage.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2 sm:gap-0">
+                        <AlertDialogCancel className="rounded-none">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-none"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDeleteStream();
+                            }}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : "Yes, Delete Stream"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

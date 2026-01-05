@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand, DeleteObjectTaggingCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand, DeleteObjectTaggingCommand, ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Path } from "./s3-constants";
 
@@ -112,5 +112,44 @@ export async function deleteS3ObjectTagging(key: string) {
     });
 
     return await s3Client.send(command);
+}
+
+// Delete an object from S3
+export async function deleteS3Object(key: string) {
+    const command = new DeleteObjectCommand({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Key: key,
+    });
+
+    return await s3Client.send(command);
+}
+
+// Delete a "folder" (prefix) from S3
+export async function deleteS3Folder(prefix: string) {
+    if (!prefix) return;
+
+    // Ensure prefix ends with a slash to avoid accidental partial matches
+    const folderPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
+
+    // 1. List all objects with the prefix
+    const listCommand = new ListObjectsV2Command({
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Prefix: folderPrefix,
+    });
+
+    const listedObjects = await s3Client.send(listCommand);
+
+    if (!listedObjects.Contents || listedObjects.Contents.length === 0) return;
+
+    // 2. Prepare delete command
+    const deleteParams = {
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+        Delete: {
+            Objects: listedObjects.Contents.map(({ Key }) => ({ Key })),
+        },
+    };
+
+    const deleteCommand = new DeleteObjectsCommand(deleteParams);
+    return await s3Client.send(deleteCommand);
 }
 

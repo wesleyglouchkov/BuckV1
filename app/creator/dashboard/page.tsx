@@ -15,7 +15,7 @@ import Image from "next/image";
 import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
 import { formatDateTime } from "@/utils/dateTimeUtils";
 import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
-import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 import { VideoSnapshot } from "@/lib/video-thumbnail";
 import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
 import { Loader2 } from "lucide-react";

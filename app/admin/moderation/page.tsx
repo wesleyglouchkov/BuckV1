@@ -11,7 +11,7 @@ import { ContentGrid } from "@/components/admin/ContentGrid";
 import { adminService, type FlaggedMessage, type FlaggedContent } from "@/services/admin";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
-import { getSignedStreamUrl } from "@/app/actions/s3-signed-url";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 
 const badWordsFilters = [
     "fuck", "fucking", "motherfucker", "shit", "bitch", "asshole",

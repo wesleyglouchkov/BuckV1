@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSignedStreamUrl } from '@/app/actions/s3-signed-url';
+import { getSignedStreamUrl } from '@/app/actions/s3-actions';
 
 /**
  * Custom hook to batch sign S3 URLs for video thumbnails.
