@@ -239,6 +239,8 @@ export const creatorService = {
     }
   },
 
+  /*--------------------------------------My Streams--------------------------------------*/
+
   // Get Creator's Streams (My Streams Page)
   getMyStreams: async (params: { page?: number; limit?: number; search?: string; type?: string; timeframe?: string }) => {
     try {
@@ -261,6 +263,9 @@ export const creatorService = {
       throw new Error(err.response?.data?.message || 'Failed to delete stream');
     }
   },
+
+  /*--------------------------------------My Community--------------------------------------*/
+
   // Get Creator's Subscribers
   getSubscribers: async (params: { page?: number; limit?: number; search?: string }) => {
     try {
@@ -282,6 +287,45 @@ export const creatorService = {
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       throw new Error(err.response?.data?.message || 'Failed to fetch followers');
+    }
+  },
+
+
+  /*--------------------------------------Revenue--------------------------------------*/
+
+  // Get Revenue Stats
+  getRevenueStats: async () => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/revenue/stats');
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch revenue stats');
+    }
+  },
+
+  // Get Tip Transactions
+  getTipTransactions: async (params: { page?: number; limit?: number; search?: string }) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/revenue/tips', { params });
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch tip transactions');
+    }
+  },
+
+  // Get Subscription Transactions
+  getSubscriptionTransactions: async (params: { page?: number; limit?: number; search?: string }) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/revenue/subscriptions', { params });
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch subscription transactions');
     }
   },
 
