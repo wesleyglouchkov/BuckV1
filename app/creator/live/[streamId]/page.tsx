@@ -16,6 +16,7 @@ import StreamPreviewOverlay from "@/components/live/StreamPreviewOverlay";
 import StreamSetupCard from "@/components/live/StreamSetupCard";
 import Loader from "@/components/Loader";
 import StreamExpiredCard from "@/components/live/StreamExpiredCard";
+import { SharePopover } from "@/components/SharePopover";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -42,6 +43,7 @@ export default function CreatorLivePage() {
     const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string; sid: string; uid: string } | null>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isStreamExpired, setIsStreamExpired] = useState(false);
+    const [shareUrl, setShareUrl] = useState("");
 
     // Refs to track state synchronously for event handlers (like unload)
     const isLiveRef = useRef(false);
@@ -61,12 +63,14 @@ export default function CreatorLivePage() {
         recordingDetailsRef.current = recordingDetails;
     }, [recordingDetails]);
 
-    // Initial chat state based on screen size
     useEffect(() => {
         if (typeof window !== 'undefined' && window.innerWidth < 1024) {
             setIsChatVisible(false);
         }
-    }, []);
+        if (typeof window !== 'undefined') {
+            setShareUrl(`${window.location.origin}/live/${urlStreamId}`);
+        }
+    }, [urlStreamId]);
 
     // FAST-FAIL: Check session storage immediately to prevent "Live" flash on back button
     useEffect(() => {
@@ -311,12 +315,7 @@ export default function CreatorLivePage() {
     };
 
 
-    // Handle share - just copy link to clipboard
-    const handleShare = async () => {
-        const shareUrl = `${window.location.origin}/live/${urlStreamId}`;
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Stream link copied to clipboard!");
-    };
+
 
     // Show loading only for auth
     if (status === "loading") {
@@ -403,10 +402,7 @@ export default function CreatorLivePage() {
 
                     <div className="flex items-center gap-2">
                         {isLive && (
-                            <Button variant="outline" size="sm" onClick={handleShare}>
-                                <Share2 className="w-4 h-4 mr-2" />
-                                Share
-                            </Button>
+                            <SharePopover url={shareUrl} />
                         )}
                         <ThemeToggle />
                     </div>

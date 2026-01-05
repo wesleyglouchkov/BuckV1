@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Users, Calendar, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { SharePopover } from "@/components/SharePopover";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -216,12 +217,7 @@ export default function LiveStreamPage() {
         }, 100);
     };
 
-    // Handle share - just copy link to clipboard
-    const handleShare = async () => {
-        const shareUrl = window.location.href;
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Stream link copied to clipboard!");
-    };
+
 
     if (status === "loading" || isLoading) {
         return (
@@ -306,9 +302,11 @@ export default function LiveStreamPage() {
 
                         </div>
 
-                        <Button variant="ghost" size="icon" onClick={handleShare}>
-                            <Share2 className="w-4 h-4 dark:text-white" />
-                        </Button>
+                        <SharePopover url={typeof window !== 'undefined' ? window.location.href : ''}>
+                            <Button variant="ghost" size="icon">
+                                <Share2 className="w-4 h-4 dark:text-white" />
+                            </Button>
+                        </SharePopover>
 
                         {/* Report Stream Button - Only for logged-in viewers */}
                         {session?.user?.id && session.user.id !== streamDetails.creator.id && (
