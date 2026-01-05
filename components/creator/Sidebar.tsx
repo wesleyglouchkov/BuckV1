@@ -12,7 +12,7 @@ import HelpSupportSidebar from "@/components/HelpSupportSidebar";
 const creatorMenu = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
   { icon: Calendar, label: "My Schedule", href: "/creator/schedule" },
-  { icon: Users, label: "My Subscribers", href: "/creator/subscribers" },
+  { icon: Users, label: "My Community", href: "/creator/community" },
   { icon: FileText, label: "My Streams", href: "/creator/content" },
   { icon: DollarSign, label: "Revenue", href: "/creator/revenue" },
   { icon: User, label: "Account Profile", href: "/creator/profile" },

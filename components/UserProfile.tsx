@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Button, Input } from "@/components/ui";
+import Link from "next/link";
 import { authService } from "@/services";
 import { creatorService, CreatorProfile } from "@/services/creator";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -20,7 +21,6 @@ interface ChangePasswordFormData {
 
 interface EditProfileFormData {
   bio: string;
-  subscriptionPrice: string;
 }
 
 export default function UserProfile() {
@@ -40,7 +40,6 @@ export default function UserProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [editFormData, setEditFormData] = useState<EditProfileFormData>({
     bio: "",
-    subscriptionPrice: "",
   });
 
   useEffect(() => {
@@ -59,7 +58,6 @@ export default function UserProfile() {
         setProfile(response.data);
         setEditFormData({
           bio: response.data.bio || "",
-          subscriptionPrice: response.data.subscriptionPrice?.toString() || "",
         });
       }
     } catch (error) {
@@ -83,9 +81,6 @@ export default function UserProfile() {
         const updatedData: any = {
           bio: editFormData.bio,
         };
-        if (editFormData.subscriptionPrice) {
-          updatedData.subscriptionPrice = parseFloat(editFormData.subscriptionPrice);
-        }
         await creatorService.updateProfile(role, updatedData);
       }
       else if (roleKey === 'member') {
@@ -329,23 +324,18 @@ export default function UserProfile() {
 
           {isCreator && (
             <div>
-              <Label htmlFor="subscriptionPrice">Monthly Subscription Price ($)</Label>
-              {isEditing ? (
-                <Input
-                  id="subscriptionPrice"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={editFormData.subscriptionPrice}
-                  onChange={(e) => setEditFormData({ ...editFormData, subscriptionPrice: e.target.value })}
-                  className="mt-1"
-                  placeholder="0.00"
-                />
-              ) : (
-                <div className="mt-1 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100">
+              <Label>Monthly Subscription Price ($)</Label>
+              <div className="mt-1 flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-md">
+                <span className="text-gray-900 dark:text-gray-100 font-medium">
                   {profile?.subscriptionPrice ? `$${profile.subscriptionPrice}` : 'Not set'}
-                </div>
-              )}
+                </span>
+                <Link
+                  href="/creator/community"
+                  className="text-xs text-primary hover:underline font-semibold uppercase tracking-wider"
+                >
+                  Manage the subscription price
+                </Link>
+              </div>
             </div>
           )}
         </div>

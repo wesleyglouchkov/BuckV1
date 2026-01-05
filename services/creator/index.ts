@@ -261,5 +261,28 @@ export const creatorService = {
       throw new Error(err.response?.data?.message || 'Failed to delete stream');
     }
   },
+  // Get Creator's Subscribers
+  getSubscribers: async (params: { page?: number; limit?: number; search?: string }) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/subscribers', { params });
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch subscribers');
+    }
+  },
+
+  // Get Creator's Followers
+  getFollowers: async (params: { page?: number; limit?: number; search?: string }) => {
+    try {
+      const axios = await createClientAuthInstance('CREATOR');
+      const response = await axios.get('/creator/followers', { params });
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch followers');
+    }
+  },
 
 };
