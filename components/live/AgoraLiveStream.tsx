@@ -614,15 +614,15 @@ function LiveBroadcast({
                                 <PhoneOff className="w-4 h-4" />
                             </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
+                        <AlertDialogContent className="bg-background border-border text-white">
                             <AlertDialogHeader>
-                                <AlertDialogTitle>End Stream</AlertDialogTitle>
-                                <AlertDialogDescription className="text-neutral-400">
+                                <AlertDialogTitle className="text-black dark:text-white">End Stream</AlertDialogTitle>
+                                <AlertDialogDescription className="text-neutral-600">
                                     Are you sure you want to end this stream? All participants will be disconnected.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel className="bg-transparent border-neutral-700 hover:bg-neutral-800 hover:text-white text-neutral-300">Cancel</AlertDialogCancel>
+                                <AlertDialogCancel className="bg-transparent  dark:text-white border-neutral-700 text-black">Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={endStream} className="bg-destructive hover:bg-destructive/90">
                                     End Stream
                                 </AlertDialogAction>
