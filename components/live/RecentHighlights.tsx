@@ -11,7 +11,7 @@ const generateMockStreams = (creatorId: string, count: number) => {
         id: `mock-${i}`,
         title: i % 2 === 0 ? "Highlight: Best Moments of the Week" : "Full Stream: Gaming Marathon",
         thumbnail: null, // Will simulate missing thumbnail to test useSignedThumbnails or fallback
-        replayUrl: "https://example.com/video.mp4", // Mock URL for signing
+        replayUrl: "creators/cmjfamzp500084ou644652eeu/streams/cmk1dzqx50004anu6erl3zmbu/040383ba70415d6a5dec60972408a3c8_cmk1dzqx50004anu6erl3zmbu_0.mp4", // Mock URL for signing
         createdAt: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
         duration: 3600 + Math.random() * 7200,
         viewerCount: Math.floor(Math.random() * 50000),

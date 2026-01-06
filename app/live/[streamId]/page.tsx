@@ -246,7 +246,7 @@ export default function LiveStreamPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="h-screen bg-background flex flex-col overflow-hidden">
             {/* Consent Dialog */}
             {streamDetails.isLive && (
                 <RecordingConsentDialog
@@ -296,11 +296,7 @@ export default function LiveStreamPage() {
                                 <p className="text-sm font-medium leading-none dark:text-white">{streamDetails.creator.name}</p>
                                 <p className="text-[10px] text-muted-foreground">Host</p>
                             </div>
-                            <UserAvatar
-                                src={streamDetails.creator.avatar}
-                                name={streamDetails.creator.name}
-                                size="sm"
-                            />
+
 
                         </div>
 
@@ -335,10 +331,10 @@ export default function LiveStreamPage() {
             </div>
 
             {/* Main Content */}
-            <div className="w-full px-0 py-0">
-                <div className="flex flex-col lg:flex-row">
+            <div className="w-full flex-1 min-h-0">
+                <div className="flex flex-col lg:flex-row h-full">
                     {/* Video Area */}
-                    <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">
+                    <div className="flex-1 min-w-0 overflow-y-auto custom-scrollbar transition-all duration-500 ease-in-out">
                         <div className="w-full">
                             {streamDetails.isLive ?
                                 (
@@ -442,7 +438,7 @@ export default function LiveStreamPage() {
                             ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
 
                             /* Desktop: Sidebar */
-                            lg:static lg:h-[85vh] lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
+                            lg:static lg:h-full lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
                             ${isChatVisible ? "lg:w-[25%] lg:opacity-100 lg:pointer-events-auto" : "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:ml-0"}
                         `}
                     >

@@ -62,6 +62,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                 <div className="relative aspect-video w-full overflow-hidden bg-muted">
                     {/* Thumbnail */}
                     <Image
+                        unoptimized
                         src={displayThumbnail}
                         alt={stream.title}
                         fill

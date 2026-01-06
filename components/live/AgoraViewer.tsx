@@ -436,7 +436,7 @@ function StreamLogic({
                             className="w-full h-full rounded-none border-none aspect-auto md:aspect-auto"
                             customControls={
                                 <div
-                                    className="flex items-center justify-center cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 w-7 h-7 bg-primary text-white border border-white/10 hover:bg-primary/90"
+                                    className="flex items-center justify-center cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 h-7 w-auto px-2 md:w-7 md:px-0 gap-1.5 md:gap-0 bg-primary text-white border border-white/10 hover:bg-primary/90"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onToggleChat?.();
@@ -447,6 +447,9 @@ function StreamLogic({
                                     ) : (
                                         <ArrowLeftToLine className="w-3.5 h-3.5" />
                                     )}
+                                    <span className="text-[10px] font-medium md:hidden whitespace-nowrap">
+                                        {isChatVisible ? "Hide Chat" : "Show Chat"}
+                                    </span>
                                 </div>
                             }
                         />
@@ -534,10 +537,10 @@ function StreamLogic({
                     onClick={() => setIsParticipantsVisible(!isParticipantsVisible)}
                     variant={isParticipantsVisible ? "secondary" : "ghost"}
                     size="icon"
-                    className="w-10 h-10 shadow-lg hover:bg-accent hover:text-accent-foreground"
+                    className={`w-10 h-10 shadow-lg hover:bg-accent hover:text-accent-foreground border ${!isParticipantsVisible ? "border-primary dark:border-transparent" : "border-transparent"}`}
                     title={isParticipantsVisible ? "Hide Participants" : "Show Participants"}
                 >
-                    <Users className="w-4 h-4" />
+                    <Users className="w-4 h-4 dark:text-white" />
                 </Button>
 
                 <div className="w-px h-6 bg-border mx-2" />

@@ -42,11 +42,11 @@ export function ChannelInfo({ creator, lastLive = "2 days ago" }: ChannelInfoPro
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Button className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 rounded-lg font-semibold shadow-purple-500/20 shadow-lg transition-all hover:scale-105 active:scale-95">
+                    <Button className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 rounded-none font-semibold shadow-purple-500/20 shadow-lg transition-all hover:scale-105 active:scale-95">
                         <Heart className="w-4 h-4 fill-current" />
                         Follow
                     </Button>
-                    <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-lg font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
+                    <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
                         <Star className="w-4 h-4" />
                         Subscribe
                     </Button>

@@ -451,6 +451,14 @@ export function ParticipantGrid({ participants, isHost, maxVisible = 5, onToggle
         );
     }
 
+    if (orderedParticipants.length === 0) {
+        return (
+            <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center text-muted-foreground p-4">
+                <p className="text-sm font-medium">No other user</p>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full">
             <div className={cn(
