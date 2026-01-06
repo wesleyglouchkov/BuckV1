@@ -18,6 +18,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReportDialog } from "@/components/live/ReportDialog";
+import { ChannelInfo } from "@/components/live/ChannelInfo";
+import { RecentHighlights } from "@/components/live/RecentHighlights";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraViewer = dynamic<AgoraViewerProps>(() => import("../../../components/live/AgoraViewer"), { ssr: false });
@@ -337,93 +339,97 @@ export default function LiveStreamPage() {
                 <div className="flex flex-col lg:flex-row">
                     {/* Video Area */}
                     <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">
-                        {streamDetails.isLive ?
-                            (
-                                hasJoined && tokenData && viewerRole ? (
-                                    <AgoraViewer
-                                        appId={tokenData.appId}
-                                        channelName={tokenData.channelId}
-                                        token={tokenData.token}
-                                        rtmToken={tokenData.rtmToken}
-                                        uid={tokenData.uid}
-                                        role={viewerRole}
-                                        session={session}
-                                        onLeave={handleLeave}
-                                        onRequestUpgrade={() => setShowConsentDialog(true)}
-                                        isChatVisible={isChatVisible}
-                                        onToggleChat={() => setIsChatVisible(!isChatVisible)}
-                                        userName={tokenData.userName}
-                                        userAvatar={tokenData.userAvatar}
-                                        hostName={streamDetails.creator.name}
-                                        hostAvatar={streamDetails.creator.avatar}
-                                    />
-                                ) : (
-                                    // Condition: Stream is not live and viewer has not joined
-                                    <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
-                                        <div className="text-center space-y-4">
-                                            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                                            <div>
-                                                <h3 className="text-lg font-semibold text-foreground">
-                                                    Connecting to Stream
-                                                </h3>
-                                                <p className="text-muted-foreground text-sm">
-                                                    Joining {streamDetails.creator.name}&apos;s live stream...
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            )
-                            :
-                            // Condition: Stream is not live and replay is available
-                            streamDetails.replayUrl ? (
-                                <div className="w-full h-[85vh]">
-                                    <VideoPlayer
-                                        src={streamDetails.replayUrl}
-                                        title={streamDetails.title}
-                                    />
-                                </div>
-                            ) :
-
-                                !streamDetails.endTime && streamDetails.startTime ? (
-                                    // Condition: Stream is scheduled and hasn't started/ended
-                                    <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
-                                        <div className="text-center space-y-6 max-w-md px-4">
-                                            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <Calendar className="w-10 h-10 text-primary" />
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <h2 className="text-2xl font-bold">Upcoming Stream</h2>
-                                                <p className="text-muted-foreground">
-                                                    This stream is scheduled to start on
-                                                </p>
-                                                <div className="text-xl font-semibold text-primary">
-                                                    {format(new Date(streamDetails.startTime!), "MMMM d, yyyy 'at' h:mm a")}
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-4">
-                                                <Button onClick={() => router.push("/explore")} variant="outline">
-                                                    Back to Explore
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) :
-                                    (
-                                        // Condition: Stream is not live and no replay is available
+                        <div className="w-full">
+                            {streamDetails.isLive ?
+                                (
+                                    hasJoined && tokenData && viewerRole ? (
+                                        <AgoraViewer
+                                            appId={tokenData.appId}
+                                            channelName={tokenData.channelId}
+                                            token={tokenData.token}
+                                            rtmToken={tokenData.rtmToken}
+                                            uid={tokenData.uid}
+                                            role={viewerRole}
+                                            session={session}
+                                            onLeave={handleLeave}
+                                            onRequestUpgrade={() => setShowConsentDialog(true)}
+                                            isChatVisible={isChatVisible}
+                                            onToggleChat={() => setIsChatVisible(!isChatVisible)}
+                                            userName={tokenData.userName}
+                                            userAvatar={tokenData.userAvatar}
+                                            hostName={streamDetails.creator.name}
+                                            hostAvatar={streamDetails.creator.avatar}
+                                        />
+                                    ) : (
+                                        // Condition: Stream is not live and viewer has not joined
                                         <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
                                             <div className="text-center space-y-4">
-                                                <p className="text-muted-foreground">
-                                                    This stream has ended and no replay is available.
-                                                </p>
-                                                <Button onClick={() => router.push("/explore")}>
-                                                    Explore More
-                                                </Button>
+                                                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-foreground">
+                                                        Connecting to Stream
+                                                    </h3>
+                                                    <p className="text-muted-foreground text-sm">
+                                                        Joining {streamDetails.creator.name}&apos;s live stream...
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    )}
+                                    )
+                                )
+                                :
+                                // Condition: Stream is not live and replay is available
+                                streamDetails.replayUrl ? (
+                                    <div className="w-full h-[85vh]">
+                                        <VideoPlayer
+                                            src={streamDetails.replayUrl}
+                                            title={streamDetails.title}
+                                        />
+                                    </div>
+                                ) :
+
+                                    !streamDetails.endTime && streamDetails.startTime ? (
+                                        // Condition: Stream is scheduled and hasn't started/ended
+                                        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
+                                            <div className="text-center space-y-6 max-w-md px-4">
+                                                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                    <Calendar className="w-10 h-10 text-primary" />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <h2 className="text-2xl font-bold">Upcoming Stream</h2>
+                                                    <p className="text-muted-foreground">
+                                                        This stream is scheduled to start on
+                                                    </p>
+                                                    <div className="text-xl font-semibold text-primary">
+                                                        {format(new Date(streamDetails.startTime!), "MMMM d, yyyy 'at' h:mm a")}
+                                                    </div>
+                                                </div>
+
+                                                <div className="pt-4">
+                                                    <Button onClick={() => router.push("/explore")} variant="outline">
+                                                        Back to Explore
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) :
+                                        (
+                                            // Condition: Stream is not live and no replay is available
+                                            <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
+                                                <div className="text-center space-y-4">
+                                                    <p className="text-muted-foreground">
+                                                        This stream has ended and no replay is available.
+                                                    </p>
+                                                    <Button onClick={() => router.push("/explore")}>
+                                                        Explore More
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                        </div>
+                        <ChannelInfo creator={streamDetails.creator} />
+                        <RecentHighlights creator={streamDetails.creator} />
                     </div>
 
                     {/* Chat Sidebar */}

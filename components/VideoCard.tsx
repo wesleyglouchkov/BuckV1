@@ -1,0 +1,132 @@
+import { formatDistanceToNow } from "date-fns";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+interface VideoCardProps {
+    stream: {
+        id: string;
+        title: string;
+        thumbnail?: string | null;
+        createdAt: Date | string;
+        duration?: number; // In seconds
+        // Using viewers or views depending on your data model
+        viewerCount?: number;
+        views?: number;
+        creator: {
+            id: string;
+            name: string;
+            avatar?: string | null;
+            username?: string;
+        };
+        isLive?: boolean;
+    };
+    signedThumbnailUrl?: string | null;
+    className?: string;
+}
+
+export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
+    const formatDuration = (seconds?: number) => {
+        if (!seconds) return "00:00";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+
+        if (h > 0) {
+            return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+        return `${m}:${s.toString().padStart(2, "0")}`;
+    };
+
+    const formatViewers = (count?: number) => {
+        if (!count) return "0";
+        if (count >= 1000) {
+            return (count / 1000).toFixed(1) + "k";
+        }
+        return count.toString();
+    };
+
+    const displayThumbnail = signedThumbnailUrl || stream.thumbnail || "/placeholder-video.jpg"; // Fallback
+    const viewers = stream.viewerCount || stream.views || 0;
+
+    return (
+        <Link href={`/live/${stream.id}`} className={cn("block group relative", className)}>
+            <div
+                className="relative bg-card border border-border transition-all duration-300 ease-out
+                group-hover:-translate-y-1 group-hover:translate-x-1
+                mobile-touch-interaction
+                "
+            >
+                {/* Image Container */}
+                <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                    {/* Thumbnail */}
+                    <Image
+                        src={displayThumbnail}
+                        alt={stream.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+
+                    {/* Gradient Overlay for Text Readability */}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />
+
+
+                    <div className="absolute top-2 right-2">
+                        {stream.isLive && (
+                            <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">
+                                Live
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 text-white text-xs font-medium rounded-sm">
+                        {formatDuration(stream.duration)}
+                    </div>
+                </div>
+
+
+            </div>
+
+            {/* The "Shadow" Box - Fixed position where the card WAS */}
+            <div
+                className="absolute inset-0 -z-10 border-l border-b border-primary/50 bg-primary/5 
+                translate-y-0 translate-x-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                "
+                style={{}}
+            />
+
+            <div className="absolute inset-0 border-l-2 border-b-2 border-primary -z-10 top-1 -left-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+
+
+            {/* Content Details */}
+            <div className="mt-3 flex gap-3">
+                <UserAvatar
+                    src={stream.creator.avatar}
+                    name={stream.creator.name}
+                    size="sm"
+                    className="ring-1 ring-border"
+                />
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm leading-tight text-foreground truncate group-hover:text-primary transition-colors">
+                        {stream.title}
+                    </h3>
+                    <div className="text-xs text-muted-foreground mt-1 flex flex-col gap-0.5">
+                        <span className="hover:text-foreground transition-colors">{stream.creator.name}</span>
+                        <div className="flex items-center gap-1.5">
+                            {viewers > 0 && (
+                                <>
+                                    <span>{formatViewers(viewers)} views</span>
+                                    <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground" />
+                                </>
+                            )}
+                            <span className="truncate">
+                                {formatDistanceToNow(new Date(stream.createdAt), { addSuffix: true })}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Link>
+    );
+}
