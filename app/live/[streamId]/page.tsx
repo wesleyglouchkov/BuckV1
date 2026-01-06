@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, Users, Calendar, MoreVertical } from "lucide-react";
+import { ArrowLeft, Share2, Users, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { SharePopover } from "@/components/SharePopover";
@@ -23,8 +22,8 @@ import { RecentHighlights } from "@/components/live/RecentHighlights";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraViewer = dynamic<AgoraViewerProps>(() => import("../../../components/live/AgoraViewer"), { ssr: false });
-import VideoPlayer from "@/components/live/VideoPlayer";
 import StreamChat from "@/components/live/StreamChat";
+import { StreamConnecting, StreamReplay, StreamScheduled, StreamEnded } from "@/components/live/StreamStates";
 import RecordingConsentDialog from "@/components/live/RecordingConsentDialog";
 import { type AgoraViewerProps } from '../../../components/live/AgoraViewer'
 import { streamService } from "@/services/stream";
@@ -336,140 +335,89 @@ export default function LiveStreamPage() {
                     {/* Video Area */}
                     <div className="flex-1 min-w-0 overflow-y-auto custom-scrollbar transition-all duration-500 ease-in-out">
                         <div className="w-full">
-                            {streamDetails.isLive ?
-                                (
-                                    hasJoined && tokenData && viewerRole ? (
-                                        <AgoraViewer
-                                            appId={tokenData.appId}
-                                            channelName={tokenData.channelId}
-                                            token={tokenData.token}
-                                            rtmToken={tokenData.rtmToken}
-                                            uid={tokenData.uid}
-                                            role={viewerRole}
-                                            session={session}
-                                            onLeave={handleLeave}
-                                            onRequestUpgrade={() => setShowConsentDialog(true)}
-                                            isChatVisible={isChatVisible}
-                                            onToggleChat={() => setIsChatVisible(!isChatVisible)}
-                                            userName={tokenData.userName}
-                                            userAvatar={tokenData.userAvatar}
-                                            hostName={streamDetails.creator.name}
-                                            hostAvatar={streamDetails.creator.avatar}
-                                        />
-                                    ) : (
-                                        // Condition: Stream is not live and viewer has not joined
-                                        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
-                                            <div className="text-center space-y-4">
-                                                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                                                <div>
-                                                    <h3 className="text-lg font-semibold text-foreground">
-                                                        Connecting to Stream
-                                                    </h3>
-                                                    <p className="text-muted-foreground text-sm">
-                                                        Joining {streamDetails.creator.name}&apos;s live stream...
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
+                            {streamDetails.isLive ? (
+                                // LIVE STREAM
+                                hasJoined && tokenData && viewerRole ? (
+                                    <AgoraViewer
+                                        appId={tokenData.appId}
+                                        channelName={tokenData.channelId}
+                                        token={tokenData.token}
+                                        rtmToken={tokenData.rtmToken}
+                                        uid={tokenData.uid}
+                                        role={viewerRole}
+                                        session={session}
+                                        onLeave={handleLeave}
+                                        onRequestUpgrade={() => setShowConsentDialog(true)}
+                                        isChatVisible={isChatVisible}
+                                        onToggleChat={() => setIsChatVisible(!isChatVisible)}
+                                        userName={tokenData.userName}
+                                        userAvatar={tokenData.userAvatar}
+                                        hostName={streamDetails.creator.name}
+                                        hostAvatar={streamDetails.creator.avatar}
+                                    />
+                                ) : (
+                                    <StreamConnecting creatorName={streamDetails.creator.name} />
                                 )
-                                :
-                                // Condition: Stream is not live and replay is available
-                                streamDetails.replayUrl ? (
-                                    <div className="w-full h-[85vh]">
-                                        <VideoPlayer
-                                            src={streamDetails.replayUrl}
-                                            title={streamDetails.title}
-                                        />
-                                    </div>
-                                ) :
-
-                                    !streamDetails.endTime && streamDetails.startTime ? (
-                                        // Condition: Stream is scheduled and hasn't started/ended
-                                        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
-                                            <div className="text-center space-y-6 max-w-md px-4">
-                                                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                    <Calendar className="w-10 h-10 text-primary" />
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <h2 className="text-2xl font-bold">Upcoming Stream</h2>
-                                                    <p className="text-muted-foreground">
-                                                        This stream is scheduled to start on
-                                                    </p>
-                                                    <div className="text-xl font-semibold text-primary">
-                                                        {format(new Date(streamDetails.startTime!), "MMMM d, yyyy 'at' h:mm a")}
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-4">
-                                                    <Button onClick={() => router.push("/explore")} variant="outline">
-                                                        Back to Explore
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) :
-                                        (
-                                            // Condition: Stream is not live and no replay is available
-                                            <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted  flex items-center justify-center border border-border">
-                                                <div className="text-center space-y-4">
-                                                    <p className="text-muted-foreground">
-                                                        This stream has ended and no replay is available.
-                                                    </p>
-                                                    <Button onClick={() => router.push("/explore")}>
-                                                        Explore More
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
+                            ) : streamDetails.replayUrl ? (
+                                // REPLAY AVAILABLE
+                                <StreamReplay
+                                    replayUrl={streamDetails.replayUrl}
+                                    streamTitle={streamDetails.title}
+                                />
+                            ) : !streamDetails.endTime && streamDetails.startTime ? (
+                                // SCHEDULED (not started yet)
+                                <StreamScheduled startTime={streamDetails.startTime} />
+                            ) : (
+                                // ENDED (no replay)
+                                <StreamEnded />
+                            )}
                         </div>
                         <ChannelInfo creator={streamDetails.creator} />
                         <RecentHighlights creator={streamDetails.creator} />
                     </div>
 
-                    {/* Chat Sidebar */}
-                    <div
-                        className={`
-                            transition-all duration-500 ease-in-out overflow-hidden
-                            
-                            /* Mobile: Fixed Dialog Overlay */
-                            fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-dvh w-full
-                            ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
+                    {/* Chat Sidebar - Only shown for live streams */}
+                    {streamDetails.isLive && (
+                        <div
+                            className={`
+                                transition-all duration-500 ease-in-out overflow-hidden
+                                
+                                /* Mobile: Fixed Dialog Overlay */
+                                fixed inset-0 z-50 bg-background/95 backdrop-blur-md h-dvh w-full
+                                ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
 
-                            /* Desktop: Sidebar */
-                            lg:static lg:h-full lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
-                            ${isChatVisible ? "lg:w-[25%] lg:opacity-100 lg:pointer-events-auto" : "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:ml-0"}
-                        `}
-                    >
-                        <div className="w-full h-full">
-                            {streamDetails.isLive && hasJoined ? (
-                                <StreamChat
-                                    streamId={streamId}
-                                    streamTitle={streamDetails.title}
-                                    currentUserId={session?.user?.id}
-                                    currentUsername={session?.user?.username || "Viewer"}
-                                    isCreator={false}
-                                    isChatVisible={isChatVisible}
-                                    onClose={() => setIsChatVisible(false)}
-                                />
-                            ) : (
-                                <div className="bg-card border border-border  p-6 h-full flex flex-col items-center justify-center text-center">
-                                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                                        <Users className="w-8 h-8 text-muted-foreground" />
+                                /* Desktop: Sidebar */
+                                lg:static lg:h-full lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
+                                ${isChatVisible ? "lg:w-[25%] lg:opacity-100 lg:pointer-events-auto" : "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:ml-0"}
+                            `}
+                        >
+                            <div className="w-full h-full">
+                                {hasJoined ? (
+                                    <StreamChat
+                                        streamId={streamId}
+                                        streamTitle={streamDetails.title}
+                                        currentUserId={session?.user?.id}
+                                        currentUsername={session?.user?.username || "Viewer"}
+                                        isCreator={false}
+                                        isChatVisible={isChatVisible}
+                                        onClose={() => setIsChatVisible(false)}
+                                    />
+                                ) : (
+                                    <div className="bg-card border border-border p-6 h-full flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                                            <Users className="w-8 h-8 text-muted-foreground" />
+                                        </div>
+                                        <h3 className="font-semibold text-foreground mb-2">
+                                            Join to Chat
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Join the stream to participate in the live chat
+                                        </p>
                                     </div>
-                                    <h3 className="font-semibold text-foreground mb-2">
-                                        {streamDetails.isLive ? "Join to Chat" : "Chat Unavailable"}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        {streamDetails.isLive
-                                            ? "Join the stream to participate in the live chat"
-                                            : "Live chat is only available during active streams"}
-                                    </p>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

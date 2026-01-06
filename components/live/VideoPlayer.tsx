@@ -4,6 +4,24 @@ import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { defaultLayoutIcons, DefaultVideoLayout } from "@vidstack/react/player/layouts/default";
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+
+// Global CSS to hide Audio menu item
+if (typeof document !== 'undefined') {
+    const style = document.createElement('style');
+    style.textContent = `
+        .vds-audio-menu,
+        .vds-audio-menu[data-submenu],
+        div.vds-audio-menu.vds-menu {
+            display: none !important;
+        }
+    `;
+    if (!document.querySelector('#hide-audio-menu')) {
+        style.id = 'hide-audio-menu';
+        document.head.appendChild(style);
+    }
+}
 
 interface VideoPlayerProps {
     src: string;
@@ -12,21 +30,65 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setIsReady(true), 100);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!src) {
+        return (
+            <div className="w-full aspect-video flex items-center justify-center bg-muted border border-border">
+                <p className="text-muted-foreground">No video source available</p>
+            </div>
+        );
+    }
+
+    if (!isReady) {
+        return (
+            <div className="w-full aspect-video flex items-center justify-center bg-black border border-border">
+                <div className="animate-pulse text-primary flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Loading player...
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="w-full aspect-video overflow-hidden border border-border shadow-lg">
+        <div className="w-full h-full overflow-hidden border border-border shadow-lg bg-black">
             <MediaPlayer
-                title={title}
+                key={src}
+                title={title || "Video"}
                 src={src}
                 poster={poster}
                 aspectRatio="16/9"
-                load="eager"
-                className="w-full h-full"
+                load="idle"
+                playsInline
+                storage={null}
+                className="w-full h-full [&_video]:object-contain"
             >
                 <MediaProvider />
+                <BufferingIndicator />
                 <DefaultVideoLayout
                     icons={defaultLayoutIcons}
+                    hideQualityBitrate
+                    slots={{
+                        // googleCastButton: null,
+                        // airPlayButton: null,
+                    }}
                 />
             </MediaPlayer>
+        </div>
+    );
+}
+
+// Buffering Indicator with Primary Color
+function BufferingIndicator() {
+    return (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 opacity-0 data-buffering:opacity-100 transition-opacity">
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
         </div>
     );
 }
