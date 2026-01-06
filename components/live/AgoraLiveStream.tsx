@@ -535,7 +535,7 @@ function LiveBroadcast({
 
 
     return (
-        <div className="relative w-full h-[85vh] dark:bg-neutral-950 overflow-hidden shadow-2xl group/main">
+        <div className="relative w-full h-[calc(100dvh-70px)] dark:bg-neutral-950 overflow-hidden shadow-2xl group/main">
             {/* Main Participant Grid */}
             <div className="absolute inset-0 flex items-center justify-center p-4">
                 <div className="w-full max-w-6xl max-h-full overflow-y-auto custom-scrollbar flex items-center justify-center">
@@ -776,7 +776,7 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
     }
 
     return (
-        <div className="relative w-full h-[85vh] bg-card overflow-hidden border border-border shadow-lg">
+        <div className="relative w-full h-[calc(100dvh-70px)] bg-card overflow-hidden border border-border shadow-lg">
             <video
                 ref={videoRef}
                 autoPlay
@@ -849,7 +849,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
     // Wait for token before joining Agora channel
     if (!props.token || !client) {
         return (
-            <div className="relative w-full h-[85vh] bg-card overflow-hidden border border-border shadow-lg">
+            <div className="relative w-full h-[calc(100dvh-70px)] bg-card overflow-hidden border border-border shadow-lg">
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
                     <p className="text-muted-foreground text-sm">Connecting to stream...</p>

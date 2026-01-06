@@ -21,7 +21,7 @@ interface StreamStateProps {
  */
 export function StreamConnecting({ creatorName }: { creatorName: string }) {
     return (
-        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
+        <div className="w-full h-[calc(100dvh-70px)] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
             <div className="text-center space-y-4">
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
                 <div>
@@ -67,7 +67,7 @@ export function StreamReplay({ replayUrl, streamTitle }: { replayUrl: string; st
 
     if (isLoading) {
         return (
-            <div className="w-full h-[80vh]">
+            <div className="w-full h-[calc(100dvh-70px)]">
                 <Skeleton className="w-full h-full" />
             </div>
         );
@@ -85,7 +85,7 @@ export function StreamReplay({ replayUrl, streamTitle }: { replayUrl: string; st
 
     return (
         <div className="w-full">
-            <div className="h-[80vh]">
+            <div className="h-[calc(100dvh-70px)]">
                 <VideoPlayer
                     src={signedUrl}
                     title={streamTitle}
@@ -102,7 +102,7 @@ export function StreamScheduled({ startTime }: { startTime: string }) {
     const router = useRouter();
 
     return (
-        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
+        <div className="w-full h-[calc(100dvh-70px)] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
             <div className="text-center space-y-6 max-w-md px-4">
                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Calendar className="w-10 h-10 text-primary" />
@@ -135,7 +135,7 @@ export function StreamEnded() {
     const router = useRouter();
 
     return (
-        <div className="w-full h-[85vh] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
+        <div className="w-full h-[calc(100dvh-70px)] bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
             <div className="text-center space-y-4">
                 <p className="text-muted-foreground">
                     This stream has ended and no replay is available.

@@ -417,7 +417,7 @@ function StreamLogic({
     }, [role]);
 
     return (
-        <div className="relative w-full max-sm:h-[88vh] h-[85vh] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
+        <div className="relative w-full h-[calc(100dvh-70px)] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
             {/* 1. HOST (Main Screen / Left on Desktop) */}
             <div ref={hostContainerRef} className="flex-1 relative order-1 md:order-1 overflow-hidden bg-black flex items-center justify-center group/host">
                 {hostUser ? (

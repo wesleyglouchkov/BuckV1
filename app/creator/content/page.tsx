@@ -454,21 +454,25 @@ export default function MyStreamsPage() {
                                         />
                                     </div>
 
-                                    <div className="flex items-center gap-3 p-3 bg-muted/40 border border-border/40">
-                                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Secure Link to share valid for 2 hrs:</p>
-                                        <code className="select-none text-[10px] sm:text-xs text-muted-foreground truncate flex-1 font-mono px-2 py-1">
-                                            {signedReplayUrl}
-                                        </code>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(signedReplayUrl);
-                                                toast.success("Replay URL copied to clipboard");
-                                            }}
-                                            className="p-2 hover:bg-background transition-all shadow-sm border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground"
-                                            title="Copy to clipboard"
-                                        >
-                                            <Copy className="h-4 w-4 cursor-pointer" />
-                                        </button>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 bg-muted/40 border border-border/40">
+                                        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                                            Secure Link (valid 2h):
+                                        </p>
+                                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            <code className="select-none text-[10px] sm:text-xs text-muted-foreground truncate flex-1 font-mono px-2 py-1 bg-background/50 border border-border/30">
+                                                {signedReplayUrl}
+                                            </code>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(signedReplayUrl);
+                                                    toast.success("Replay URL copied to clipboard");
+                                                }}
+                                                className="p-2 hover:bg-background transition-all shadow-sm border border-border/20 text-muted-foreground hover:text-foreground shrink-0"
+                                                title="Copy to clipboard"
+                                            >
+                                                <Copy className="h-4 w-4 cursor-pointer" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </>
                             )}

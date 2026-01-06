@@ -363,7 +363,7 @@ export default function CreatorLivePage() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="h-dvh bg-background flex flex-col overflow-hidden">
             {/* Header */}
             <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
                 <div className="px-4 py-3 flex items-center justify-between">
@@ -410,11 +410,11 @@ export default function CreatorLivePage() {
             </div>
 
             {/* Main Content */}
-            <div className="w-full px-4 py-0">
+            <div className="w-full flex-1 min-h-0 px-4 py-0 overflow-y-auto">
                 {/* Stream Info Header */}
 
 
-                <div className="flex flex-col lg:flex-row">
+                <div className="flex flex-col lg:flex-row h-full">
 
                     {/* Live Stream and Preview Overlay */}
                     <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out">
@@ -474,7 +474,7 @@ export default function CreatorLivePage() {
                             ${isChatVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}
 
                             /* Desktop: Sidebar */
-                            lg:static lg:h-[85vh] lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
+                            lg:static lg:h-full lg:translate-y-0 lg:bg-transparent lg:border-none lg:backdrop-blur-none
                             ${isChatVisible ? "lg:w-[25%] lg:opacity-100 lg:pointer-events-auto" : "lg:w-0 lg:opacity-0 lg:pointer-events-none lg:ml-0"}
                         `}
                     >
