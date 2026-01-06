@@ -28,6 +28,7 @@ import RecordingConsentDialog from "@/components/live/RecordingConsentDialog";
 import { type AgoraViewerProps } from '../../../components/live/AgoraViewer'
 import { streamService } from "@/services/stream";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Skeleton } from "@/components/ui/skeleton";
 interface StreamDetails {
     id: string;
     title: string;
@@ -222,10 +223,14 @@ export default function LiveStreamPage() {
 
     if (status === "loading" || isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center space-y-4">
-                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-muted-foreground">Loading stream...</p>
+            <div className="h-screen bg-background flex flex-col overflow-hidden">
+                {/* Skeleton Header */}
+                <div className="border-b border-border bg-card/50 px-4 py-3">
+                    <Skeleton className="h-8 w-48" />
+                </div>
+                {/* Skeleton Video */}
+                <div className="flex-1 p-4">
+                    <Skeleton className="w-full h-[80vh]" />
                 </div>
             </div>
         );

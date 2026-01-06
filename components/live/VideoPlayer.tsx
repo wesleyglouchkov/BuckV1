@@ -5,7 +5,7 @@ import { defaultLayoutIcons, DefaultVideoLayout } from "@vidstack/react/player/l
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Global CSS to hide Audio menu item
 if (typeof document !== 'undefined') {
@@ -47,17 +47,14 @@ export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
 
     if (!isReady) {
         return (
-            <div className="w-full aspect-video flex items-center justify-center bg-black border border-border">
-                <div className="animate-pulse text-primary flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Loading player...
-                </div>
+            <div className="w-full h-full">
+                <Skeleton className="w-full h-full" />
             </div>
         );
     }
 
     return (
-        <div className="w-full h-full overflow-hidden border border-border shadow-lg bg-black">
+        <div className="w-full h-full border border-border shadow-lg bg-black">
             <MediaPlayer
                 key={src}
                 title={title || "Video"}
@@ -67,6 +64,7 @@ export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
                 load="idle"
                 playsInline
                 storage={null}
+                fullscreenOrientation="landscape"
                 className="w-full h-full [&_video]:object-contain"
             >
                 <MediaProvider />
@@ -75,8 +73,8 @@ export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
                     icons={defaultLayoutIcons}
                     hideQualityBitrate
                     slots={{
-                        // googleCastButton: null,
-                        // airPlayButton: null,
+                        googleCastButton: null,
+                        airPlayButton: null,
                     }}
                 />
             </MediaPlayer>
@@ -88,7 +86,7 @@ export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
 function BufferingIndicator() {
     return (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 opacity-0 data-buffering:opacity-100 transition-opacity">
-            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
     );
 }

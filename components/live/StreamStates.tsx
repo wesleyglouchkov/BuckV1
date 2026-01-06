@@ -7,6 +7,7 @@ import { Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import VideoPlayer from "@/components/live/VideoPlayer";
 import { getSignedStreamUrl } from "@/app/actions/s3-actions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface StreamStateProps {
     streamTitle?: string;
@@ -66,11 +67,8 @@ export function StreamReplay({ replayUrl, streamTitle }: { replayUrl: string; st
 
     if (isLoading) {
         return (
-            <div className="w-full aspect-video bg-linear-to-br from-card to-muted flex items-center justify-center border border-border">
-                <div className="text-center space-y-4">
-                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-muted-foreground text-sm">Loading replay...</p>
-                </div>
+            <div className="w-full h-[80vh]">
+                <Skeleton className="w-full h-full" />
             </div>
         );
     }
@@ -87,7 +85,7 @@ export function StreamReplay({ replayUrl, streamTitle }: { replayUrl: string; st
 
     return (
         <div className="w-full">
-            <div className="h-[80vh] overflow-hidden">
+            <div className="h-[80vh]">
                 <VideoPlayer
                     src={signedUrl}
                     title={streamTitle}
