@@ -54,7 +54,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
         <Link href={`/live/${stream.id}`} className={cn("block group relative", className)}>
             <div
                 className="relative bg-card border border-border transition-all duration-300 ease-out
-                group-hover:-translate-y-1 group-hover:translate-x-1
+                group-hover:border-l-8 group-hover:border-b-8 group-hover:border-l-primary group-hover:border-b-primary
                 mobile-touch-interaction
                 "
             >
@@ -89,15 +89,6 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
 
             </div>
 
-            {/* The "Shadow" Box - Fixed position where the card WAS */}
-            <div
-                className="absolute inset-0 -z-10 border-l border-b border-primary/50 bg-primary/5 
-                translate-y-0 translate-x-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                "
-                style={{}}
-            />
-
-            <div className="absolute inset-0 border-l-2 border-b-2 border-primary -z-10 top-1 -left-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
 
 
             {/* Content Details */}
