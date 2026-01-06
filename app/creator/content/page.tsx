@@ -55,16 +55,11 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
 import { getSignedStreamUrl, deleteS3File, deleteS3FolderAction } from "@/app/actions/s3-actions";
 import { toast } from "sonner";
+import { CATEGORIES } from "@/lib/categories";
 
 const WORKOUT_TYPES = [
     "All Types",
-    "Yoga",
-    "HIIT",
-    "Strength",
-    "Cardio",
-    "Pilates",
-    "Meditation",
-    "Other"
+    ...CATEGORIES.map((c) => c.name)
 ];
 
 export default function MyStreamsPage() {
