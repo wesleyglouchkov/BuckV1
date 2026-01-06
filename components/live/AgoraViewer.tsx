@@ -13,6 +13,7 @@ import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
 import Image from "next/image";
+import { useParticipantMediaState } from "@/lib/agora/use-participant-media-state";
 
 
 
@@ -71,6 +72,9 @@ function StreamLogic({
 
     // Track if client role has been set (needed before publishing in ILS mode)
     const [isClientRoleSet, setIsClientRoleSet] = useState(false);
+
+    // Participant Media State Map - tracks hasVideo/hasAudio reactively via Agora events
+    const participantMediaState = useParticipantMediaState(client);
 
     // Handle Agora client errors gracefully
     useEffect(() => {
@@ -371,10 +375,12 @@ function StreamLogic({
 
         ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => {
             // Look up name in RTM map
-            const rtmUser = userNames[user.uid.toString()];
+            const odor = user.uid.toString();
+            const rtmUser = userNames[odor];
             // Priority: RTM Name -> "User [ID]"
             const displayName = rtmUser?.name && rtmUser.name !== "undefined" ? rtmUser.name : `User ${user.uid}`;
-            console.log(`Participant ${user.uid} displayName: ${displayName} (RTM: ${rtmUser?.name})`);
+            // Use reactive state from event listeners, falling back to SDK properties
+            const mediaState = participantMediaState[odor];
 
             return {
                 uid: user.uid,
@@ -382,8 +388,8 @@ function StreamLogic({
                 videoTrack: user.videoTrack,
                 audioTrack: user.audioTrack,
                 isLocal: false,
-                cameraOn: user.hasVideo,
-                micOn: user.hasAudio,
+                cameraOn: mediaState?.hasVideo ?? user.hasVideo,
+                micOn: mediaState?.hasAudio ?? user.hasAudio,
                 agoraUser: user
             };
         }) : [])
@@ -429,8 +435,8 @@ function StreamLogic({
                                 videoTrack: hostUser.videoTrack,
                                 audioTrack: hostUser.audioTrack,
                                 isLocal: false,
-                                cameraOn: hostUser.hasVideo,
-                                micOn: hostUser.hasAudio,
+                                cameraOn: participantMediaState[hostUser.uid.toString()]?.hasVideo ?? hostUser.hasVideo,
+                                micOn: participantMediaState[hostUser.uid.toString()]?.hasAudio ?? hostUser.hasAudio,
                                 agoraUser: hostUser
                             }}
                             className="w-full h-full rounded-none border-none aspect-auto md:aspect-auto"

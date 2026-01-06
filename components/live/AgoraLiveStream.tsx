@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora/agora-rtm";
 import { useViewerCount } from "@/hooks/useViewerCount";
 import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
+import { useParticipantMediaState } from "@/lib/agora/use-participant-media-state";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -124,11 +125,14 @@ function LiveBroadcast({
 }: Omit<AgoraLiveStreamProps, "isLive">) {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    // User Names Map
+    // User Names Map (from RTM presence)
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
     const isStreamEndingRef = useRef(false);
 
     const client = useRTCClient();
+
+    // Reactive participant media state tracking via Agora events
+    const participantMediaState = useParticipantMediaState(client);
 
     // Hooks for tracks - always create them initially
     const { localCameraTrack } = useLocalCameraTrack(true);
@@ -198,6 +202,8 @@ function LiveBroadcast({
             client.off('exception', handleException);
         };
     }, [client]);
+
+
 
     // 6. --- Cloud Recording Logic ---
     useEffect(() => {
@@ -520,14 +526,17 @@ function LiveBroadcast({
             micOn: isAudioEnabled
         },
         ...remoteUsers.map(user => {
+            const odor = user.uid.toString();
+            // Use reactive state from event listeners, falling back to SDK properties
+            const mediaState = participantMediaState[odor];
             return {
                 uid: user.uid,
-                name: userNames[user.uid.toString()]?.name || `User ${user.uid}`,
+                name: userNames[odor]?.name || `User ${user.uid}`,
                 videoTrack: user.videoTrack,
                 audioTrack: user.audioTrack,
                 isLocal: false,
-                cameraOn: user.hasVideo,
-                micOn: user.hasAudio,
+                cameraOn: mediaState?.hasVideo ?? user.hasVideo,
+                micOn: mediaState?.hasAudio ?? user.hasAudio,
                 agoraUser: user
             };
         })
