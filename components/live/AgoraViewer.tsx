@@ -454,6 +454,14 @@ function StreamLogic({
                             }
                         />
 
+                        {/* REC Badge Overlay (Bottom Right on mobile) */}
+                        {userNames[hostUser.uid.toString()]?.isRecording && (
+                            <div className="absolute bottom-4 right-4 z-20 pointer-events-none flex items-center gap-1.5 bg-destructive px-2 py-0.5 rounded shadow-lg border border-white/10">
+                                <Radio className="w-3 h-3 animate-pulse text-white" />
+                                <span className="font-bold text-[10px] uppercase text-white mt-0.5">Rec</span>
+                            </div>
+                        )}
+
                     </div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-white z-0">
@@ -478,13 +486,7 @@ function StreamLogic({
                         <span className="font-bold text-[10px] md:text-xs tracking-wider uppercase mt-1">Live</span>
                     </div>
 
-                    {/* Host Recording Badge */}
-                    {hostUser && userNames[hostUser.uid.toString()]?.isRecording && (
-                        <div className="bg-destructive/10 backdrop-blur-md text-destructive px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-destructive/30">
-                            <Radio className="w-3 h-3 md:w-3.5 md:h-3.5 animate-pulse" />
-                            <span className="font-bold text-[10px] md:text-xs uppercase">Rec</span>
-                        </div>
-                    )}
+
 
                     {/* Online User Count */}
                     <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
