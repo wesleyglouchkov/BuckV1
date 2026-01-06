@@ -284,7 +284,7 @@ export default function LiveStreamPage() {
                                     </span>
                                 )}
                                 {streamDetails.isLive && (
-                                    <span className="shrink-0 flex items-center gap-1.5 px-2 py-0.5 bg-destructive/10 text-destructive text-[10px] font-bold tracking-wider uppercase rounded-full">
+                                    <span className="shrink-0 hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-destructive/10 text-destructive text-[10px] font-bold tracking-wider uppercase rounded-full">
                                         <span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />
                                         LIVE
                                     </span>
