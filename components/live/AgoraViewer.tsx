@@ -101,6 +101,26 @@ function StreamLogic({
         };
     }, [client]);
 
+    // Subscribe to remote user tracks when they publish (required for audience in live mode)
+    useEffect(() => {
+        if (!client) return;
+
+        const handleUserPublished = async (user: any, mediaType: 'audio' | 'video') => {
+            try {
+                await client.subscribe(user, mediaType);
+                console.log(`Viewer: Subscribed to ${mediaType} track from user ${user.uid}`);
+            } catch (err) {
+                console.warn(`Viewer: Failed to subscribe to ${mediaType} from user ${user.uid}:`, err);
+            }
+        };
+
+        client.on('user-published', handleUserPublished);
+
+        return () => {
+            client.off('user-published', handleUserPublished);
+        };
+    }, [client]);
+
     // Handle role switching - MUST complete before publishing in ILS mode
     useEffect(() => {
         if (client) {
