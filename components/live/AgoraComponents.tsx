@@ -224,12 +224,12 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
                         {participant.agoraUser && (
                             <SafeRemoteUser
                                 user={participant.agoraUser}
-                                playVideo={isCameraOn}
+                                playVideo={isCameraOn || !!participant.agoraUser.hasVideo}
                                 playAudio={true}
                                 className="absolute inset-0 w-full h-full object-contain -scale-x-100"
                             />
                         )}
-                        {!isCameraOn && (
+                        {!isCameraOn && !participant.agoraUser?.hasVideo && (
                             <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-neutral-900">
                                 <div className="w-20 h-20 bg-neutral-700/50 rounded-full flex items-center justify-center mb-3 border border-neutral-600/30">
                                     <UserIcon className="w-5 h-5 text-neutral-400" />
