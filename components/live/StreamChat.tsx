@@ -229,7 +229,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                             placeholder={!currentUserId ? "Login to chat..." : "Send a message..."}
                             className="w-full pr-10"
                             maxLength={200}
-                            disabled={currentUserId ? !isConnected : false}
+                            disabled={isCreator ? false : (currentUserId ? !isConnected : false)}
                             onFocus={() => {
                                 if (!currentUserId) {
                                     setShowLoginDialog(true);
@@ -246,7 +246,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                                 }
                             }}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                            disabled={currentUserId ? !isConnected : false}
+                            disabled={isCreator ? false : (currentUserId ? !isConnected : false)}
                         >
                             <Smile className="w-5 h-5" />
                         </button>
@@ -254,7 +254,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                     <Button
                         type="submit"
                         size="default"
-                        disabled={!newMessage.trim() || isSending || (currentUserId ? !isConnected : true)}
+                        disabled={!newMessage.trim() || isSending || (isCreator ? false : (currentUserId ? !isConnected : true))}
                         className="shrink-0"
                     >
                         <Send className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
             />
 
             {/* Report Dialog */}
-          {reportDialogOpen && <ReportDialog
+            {reportDialogOpen && <ReportDialog
                 open={reportDialogOpen}
                 onOpenChange={setReportDialogOpen}
                 reportType="message"
