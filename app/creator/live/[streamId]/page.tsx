@@ -165,7 +165,7 @@ export default function CreatorLivePage() {
             // Stop Cloud Recording via Backend
             if (isRecording && recordingDetails) {
                 try {
-                    toast.loading("Stopping recording and saving...");
+                    toast.loading("Stopping recording and saving... Please wait and don't close this tab, it won't take long!");
                     const res = await fetch(`/api/creator/streams/${urlStreamId}/recording/stop`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
