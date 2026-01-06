@@ -61,6 +61,9 @@ function StreamLogic({
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
+    // Track if user has clicked to enter stream (needed for audio autoplay)
+    const [hasEnteredStream, setHasEnteredStream] = useState(false);
+
     // Get remote users
     const remoteUsers = useRemoteUsers();
 
@@ -109,8 +112,14 @@ function StreamLogic({
             try {
                 await client.subscribe(user, mediaType);
                 console.log(`Viewer: Subscribed to ${mediaType} track from user ${user.uid}`);
+
+                // Play audio tracks immediately (Enter Stream button provides user interaction)
+                if (mediaType === 'audio' && user.audioTrack) {
+                    await user.audioTrack.play();
+                    console.log(`Viewer: Playing audio from user ${user.uid}`);
+                }
             } catch (err) {
-                console.warn(`Viewer: Failed to subscribe to ${mediaType} from user ${user.uid}:`, err);
+                console.warn(`Viewer: Failed to subscribe/play ${mediaType} from user ${user.uid}:`, err);
             }
         };
 
@@ -432,6 +441,23 @@ function StreamLogic({
         router.push(`/login?callbackUrl=${callbackUrl}`);
     };
 
+    // Handle entering stream - this provides user interaction for audio
+    const handleEnterStream = async () => {
+        console.log('Viewer: Entering stream');
+        setHasEnteredStream(true);
+
+        // Play any existing audio tracks
+        for (const user of remoteUsers) {
+            if (user.audioTrack && user.hasAudio) {
+                try {
+                    await user.audioTrack.play();
+                    console.log(`Viewer: Enabled audio for user ${user.uid}`);
+                } catch (err) {
+                    console.warn(`Viewer: Failed to play audio for user ${user.uid}:`, err);
+                }
+            }
+        }
+    };
 
     const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
 
@@ -439,11 +465,34 @@ function StreamLogic({
     useEffect(() => {
         if (role === "publisher") {
             setIsParticipantsVisible(true);
+            setHasEnteredStream(true); // Publishers have already interacted
         }
     }, [role]);
 
+
     return (
         <div className="relative w-full h-[calc(100dvh-70px)] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
+            {/* Enter Stream Overlay - Captures user interaction for audio */}
+            {!hasEnteredStream && role === "subscriber" && (
+                <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-md flex items-center justify-center">
+                    <div className="text-center space-y-6 max-w-md mx-4">
+                        <div className="space-y-2">
+                            <h2 className="text-3xl font-bold text-foreground">Ready to Join?</h2>
+                            <p className="text-muted-foreground">
+                                Click below to enter the live stream
+                            </p>
+                        </div>
+                        <Button
+                            onClick={handleEnterStream}
+                            size="lg"
+                            className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-6 text-lg"
+                        >
+                            Enter Stream
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* 1. HOST (Main Screen / Left on Desktop) */}
             <div ref={hostContainerRef} className="flex-1 relative order-1 md:order-1 overflow-hidden bg-black flex items-center justify-center group/host">
                 {hostUser ? (
