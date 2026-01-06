@@ -29,9 +29,10 @@ interface VideoCardProps {
 export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
     const formatDuration = (seconds?: number) => {
         if (!seconds) return "00:00";
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
+        const totalSeconds = Math.floor(seconds); // Ensure integer
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
 
         if (h > 0) {
             return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
@@ -73,7 +74,8 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />
 
 
-                    <div className="absolute top-2 right-2">
+                    {/* Live Badge - Top Right */}
+                    <div className="absolute top-2 right-2 z-10">
                         {stream.isLive && (
                             <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">
                                 Live
@@ -81,9 +83,30 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                         )}
                     </div>
 
-                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 text-white text-xs font-medium rounded-sm">
-                        {formatDuration(stream.duration)}
-                    </div>
+                    {/* Duration - Bottom Right (hidden when live) */}
+                    {!stream.isLive && (
+                        <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-xs font-medium rounded-sm z-10">
+                            {formatDuration(stream.duration)}
+                        </div>
+                    )}
+
+                    {/* Views/Viewers - Top Left */}
+                    {viewers > 0 && (
+                        <div className="absolute top-2 left-2 z-10">
+                            <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
+                                {formatViewers(viewers)} {stream.isLive ? 'viewers' : 'views'}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Time Ago - Bottom Left (hidden when live) */}
+                    {!stream.isLive && (
+                        <div className="absolute bottom-2 left-2 z-10">
+                            <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
+                                {formatDistanceToNow(new Date(stream.createdAt), { addSuffix: true })}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
 
@@ -103,19 +126,8 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                     <h3 className="font-semibold text-sm leading-tight text-foreground truncate group-hover:text-primary transition-colors">
                         {stream.title}
                     </h3>
-                    <div className="text-xs text-muted-foreground mt-1 flex flex-col gap-0.5">
+                    <div className="text-xs text-muted-foreground mt-1">
                         <span className="hover:text-foreground transition-colors">{stream.creator.name}</span>
-                        <div className="flex items-center gap-1.5">
-                            {viewers > 0 && (
-                                <>
-                                    <span>{formatViewers(viewers)} views</span>
-                                    <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground" />
-                                </>
-                            )}
-                            <span className="truncate">
-                                {formatDistanceToNow(new Date(stream.createdAt), { addSuffix: true })}
-                            </span>
-                        </div>
                     </div>
                 </div>
             </div>
