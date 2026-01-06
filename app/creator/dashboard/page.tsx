@@ -317,18 +317,18 @@ export default function CreatorDashboard() {
               ))
             ) : (
               recentStreams.map((item: any, index: number) => (
-                <div key={item?.id || index} className="p-4 flex items-center gap-4 hover:bg-accent/50 transition-colors">
-                  {/* Thumbnail */}
+                <div key={item?.id || index} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-accent/50 transition-colors">
+                  {/* Thumbnail - Full width on mobile, fixed on desktop */}
                   <div
-                    className={`w-24 h-16 bg-muted  overflow-hidden cursor-pointer relative shrink-0 group ${item.replayUrl ? 'cursor-pointer' : ''}`}
+                    className={`w-full sm:w-28 aspect-video sm:aspect-16/10 bg-muted overflow-hidden cursor-pointer relative shrink-0 group ${item.replayUrl ? 'cursor-pointer' : ''}`}
                     onClick={() => handleReplayClick(item)}
                   >
                     {item.thumbnail ? (
                       <Image
                         src={item.thumbnail}
                         alt={item.title}
-                        width={100}
-                        height={100}
+                        width={200}
+                        height={120}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                     ) : (
@@ -339,39 +339,48 @@ export default function CreatorDashboard() {
                             className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
                           />
                         ) : (
-                          <Video className="w-6 h-6 text-muted-foreground dark:text-white" />
+                          <Video className="w-8 h-8 sm:w-6 sm:h-6 text-muted-foreground dark:text-white" />
                         )}
                       </div>
                     )}
 
-                    {/* Hover Overlay */}
+                    {/* Hover/Tap Overlay */}
                     {item.replayUrl && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Play className="w-8 h-8 text-white fill-white opacity-90" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity duration-200">
+                        <Play className="w-10 h-10 sm:w-8 sm:h-8 text-white fill-white opacity-90" />
                       </div>
                     )}
-                  </div>
 
-                  {/* Content Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-foreground truncate">{item?.title || "Untitled Stream"}</p>
-                      {item.workoutType && (
-                        <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium border border-primary/20">
-                          {item.workoutType}
-                        </span>
-                      )}
+                    {/* Viewers Badge - Shown on thumbnail for mobile */}
+                    <div className="absolute bottom-2 right-2 sm:hidden flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2 py-1">
+                      <User className="w-3 h-3 text-white" />
+                      <span className="text-xs font-medium text-white">{item?.viewerCount || 0}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {item?.startTime ? formatDateTime(item.startTime) : "Date not available"}
-                    </p>
                   </div>
 
-                  {/* Right Side Stats/Actions */}
-                  <div className="text-right shrink-0">
-                    <div className="flex items-center justify-end gap-1 mb-1">
-                      <User className="w-3 h-3 text-muted-foreground" />
-                      <p className="text-sm mt-1 font-medium text-foreground">{item?.viewerCount || 0} {item?.viewerCount < 2 ? "Viewer" : "Viewers"}</p>
+                  {/* Content Info + Stats Row */}
+                  <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                    {/* Text Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start sm:items-center gap-2 mb-1 flex-wrap">
+                        <p className="font-medium text-foreground line-clamp-1 sm:truncate">{item?.title || "Untitled Stream"}</p>
+                        {item.workoutType && (
+                          <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium border border-primary/20 shrink-0">
+                            {item.workoutType}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {item?.startTime ? formatDateTime(item.startTime) : "Date not available"}
+                      </p>
+                    </div>
+
+                    {/* Right Side Stats/Actions - Hidden on mobile, shown in thumbnail badge instead */}
+                    <div className="hidden sm:block text-right shrink-0">
+                      <div className="flex items-center justify-end gap-1">
+                        <User className="w-3 h-3 text-muted-foreground" />
+                        <p className="text-sm font-medium text-foreground">{item?.viewerCount || 0} {item?.viewerCount < 2 ? "Viewer" : "Viewers"}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
