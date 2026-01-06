@@ -537,7 +537,7 @@ function StreamLogic({
                     className="w-10 h-10 shadow-lg hover:bg-accent hover:text-accent-foreground"
                     title={isParticipantsVisible ? "Hide Participants" : "Show Participants"}
                 >
-                    <Users className="w-4 h-4 text-white " />
+                    <Users className="w-4 h-4" />
                 </Button>
 
                 <div className="w-px h-6 bg-border mx-2" />
