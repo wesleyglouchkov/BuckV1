@@ -2,19 +2,20 @@ import { useEffect, useState, useCallback } from "react";
 import useSWR from "swr";
 import { streamService } from "@/services/stream";
 import { SignalingManager } from "@/lib/agora/agora-rtm";
+import { HOST_SYNC_INTERVAL_SECONDS } from "@/lib/streaming-constants";
 
 interface UseViewerCountProps {
     streamId: string;
     rtmManager?: SignalingManager | null;
     isHost?: boolean;
-    syncIntervalSeconds?: number; // How often host syncs to DB (default: 60)
+    syncIntervalSeconds?: number; // How often host syncs to DB
 }
 
 export function useViewerCount({
     streamId,
     rtmManager,
     isHost = false,
-    syncIntervalSeconds = 60,
+    syncIntervalSeconds = HOST_SYNC_INTERVAL_SECONDS,
 }: UseViewerCountProps) {
     const [realtimeCount, setRealtimeCount] = useState(0);
     const [isUpdating, setIsUpdating] = useState(false);
