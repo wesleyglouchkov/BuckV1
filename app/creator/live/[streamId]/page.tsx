@@ -461,13 +461,37 @@ export default function CreatorLivePage() {
                 </div>
             </div>
 
-            {/* End Stream Indicator - Bottom Right */}
+            {/* End Stream Overlay - Centered with Blur */}
             {streamEndLoaderState && (
-                <div className="fixed bottom-6 right-6 z-100 bg-background/90 backdrop-blur-md border border-border rounded-lg shadow-lg px-5 py-4 flex items-center gap-3">
-                    <Loader />
-                    <div className="flex flex-col">
-                        <p className="text-sm font-medium dark:text-white">Ending stream...</p>
-                        <p className="text-xs text-muted-foreground">Please wait, it won't take long</p>
+                <div className="fixed inset-0 z-100 flex items-center justify-center">
+                    {/* Blurred backdrop */}
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" />
+
+                    {/* Content container */}
+                    <div className="relative z-10 flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-300">
+                        {/* Loader with glow effect */}
+                        <div className="relative">
+                            {/* Pulsing glow ring */}
+                            <div className="absolute inset-0 -m-4 bg-primary/20 blur-2xl animate-pulse" />
+                            <Loader />
+                        </div>
+
+                        {/* Text content */}
+                        <div className="flex flex-col items-center gap-2 text-center">
+                            <h3 className="text-xl font-semibold text-foreground">
+                                Ending Stream
+                            </h3>
+                            <p className="text-sm text-muted-foreground max-w-[280px]">
+                                Saving your broadcast and preparing replay...
+                            </p>
+
+                            {/* Progress indicator dots */}
+                            <div className="flex items-center gap-1.5 mt-3">
+                                <span className="w-2 h-2 bg-primary animate-bounce [animation-delay:0ms]" />
+                                <span className="w-2 h-2 bg-primary animate-bounce [animation-delay:150ms]" />
+                                <span className="w-2 h-2 bg-primary animate-bounce [animation-delay:300ms]" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
