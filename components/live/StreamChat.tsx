@@ -169,6 +169,11 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                 </div>
             </div>
 
+            {/* Welcome Message - Sticky */}
+            <div className="sticky top-0 z-10 px-4 py-2 bg-card/95 backdrop-blur-sm border-b border-border">
+                <p className="text-sm text-muted-foreground text-center">Welcome to the chat room!</p>
+            </div>
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                 {isLoading && (

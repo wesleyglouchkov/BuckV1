@@ -24,8 +24,8 @@ interface SkeletonBoxProps {
 // Card skeleton for content cards
 export function SkeletonCard({ className }: SkeletonCardProps) {
   return (
-    <div className={cn("rounded-xl border border-border/20 p-4 space-y-4 shadow-sm", className)}>
-      <Skeleton className="h-40 w-full rounded-lg" />
+    <div className={cn("border border-border/20 p-4 space-y-4 shadow-sm", className)}>
+      <Skeleton className="h-40 w-full" />
       <div className="space-y-2">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
@@ -75,7 +75,7 @@ export function SkeletonAvatar({ size = "md", className }: SkeletonAvatarProps) 
 export function SkeletonBox({ width, height, className }: SkeletonBoxProps) {
   return (
     <Skeleton
-      className={cn("rounded-lg", className)}
+      className={className}
       style={{ width, height }}
     />
   );
@@ -90,7 +90,7 @@ export function SkeletonListItem({ className }: { className?: string }) {
         <Skeleton className="h-4 w-1/3" />
         <Skeleton className="h-3 w-1/2" />
       </div>
-      <Skeleton className="h-8 w-20 rounded-lg" />
+      <Skeleton className="h-8 w-20" />
     </div>
   );
 }
@@ -115,10 +115,10 @@ export function SkeletonTableRow({ columns = 4, className }: { columns?: number;
 // Stats card skeleton
 export function SkeletonStats({ className }: { className?: string }) {
   return (
-    <div className={cn("rounded-xl border border-border/20 p-6 space-y-3 shadow-sm", className)}>
+    <div className={cn("border border-border/20 p-6 space-y-3 shadow-sm", className)}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-8 rounded-lg" />
+        <Skeleton className="h-8 w-8" />
       </div>
       <Skeleton className="h-8 w-20" />
       <Skeleton className="h-3 w-32" />
@@ -141,7 +141,7 @@ export function SkeletonDashboard({ className }: { className?: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <Skeleton className="h-8 w-48" />
-          <div className="rounded-xl border border-border p-4">
+          <div className="border border-border p-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <SkeletonListItem key={i} />
             ))}
@@ -161,13 +161,13 @@ export function SkeletonLiveStream({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-4", className)}>
       {/* Video preview skeleton */}
-      <Skeleton className="aspect-video w-full rounded-xl" />
+      <Skeleton className="aspect-video w-full" />
       {/* Stream setup card skeleton */}
-      <div className="rounded-xl border border-border/20 p-4 space-y-4">
+      <div className="border border-border/20 p-4 space-y-4">
         <Skeleton className="h-6 w-32" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Skeleton className="h-10 w-full rounded-lg" />
-          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
         </div>
       </div>
     </div>

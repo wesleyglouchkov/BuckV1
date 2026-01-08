@@ -118,7 +118,7 @@ export default function MobileNavigationDrawer({
                                     return (
                                         <li key={category.id}>
                                             <Link
-                                                href={`/explore?category=${category.name.toLowerCase()}`}
+                                                href={`/explore?tab=streams&category=${encodeURIComponent(category.name)}`}
                                                 onClick={onClose}
                                                 className="flex items-center gap-3 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                                             >

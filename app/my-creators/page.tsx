@@ -109,8 +109,8 @@ export default function MyCreatorsPage() {
                                 Start exploring and follow your favorite creators to see them here.
                             </p>
                             <button
-                                onClick={() => router.push("/explore")}
-                                className="px-6 py-2.5 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                                onClick={() => router.push("/explore?tab=creators")}
+                                className="px-6 cursor-pointer py-2.5 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
                             >
                                 Explore Creators
                             </button>

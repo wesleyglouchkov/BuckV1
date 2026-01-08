@@ -143,7 +143,7 @@ export default function ExploreSidebar({
                                         return (
                                             <li key={category.id}>
                                                 <Link
-                                                    href={`/explore?category=${category.name.toLowerCase()}`}
+                                                    href={`/explore?tab=streams&category=${encodeURIComponent(category.name)}`}
                                                     className="flex items-center gap-3 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                                                 >
                                                     <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
@@ -256,7 +256,7 @@ export default function ExploreSidebar({
                                             return (
                                                 <li key={category.id}>
                                                     <Link
-                                                        href={`/explore?category=${category.name.toLowerCase()}`}
+                                                        href={`/explore?tab=streams&category=${encodeURIComponent(category.name)}`}
                                                         onClick={() => setMobileMenuOpen(false)}
                                                         className="flex items-center gap-3 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                                                     >
