@@ -120,14 +120,14 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
 
     if (isLoading) {
         return (
-            <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+            <div className="bg-card border border-border  p-6 shadow-sm">
                 <SkeletonCard />
             </div>
         );
     }
 
     return (
-        <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+        <div className="bg-card border border-border  p-6 shadow-sm">
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2">

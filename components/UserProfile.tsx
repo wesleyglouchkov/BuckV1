@@ -175,7 +175,7 @@ export default function UserProfile() {
   const isMember = session.user.role?.toLowerCase() === 'member';
   const isAdmin = session.user.role?.toLowerCase() === 'admin';
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-4xl mx-auto min-h-[calc(81vh)]">
+    <div className="bg-white dark:bg-gray-800 shadow-md max-w-4xl mx-auto min-h-[calc(81vh)]">
       {/* Profile Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-6 items-start">
