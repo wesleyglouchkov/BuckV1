@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Ban, Video, Play, X } from "lucide-react";
-import { VideoSnapshot } from "@/lib/video-thumbnail";
+import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FlaggedContent } from "@/services/admin";

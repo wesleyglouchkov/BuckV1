@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora/agora-rtm";
 import { useViewerCount } from "@/hooks/useViewerCount";
 import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
-import { useParticipantMediaState } from "@/lib/agora/use-participant-media-state";
+import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import {
     AlertDialog,
     AlertDialogAction,

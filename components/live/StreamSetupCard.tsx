@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/constants/categories";
 
 interface StreamSetupCardProps {
     title: string;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Radio } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/constants/categories";
 
 // Mock live channels data
 const LIVE_CHANNELS = [

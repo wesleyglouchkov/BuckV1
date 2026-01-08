@@ -1,6 +1,6 @@
 "use server";
 
-import { deleteS3Object, getS3Url, deleteS3Folder } from "@/lib/s3";
+import { deleteS3Object, getS3Url, deleteS3Folder } from "@/lib/s3/s3";
 
 export async function getSignedStreamUrl(path: string | null) {
     if (!path) return null;

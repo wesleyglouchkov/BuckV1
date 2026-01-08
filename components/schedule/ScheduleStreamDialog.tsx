@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Calendar as CalendarIcon, Dumbbell } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/constants/categories";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 

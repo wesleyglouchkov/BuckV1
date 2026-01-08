@@ -20,7 +20,7 @@ import {
   User,
   Users
 } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/constants/categories";
 
 
 // Mock creators data

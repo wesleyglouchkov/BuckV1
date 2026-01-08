@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import useSWR from "swr";
 import { streamService } from "@/services/stream";
 import { SignalingManager } from "@/lib/agora/agora-rtm";
-import { HOST_SYNC_INTERVAL_SECONDS } from "@/lib/streaming-constants";
+import { HOST_SYNC_INTERVAL_SECONDS } from "@/lib/constants/streaming-constants";
 
 interface UseViewerCountProps {
     streamId: string;

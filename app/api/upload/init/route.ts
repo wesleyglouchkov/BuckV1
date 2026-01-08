@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth"; // Assuming auth helper is here or similar
-import { createMultipartUpload } from "@/lib/s3";
-import { S3_PATHS } from "@/lib/s3-constants";
+import { createMultipartUpload } from "@/lib/s3/s3";
+import { S3_PATHS } from "@/lib/constants/s3-constants";
 
 export async function POST(req: NextRequest) {
     try {

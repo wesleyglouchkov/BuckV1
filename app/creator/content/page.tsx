@@ -49,13 +49,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { formatDateTime } from "@/utils/dateTimeUtils";
-import { VideoSnapshot } from "@/lib/video-thumbnail";
+import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
 import { getSignedStreamUrl, deleteS3File, deleteS3FolderAction } from "@/app/actions/s3-actions";
 import { toast } from "sonner";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/constants/categories";
 
 const WORKOUT_TYPES = [
     "All Types",

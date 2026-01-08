@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getMultipartUploadPartUrl } from "@/lib/s3";
+import { getMultipartUploadPartUrl } from "@/lib/s3/s3";
 
 export async function POST(req: NextRequest) {
     try {

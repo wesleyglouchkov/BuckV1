@@ -13,7 +13,7 @@ import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
 import Image from "next/image";
-import { useParticipantMediaState } from "@/lib/agora/use-participant-media-state";
+import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 
 
 
