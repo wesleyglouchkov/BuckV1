@@ -205,42 +205,6 @@ function LiveBroadcast({
 
 
 
-    // 6. --- Cloud Recording Logic ---
-    useEffect(() => {
-        // Only start recording if we are live, host, and have tracks, and NOT currently ending the stream
-        if (isHostJoined && localCameraTrack && localMicrophoneTrack && !isRecording && !isStreamEndingRef.current) {
-            const startCloudRecording = async () => {
-                try {
-                    // Call Backend to start Agora Recorder
-                    const res = await fetch(`/api/creator/streams/${streamId}/recording/start`, {
-                        method: 'POST',
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        setIsRecording(true);
-                        setRecordingDetails({
-                            resourceId: data.resourceId,
-                            sid: data.sid,
-                            uid: data.uid
-                        });
-                        toast.success("Cloud recording started");
-
-                        // Store resourceId/sid in a ref if needed to stop later
-                        // But usually we just call stop on the backend which looks up DB
-                    } else {
-                        console.error("Failed to start cloud recording", await res.text());
-                        toast.error("Failed to start cloud recording");
-                    }
-
-                } catch (error) {
-                    console.error("Failed to start cloud recording", error);
-                    toast.error("Failed to start recording");
-                }
-            };
-            startCloudRecording();
-        }
-    }, [isHostJoined, localCameraTrack, localMicrophoneTrack, isRecording, streamId]);
 
 
     // --- Signaling (RTM) Implementation using Singleton ---

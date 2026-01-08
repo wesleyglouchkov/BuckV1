@@ -474,7 +474,7 @@ function StreamLogic({
         <div className="relative w-full h-[calc(100dvh-70px)] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
             {/* Enter Stream Overlay - Captures user interaction for audio */}
             {!hasEnteredStream && role === "subscriber" && (
-                <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-md flex items-center justify-center">
+                <div className="absolute inset-0 z-50 bg-black/30 backdrop-blur-xl flex items-center justify-center">
                     <div className="text-center space-y-6 max-w-md mx-4">
                         <div className="space-y-2">
                             <h2 className="text-3xl font-bold text-foreground">Ready to Join?</h2>

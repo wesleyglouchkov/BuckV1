@@ -45,23 +45,15 @@ export default function CreatorLivePage() {
     const [isStreamExpired, setIsStreamExpired] = useState(false);
     const [shareUrl, setShareUrl] = useState("");
 
-    // Refs to track state synchronously for event handlers (like unload)
+    // Ref to track live state synchronously for event handlers
     const isLiveRef = useRef(false);
-    const isRecordingRef = useRef(false);
-    const recordingDetailsRef = useRef<{ resourceId: string; sid: string; uid: string } | null>(null);
 
-    // Sync refs with state
+    // Sync ref with state
     useEffect(() => {
         isLiveRef.current = isLive;
     }, [isLive]);
 
-    useEffect(() => {
-        isRecordingRef.current = isRecording;
-    }, [isRecording]);
 
-    useEffect(() => {
-        recordingDetailsRef.current = recordingDetails;
-    }, [recordingDetails]);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -160,67 +152,42 @@ export default function CreatorLivePage() {
                 sessionStorage.setItem(`stream-ended-${urlStreamId}`, 'true');
             }
 
-            let recordingKey = undefined;
-
-            // Stop Cloud Recording via Backend
-            if (isRecording && recordingDetails) {
-                try {
-                    toast.loading("Stopping recording and saving... Please wait and don't close this tab, it won't take long!");
-                    const res = await fetch(`/api/creator/streams/${urlStreamId}/recording/stop`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            resourceId: recordingDetails.resourceId,
-                            sid: recordingDetails.sid,
-                            uid: recordingDetails.uid
-                        })
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.recordingKey) {
-                            recordingKey = data.recordingKey;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Error stopping recording:", e);
-                }
-            }
-            setIsRecording(false);
-
-            // If we have a backend recording key (from Agora Cloud Recording)
-            if (recordingKey) {
-                // Update backend: stream ended with recording key
-                await creatorService.stopStream(urlStreamId, recordingKey);
-            }
-            else {
-                // Update backend: stream ended without replay
-                await creatorService.stopStream(urlStreamId);
-            }
+            // Clean up Backend: Stop stream (and recording if active)
+            // This now handles everything: db update, agora stop, s3 tagging
+            const result = await creatorService.stopStream(urlStreamId);
 
             setIsLive(false);
-            isLiveRef.current = false; // Immediately update ref to bypass unload check@
-            window.setTimeout(() => {
-                window.location.href = "/creator/content";
-            }, 1000);
+            setIsRecording(false);
+            isLiveRef.current = false;
+
+            // Only redirect if "everything got off" (stopStream succeeded)
+            if (result) {
+                window.setTimeout(() => {
+                    window.location.href = "/creator/content";
+                }, 1000);
+            }
         } catch (error: unknown) {
             setStreamEndLoaderState(false);
             const message = error instanceof Error ? error.message : "Failed to end stream properly";
             toast.error(message);
-            isLiveRef.current = false; // Force update ref even on error
+            // Even if it failed, force local cleanup
+            isLiveRef.current = false;
             window.location.href = "/creator/schedule";
         }
-    }, [isLive, urlStreamId, router, isRecording, recordingDetails]);
+    }, [isLive, urlStreamId, router]);
+
 
 
     // Warn user before leaving/refreshing when live OR handle browser back button
+    // NOTE: We no longer use sendBeacon for cleanup. The backend's heartbeat monitor
+    // will automatically detect when the host stops sending heartbeats and end the stream.
     useEffect(() => {
-        // Handle page reload/close
+        // Handle page reload/close - show warning to user
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (!isLiveRef.current) return;
             e.preventDefault();
             // Most modern browsers will show a generic message, but we set returnValue for compatibility
-            e.returnValue = "You are live! Reloading or leaving will END the stream. Your replay will be saved, but you'll need to create a new stream to go live again.";
+            e.returnValue = "You are live! If you leave, your stream will end automatically after a short delay. Your replay will be saved.";
             return e.returnValue;
         };
 
@@ -240,31 +207,15 @@ export default function CreatorLivePage() {
             }
         };
 
-        const handleUnload = () => {
-            if (isLiveRef.current) {
-                // Use sendBeacon for reliable delivery during page unload
-                const beaconData = JSON.stringify({
-                    isRecording: isRecordingRef.current,
-                    recordingDetails: recordingDetailsRef.current
-                });
-                navigator.sendBeacon(
-                    `/api/creator/streams/${urlStreamId}/handle-close`,
-                    beaconData
-                );
-            }
-        };
-
         // Push initial state to enable popstate handling
         window.history.pushState(null, "", window.location.href);
 
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("popstate", handlePopState);
-        window.addEventListener("unload", handleUnload);
 
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
             window.removeEventListener("popstate", handlePopState);
-            window.removeEventListener("unload", handleUnload);
         };
     }, [isLive, handleStreamEnd]);
 
@@ -276,9 +227,16 @@ export default function CreatorLivePage() {
 
         try {
             // For scheduled streams, update the status to live
+            // Backend also starts cloud recording automatically
             const statusResponse = await creatorService.changeLiveStatus(urlStreamId, { isLive: true });
 
             if (statusResponse.success) {
+                // Set recording details from the response (backend started recording)
+                if (statusResponse.isRecording && statusResponse.recordingDetails) {
+                    setRecordingDetails(statusResponse.recordingDetails);
+                    setIsRecording(true);
+                }
+
                 // Now get the Agora token for streaming
                 const tokenResponse = await creatorService.getStreamToken(urlStreamId, session.user.id, 'publisher');
                 if (tokenResponse.success && tokenResponse.token) {
