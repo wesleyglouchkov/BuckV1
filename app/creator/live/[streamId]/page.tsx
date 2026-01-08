@@ -461,12 +461,13 @@ export default function CreatorLivePage() {
                 </div>
             </div>
 
-            {/* End Stream Overlay */}
+            {/* End Stream Indicator - Bottom Right */}
             {streamEndLoaderState && (
-                <div className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <Loader />
-                        <p className="text-lg font-medium animate-pulse dark:text-white">Ending stream...</p>
+                <div className="fixed bottom-6 right-6 z-100 bg-background/90 backdrop-blur-md border border-border rounded-lg shadow-lg px-5 py-4 flex items-center gap-3">
+                    <Loader />
+                    <div className="flex flex-col">
+                        <p className="text-sm font-medium dark:text-white">Ending stream...</p>
+                        <p className="text-xs text-muted-foreground">Please wait, it won't take long</p>
                     </div>
                 </div>
             )}
