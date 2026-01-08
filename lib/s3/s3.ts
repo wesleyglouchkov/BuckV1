@@ -104,16 +104,6 @@ export async function abortMultipartUpload(key: string, uploadId: string) {
     return await s3Client.send(command);
 }
 
-// Remove tags from an S3 object
-export async function deleteS3ObjectTagging(key: string) {
-    const command = new DeleteObjectTaggingCommand({
-        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
-        Key: key,
-    });
-
-    return await s3Client.send(command);
-}
-
 // Delete an object from S3
 export async function deleteS3Object(key: string) {
     const command = new DeleteObjectCommand({
