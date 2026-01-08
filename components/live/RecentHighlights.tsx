@@ -42,14 +42,14 @@ export function RecentHighlights({ creator }: RecentHighlightsProps) {
 
     return (
         <div className="w-full px-6 pb-12">
-            <div className="flex items-center gap-2 mb-4 group cursor-pointer">
+            <Link href={`/explore/creator/${creator.id}/streams`} className="flex items-center gap-2 mb-4 group cursor-pointer">
                 <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                     Recent highlights and uploads
                 </h3>
                 <span className="text-sm text-primary font-medium flex items-center opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                     View All <ChevronRight className="w-4 h-4" />
                 </span>
-            </div>
+            </Link>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {streams.map((stream) => (

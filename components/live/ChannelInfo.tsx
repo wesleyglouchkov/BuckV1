@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Heart, Star } from "lucide-react";
+import { SubscribeDialog } from "./subscribe/SubscribeDialog";
+import { cn } from "@/lib/utils";
 
 interface ChannelInfoProps {
     creator: {
@@ -10,9 +12,11 @@ interface ChannelInfoProps {
         followers?: number;
     };
     lastLive?: string; // e.g. "8 days ago"
+    isFollowed?: boolean;
+    isSubscribed?: boolean;
 }
 
-export function ChannelInfo({ creator, lastLive = "2 days ago" }: ChannelInfoProps) {
+export function ChannelInfo({ creator, lastLive = "2 days ago", isFollowed = false, isSubscribed = false }: ChannelInfoProps) {
     return (
         <div className="w-full bg-card border-b border-border p-6 mb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -42,14 +46,27 @@ export function ChannelInfo({ creator, lastLive = "2 days ago" }: ChannelInfoPro
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Button className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 rounded-none font-semibold shadow-purple-500/20 shadow-lg transition-all hover:scale-105 active:scale-95">
-                        <Heart className="w-4 h-4 fill-current" />
-                        Follow
+                    <Button
+                        variant={isFollowed ? "default" : "outline"}
+                        className={cn(
+                            "flex-1 sm:flex-none gap-2 rounded-none font-semibold transition-all hover:scale-105 active:scale-95",
+                            isFollowed
+                                ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20 shadow-lg"
+                                : "text-purple-600 border-purple-600 hover:bg-purple-600 hover:text-white"
+                        )}
+                    >
+                        <Heart className={cn("w-4 h-4", isFollowed ? "fill-current" : "")} />
+                        {isFollowed ? "Following" : "Follow"}
                     </Button>
-                    <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
-                        <Star className="w-4 h-4" />
-                        Subscribe
-                    </Button>
+
+                    {!isSubscribed && (
+                        <SubscribeDialog creator={creator}>
+                            <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
+                                <Star className="w-4 h-4" />
+                                Subscribe
+                            </Button>
+                        </SubscribeDialog>
+                    )}
                 </div>
             </div>
         </div>
