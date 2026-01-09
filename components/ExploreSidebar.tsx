@@ -175,7 +175,7 @@ export default function ExploreSidebar({
                                                     <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center relative">
                                                         <IconComponent className="text-primary" size={18} />
                                                         {category.count > 0 && (
-                                                            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] px-1 rounded-full">
+                                                            <div className="absolute -top-1 pt-[2px] -right-1 bg-red-500 text-white text-[8px] px-1 rounded-full">
                                                                 {category.count}
                                                             </div>
                                                         )}
