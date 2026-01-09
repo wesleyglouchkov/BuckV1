@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -140,27 +140,39 @@ export default function LiveStreamPage() {
         fetchStreamDetails();
     }, [streamId, session?.user?.id, router]);
 
+    const isNavigatingAway = useRef(false);
+    const hasPushedState = useRef(false);
+
     // Warn user before leaving/refreshing when watching live stream
     useEffect(() => {
+        if (!hasJoined || !streamDetails?.isLive) return;
+
+        // Push a state to "trap" the back button once
+        if (!hasPushedState.current) {
+            window.history.pushState(null, "", window.location.href);
+            hasPushedState.current = true;
+        }
+
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (!hasJoined || !streamDetails?.isLive) return;
+            if (isNavigatingAway.current) return;
             e.preventDefault();
             e.returnValue = "You are watching a live stream. Are you sure you want to leave?";
             return e.returnValue;
         };
 
         const handlePopState = () => {
-            if (!hasJoined || !streamDetails?.isLive) return;
+            // If we are already in the process of leaving, don't confirm again
+            if (isNavigatingAway.current) return;
 
             const confirmed = window.confirm("You are watching a live stream. Are you sure you want to leave?");
-            if (!confirmed) {
-                window.history.pushState(null, "", window.location.href);
-            } else {
+            if (confirmed) {
+                isNavigatingAway.current = true;
                 handleLeave();
+            } else {
+                // If they cancel, push the state back to keep them "trapped"
+                window.history.pushState(null, "", window.location.href);
             }
         };
-
-        window.history.pushState(null, "", window.location.href);
 
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("popstate", handlePopState);
@@ -207,10 +219,10 @@ export default function LiveStreamPage() {
         }
     };
 
-    // Handle leaving stream
     const handleLeave = () => {
-        // Navigate first, then reset state (prevents "Connecting" flash)
-        router.push("/explore");
+        isNavigatingAway.current = true;
+        // Navigate back to where the user came from
+        router.back();
         // Use setTimeout to ensure navigation starts before state reset
         setTimeout(() => {
             setHasJoined(false);
@@ -268,7 +280,7 @@ export default function LiveStreamPage() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => router.push("/explore")}
+                            onClick={() => router.back()}
                             className="shrink-0"
                         >
                             <ArrowLeft className="w-5 h-5 dark:text-white" />

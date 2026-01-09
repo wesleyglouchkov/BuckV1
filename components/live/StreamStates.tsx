@@ -140,8 +140,8 @@ export function StreamEnded() {
                 <p className="text-muted-foreground">
                     This stream has ended and no replay is available.
                 </p>
-                <Button onClick={() => router.push("/explore")}>
-                    Explore More
+                <Button onClick={() => router.back()}>
+                    Go Back
                 </Button>
             </div>
         </div>
