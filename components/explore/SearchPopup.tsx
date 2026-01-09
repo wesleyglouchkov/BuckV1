@@ -4,9 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Users, Radio, Search as SearchIcon, Loader2 } from "lucide-react";
 import { useQuickSearch } from "@/hooks/explore";
+import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
 
 interface SearchPopupProps {
     query: string;
+    debouncedQuery: string;
     isVisible: boolean;
     onClose: () => void;
 }
@@ -18,11 +20,13 @@ const formatViewerCount = (count: number) => {
     return count.toString();
 };
 
-export default function SearchPopup({ query, isVisible, onClose }: SearchPopupProps) {
-    const { creators, streams, isLoading } = useQuickSearch(query);
+export default function SearchPopup({ query, debouncedQuery, isVisible, onClose }: SearchPopupProps) {
+    const { creators, streams, isLoading } = useQuickSearch(debouncedQuery);
 
     if (!isVisible || !query.trim() || query.length < 2) return null;
 
+    // Show skeletons if loading OR if query has changed but debouncedQuery hasn't caught up yet
+    const showSkeletons = isLoading || (query !== debouncedQuery && query.length >= 2);
     const hasResults = creators.length > 0 || streams.length > 0;
 
     return (
@@ -30,10 +34,24 @@ export default function SearchPopup({ query, isVisible, onClose }: SearchPopupPr
             className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/50 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
             onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
         >
-            {isLoading ? (
-                <div className="p-12 flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-sm text-muted-foreground">Searching...</p>
+            {showSkeletons ? (
+                <div className="p-3 space-y-4">
+                    <div className="space-y-2">
+                        <div className="px-2 pb-1">
+                            <div className="h-3 w-16 bg-muted animate-pulse rounded" />
+                        </div>
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <SkeletonSidebarItem key={`skeleton-creator-${i}`} />
+                        ))}
+                    </div>
+                    <div className="space-y-2">
+                        <div className="px-2 pb-1">
+                            <div className="h-3 w-12 bg-muted animate-pulse rounded" />
+                        </div>
+                        {Array.from({ length: 2 }).map((_, i) => (
+                            <SkeletonSidebarItem key={`skeleton-stream-${i}`} />
+                        ))}
+                    </div>
                 </div>
             ) : !hasResults ? (
                 <div className="p-8 text-center">

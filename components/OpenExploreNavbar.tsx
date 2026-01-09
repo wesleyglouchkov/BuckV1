@@ -180,8 +180,9 @@ export default function OpenExploreNavbar({
                             {/* Search Popup */}
                             {showSearchPopup && (
                                 <SearchPopup
-                                    query={debouncedQuery}
-                                    isVisible={isSearchFocused && debouncedQuery.length >= 2}
+                                    query={localQuery}
+                                    debouncedQuery={debouncedQuery}
+                                    isVisible={isSearchFocused && localQuery.length >= 2}
                                     onClose={() => setIsSearchFocused(false)}
                                 />
                             )}
