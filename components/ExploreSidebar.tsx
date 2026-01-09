@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
 
-import { useSidebarStreams } from "@/hooks/explore";
+import { useExploreSidebarData, SidebarCategory, SidebarStream } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
 
 const formatViewerCount = (count: number) => {
@@ -42,8 +42,18 @@ export default function ExploreSidebar({
     mobileMenuOpen,
     setMobileMenuOpen,
 }: ExploreSidebarProps) {
-    const { streams, isLoading } = useSidebarStreams();
-    const displayedCategories = showAllCategories ? CATEGORIES : CATEGORIES.slice(0, 4);
+    const { streams, categories: apiCategories, isLoading } = useExploreSidebarData();
+
+    // Enrich static categories with counts from API
+    const enrichedCategories = CATEGORIES.map(cat => {
+        const apiCat = apiCategories.find((ac: SidebarCategory) => ac.name.toLowerCase() === cat.name.toLowerCase());
+        return {
+            ...cat,
+            count: apiCat ? apiCat.count : 0
+        };
+    });
+
+    const displayedCategories = showAllCategories ? enrichedCategories : enrichedCategories.slice(0, 4);
 
     return (
         <>
@@ -92,10 +102,10 @@ export default function ExploreSidebar({
                                 </li>
                             ))
                         ) : (
-                            streams.map((channel) => (
+                            streams.map((channel: SidebarStream) => (
                                 <li key={channel.id}>
                                     <Link
-                                        href={`/explore/live/${channel.id}`}
+                                        href={`/live/${channel.id}`}
                                         className={`flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors ${sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
                                             }`}
                                     >
@@ -162,8 +172,13 @@ export default function ExploreSidebar({
                                                     href={`/explore?tab=streams&category=${encodeURIComponent(category.name)}`}
                                                     className="flex items-center gap-3 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                                                 >
-                                                    <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                                                    <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center relative">
                                                         <IconComponent className="text-primary" size={18} />
+                                                        {category.count > 0 && (
+                                                            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] px-1 rounded-full">
+                                                                {category.count}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <p className="text-sm font-medium">{category.name}</p>
                                                 </Link>
@@ -235,10 +250,10 @@ export default function ExploreSidebar({
                                         </li>
                                     ))
                                 ) : (
-                                    streams.map((channel) => (
+                                    streams.map((channel: SidebarStream) => (
                                         <li key={channel.id}>
                                             <Link
-                                                href={`/explore/live/${channel.id}`}
+                                                href={`/live/${channel.id}`}
                                                 onClick={() => setMobileMenuOpen(false)}
                                                 className="flex items-center gap-2 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                                             >
@@ -302,8 +317,13 @@ export default function ExploreSidebar({
                                                         onClick={() => setMobileMenuOpen(false)}
                                                         className="flex items-center gap-3 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                                                     >
-                                                        <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                                                        <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center relative">
                                                             <IconComponent className="text-primary" size={18} />
+                                                            {category.count > 0 && (
+                                                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] px-1 rounded-full">
+                                                                    {category.count}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         <p className="text-sm font-medium">{category.name}</p>
                                                     </Link>

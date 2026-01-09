@@ -16,25 +16,32 @@ export interface SidebarStream {
     };
 }
 
-interface SidebarStreamsResponse {
-    success: boolean;
-    streams: SidebarStream[];
+export interface SidebarCategory {
+    name: string;
+    count: number;
 }
 
-export function useSidebarStreams() {
-    const { data, error, isLoading, mutate } = useSWR<SidebarStreamsResponse>(
-        "/streams/sidebar",
-        () => streamService.getSidebarStreams(),
+interface ExploreSidebarResponse {
+    success: boolean;
+    streams: SidebarStream[];
+    categories: SidebarCategory[];
+}
+
+export function useExploreSidebarData() {
+    const { data, error, isLoading, mutate } = useSWR<ExploreSidebarResponse>(
+        "/streams/explore/sidebar",
+        () => streamService.getExploreSidebarData(),
         {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
-            refreshInterval: 30000, // Refresh every 30 seconds to keep viewer counts updated
+            refreshInterval: 60000, // Refresh every minute
             dedupingInterval: 5000,
         }
     );
 
     return {
         streams: data?.streams || [],
+        categories: data?.categories || [],
         isLoading,
         isError: !!error,
         error,

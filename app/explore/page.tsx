@@ -17,6 +17,7 @@ import {
   Users
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
+import { useExploreSidebarData, SidebarCategory } from "@/hooks/explore";
 
 export default function ExplorePage() {
   const router = useRouter();
@@ -28,7 +29,16 @@ export default function ExplorePage() {
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [isLoadingStreams, setIsLoadingStreams] = useState(false);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const { categories: apiCategories, isLoading: isLoadingCategories } = useExploreSidebarData();
+
+  // Enrich static categories with counts from API
+  const enrichedCategories = CATEGORIES.map(cat => {
+    const apiCat = apiCategories.find((ac: SidebarCategory) => ac.name.toLowerCase() === cat.name.toLowerCase());
+    return {
+      ...cat,
+      count: apiCat ? apiCat.count : 0
+    };
+  });
 
   // Get URL params
   const urlSearch = searchParams.get("search");
@@ -149,7 +159,7 @@ export default function ExplorePage() {
                       ))}
                     </>
                   ) : (
-                    CATEGORIES.map((category) => {
+                    enrichedCategories.map((category) => {
                       const IconComponent = category.icon;
                       const handleCategoryClick = () => {
                         const sectionId = `category-${category.name.toLowerCase().replace(/\s+/g, '-')}`;
@@ -183,7 +193,9 @@ export default function ExplorePage() {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <h3 className="text-foreground font-bold text-lg mb-1 group-hover:text-primary transition-colors duration-300">{category.name}</h3>
-                                  <p className="text-muted-foreground text-sm font-medium">{(category.count ?? 0).toLocaleString()} classes</p>
+                                  <p className="text-muted-foreground text-sm font-medium">
+                                    {category.count.toLocaleString()} {category.count === 1 ? 'class' : 'classes'}
+                                  </p>
                                 </div>
                               </div>
 

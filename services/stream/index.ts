@@ -92,14 +92,14 @@ export const streamService = {
         }
     },
 
-    // Get Sidebar Streams (Public)
-    getSidebarStreams: async () => {
+    // Get Explore Sidebar Data (Public)
+    getExploreSidebarData: async () => {
         try {
-            const response = await axiosInstance.get('/streams/sidebar');
+            const response = await axiosInstance.get('/streams/explore/sidebar');
             return response.data;
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
-            throw new Error(err.response?.data?.message || 'Failed to get sidebar streams');
+            throw new Error(err.response?.data?.message || 'Failed to get explore sidebar data');
         }
     }
 };
