@@ -101,5 +101,18 @@ export const streamService = {
             const err = error as { response?: { data?: { message?: string } } };
             throw new Error(err.response?.data?.message || 'Failed to get explore data');
         }
+    },
+
+    // Quick Search (Public)
+    quickSearch: async (query: string, limit: number = 5) => {
+        try {
+            const response = await axiosInstance.get('/streams/buck-search', {
+                params: { query, limit }
+            });
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            throw new Error(err.response?.data?.message || 'Failed to perform quick search');
+        }
     }
 };

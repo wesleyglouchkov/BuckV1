@@ -51,3 +51,49 @@ export function useExploreData() {
         mutate,
     };
 }
+
+export interface SearchResultCreator {
+    id: string;
+    name: string;
+    username: string;
+    avatar: string | null;
+    followers: number;
+    isLive: boolean;
+}
+
+export interface SearchResultStream {
+    id: string;
+    title: string;
+    thumbnail: string | null;
+    viewerCount: number;
+    isLive: boolean;
+    workoutType: string;
+    creator: {
+        name: string;
+        username: string;
+    };
+}
+
+interface QuickSearchResponse {
+    success: boolean;
+    creators: SearchResultCreator[];
+    streams: SearchResultStream[];
+}
+
+export function useQuickSearch(query: string, limit: number = 5) {
+    const { data, error, isLoading } = useSWR<QuickSearchResponse>(
+        query && query.length >= 2 ? [`/streams/buck-search`, query, limit] : null,
+        () => streamService.quickSearch(query, limit),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 10000,
+        }
+    );
+
+    return {
+        creators: data?.creators || [],
+        streams: data?.streams || [],
+        isLoading: !!query && query.length >= 2 && isLoading,
+        isError: !!error,
+    };
+}
