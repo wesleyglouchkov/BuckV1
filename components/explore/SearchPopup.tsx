@@ -23,10 +23,10 @@ const formatViewerCount = (count: number) => {
 export default function SearchPopup({ query, debouncedQuery, isVisible, onClose }: SearchPopupProps) {
     const { creators, streams, isLoading } = useQuickSearch(debouncedQuery);
 
-    if (!isVisible || !query.trim() || query.length < 2) return null;
+    if (!isVisible || !query.trim() || query.length < 1) return null;
 
     // Show skeletons if loading OR if query has changed but debouncedQuery hasn't caught up yet
-    const showSkeletons = isLoading || (query !== debouncedQuery && query.length >= 2);
+    const showSkeletons = isLoading || (query !== debouncedQuery && query.length >= 1);
     const hasResults = creators.length > 0 || streams.length > 0;
 
     return (
@@ -35,7 +35,7 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
             onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
         >
             {showSkeletons ? (
-                <div className="p-3 space-y-4">
+                <div className="p-3 space-y-4 max-h-[280px] md:max-h-[450px] overflow-y-auto">
                     <div className="space-y-2">
                         <div className="px-2 pb-1">
                             <div className="h-3 w-16 bg-muted animate-pulse rounded" />
@@ -61,7 +61,7 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
                     </p>
                 </div>
             ) : (
-                <div className="max-h-[450px] overflow-y-auto">
+                <div className="max-h-[280px] md:max-h-[450px] overflow-y-auto">
                     {/* Creators Section */}
                     {creators.length > 0 && (
                         <div className="p-3 border-b border-border/30">

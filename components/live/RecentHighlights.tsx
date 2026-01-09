@@ -7,22 +7,34 @@ import Link from "next/link";
 
 // Mock data generator since we don't have a real endpoint yet
 const generateMockStreams = (creatorId: string, count: number) => {
-    return Array.from({ length: count }).map((_, i) => ({
-        id: `mock-${i}`,
-        title: i % 2 === 0 ? "Highlight: Best Moments of the Week" : "Full Stream: Gaming Marathon",
-        thumbnail: null, // Will simulate missing thumbnail to test useSignedThumbnails or fallback
-        replayUrl: "creators/cmjfamzp500084ou644652eeu/streams/cmk1dzqx50004anu6erl3zmbu/040383ba70415d6a5dec60972408a3c8_cmk1dzqx50004anu6erl3zmbu_0.mp4", // Mock URL for signing
-        createdAt: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
-        duration: 3600 + Math.random() * 7200,
-        viewerCount: Math.floor(Math.random() * 50000),
-        views: Math.floor(Math.random() * 50000),
-        isLive: false,
-        creator: {
-            id: creatorId,
-            name: "Creator Name",
-            avatar: null
-        }
-    }));
+    // Stable base date for mock data (Jan 1, 2024)
+    const baseDate = new Date("2024-01-01T00:00:00Z").getTime();
+
+    return Array.from({ length: count }).map((_, i) => {
+        // Create a basic deterministic seed from string
+        const seedValue = creatorId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + i;
+        const deterministicRandom = (seed: number) => {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        };
+
+        return {
+            id: `mock-${i}`,
+            title: i % 2 === 0 ? "Highlight: Best Moments of the Week" : "Full Stream: Gaming Marathon",
+            thumbnail: null,
+            replayUrl: "creators/cmjfamzp500084ou644652eeu/streams/cmk1dzqx50004anu6erl3zmbu/040383ba70415d6a5dec60972408a3c8_cmk1dzqx50004anu6erl3zmbu_0.mp4",
+            createdAt: new Date(baseDate - (i + 1) * 86400000).toISOString(),
+            duration: 3600 + deterministicRandom(seedValue) * 7200,
+            viewerCount: Math.floor(deterministicRandom(seedValue + 1) * 50000),
+            views: Math.floor(deterministicRandom(seedValue + 2) * 50000),
+            isLive: false,
+            creator: {
+                id: creatorId,
+                name: "Creator Name",
+                avatar: null
+            }
+        };
+    });
 };
 
 interface RecentHighlightsProps {

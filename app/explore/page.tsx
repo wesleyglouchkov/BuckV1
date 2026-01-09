@@ -9,6 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { SkeletonBox } from "@/components/ui/skeleton-variants";
+import SearchPopup from "@/components/explore/SearchPopup";
+import { useRef, useCallback } from "react";
 
 import {
   Search,
@@ -24,11 +26,49 @@ export default function ExplorePage() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { categories: apiCategories, isLoading: isLoadingCategories } = useExploreData();
+
+  // Debounce search query
+  useEffect(() => {
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close popup on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/explore?search=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchFocused(false);
+      mobileInputRef.current?.blur();
+    }
+  };
 
   // Enrich static categories with counts from API
   const enrichedCategories = CATEGORIES.map(cat => {
@@ -95,17 +135,26 @@ export default function ExplorePage() {
       />
 
       {/* Mobile Search */}
-      <div className="md:hidden fixed top-16 left-0 right-0 bg-card border-b border-border/20 p-4 z-20">
-        <div className="relative w-full">
+      <div className="md:hidden fixed top-16 left-0 right-0 bg-card border-b border-border/20 p-4 z-20" ref={mobileSearchRef}>
+        <form onSubmit={handleSearchSubmit} className="relative w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
+            ref={mobileInputRef}
             type="text"
             placeholder="Search creator, class..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
             className="w-full pl-10 pr-4 py-2 bg-input border-border focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
           />
-        </div>
+          {/* Mobile Search Popup */}
+          <SearchPopup
+            query={searchQuery}
+            debouncedQuery={debouncedQuery}
+            isVisible={isSearchFocused && searchQuery.length >= 1}
+            onClose={() => setIsSearchFocused(false)}
+          />
+        </form>
       </div>
 
       <ExploreSidebar

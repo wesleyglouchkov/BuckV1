@@ -82,7 +82,7 @@ interface QuickSearchResponse {
 
 export function useQuickSearch(query: string, limit: number = 5) {
     const { data, error, isLoading } = useSWR<QuickSearchResponse>(
-        query && query.length >= 2 ? [`/streams/buck-search`, query, limit] : null,
+        query && query.length >= 1 ? [`/streams/buck-search`, query, limit] : null,
         () => streamService.quickSearch(query, limit),
         {
             revalidateOnFocus: false,
@@ -93,7 +93,7 @@ export function useQuickSearch(query: string, limit: number = 5) {
     return {
         creators: data?.creators || [],
         streams: data?.streams || [],
-        isLoading: !!query && query.length >= 2 && isLoading,
+        isLoading: !!query && query.length >= 1 && isLoading,
         isError: !!error,
     };
 }

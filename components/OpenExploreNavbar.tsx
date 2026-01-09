@@ -182,7 +182,7 @@ export default function OpenExploreNavbar({
                                 <SearchPopup
                                     query={localQuery}
                                     debouncedQuery={debouncedQuery}
-                                    isVisible={isSearchFocused && localQuery.length >= 2}
+                                    isVisible={isSearchFocused && localQuery.length >= 1}
                                     onClose={() => setIsSearchFocused(false)}
                                 />
                             )}
