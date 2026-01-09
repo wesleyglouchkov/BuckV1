@@ -8,6 +8,8 @@ export interface SidebarStream {
     title: string;
     viewerCount: number;
     thumbnail: string | null;
+    createdAt: string | Date;
+    isLive: boolean;
     creator: {
         id: string;
         name: string;
@@ -19,6 +21,7 @@ export interface SidebarStream {
 export interface SidebarCategory {
     name: string;
     count: number;
+    previewStreams: SidebarStream[];
 }
 
 interface ExploreSidebarResponse {

@@ -28,7 +28,6 @@ export default function ExplorePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const [isLoadingStreams, setIsLoadingStreams] = useState(false);
   const { categories: apiCategories, isLoading: isLoadingCategories } = useExploreSidebarData();
 
   // Enrich static categories with counts from API
@@ -225,7 +224,10 @@ export default function ExplorePage() {
 
               {/* Category Streams Section */}
               <section className="mb-12">
-                <CategoryStreams isLoading={isLoadingStreams} />
+                <CategoryStreams
+                  isLoading={isLoadingCategories}
+                  categories={apiCategories}
+                />
               </section>
             </>
           )}

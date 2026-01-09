@@ -39,7 +39,7 @@ export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
 
     if (!src) {
         return (
-            <div className="w-full aspect-video flex items-center justify-center bg-muted border border-border">
+            <div className="w-full aspect-16/10 flex items-center justify-center bg-muted border border-border">
                 <p className="text-muted-foreground">No video source available</p>
             </div>
         );
@@ -60,7 +60,7 @@ export default function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
                 title={title || "Video"}
                 src={src}
                 poster={poster}
-                aspectRatio="16/9"
+                aspectRatio="16/10"
                 load="idle"
                 playsInline
                 storage={null}
