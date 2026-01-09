@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Radio, Users, ArrowRight, Search } from "lucide-react";
 import { SkeletonCard } from "@/components/ui/skeleton-variants";
+import { VideoCard } from "@/components/VideoCard";
 import { useBuckSearch } from "@/hooks/explore";
 
 interface SearchAllTabProps {
@@ -12,13 +13,6 @@ interface SearchAllTabProps {
     onTabChange: (tab: string) => void;
     isLoading?: boolean;
 }
-
-const formatViewerCount = (count: number) => {
-    if (count >= 1000) {
-        return (count / 1000).toFixed(1) + "K";
-    }
-    return count.toString();
-};
 
 export default function SearchAllTab({ searchQuery, onTabChange, isLoading: parentLoading = false }: SearchAllTabProps) {
     const { creators, streams, isLoading: searchLoading } = useBuckSearch({
@@ -114,8 +108,8 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading: pare
                                     <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                                         {creator.name}
                                     </p>
-                                    <p className="text-[11px] text-muted-foreground truncate">
-                                        @{creator.username} · {formatViewerCount(creator.followers)} followers
+                                    <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                                        @{creator.username} · {creator.followers >= 1000 ? (creator.followers / 1000).toFixed(1) + "K" : creator.followers.toString()} followers
                                     </p>
                                 </div>
                             </Link>
@@ -142,42 +136,7 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading: pare
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {streams.map((stream) => (
-                            <Link
-                                key={stream.id}
-                                href={`/live/${stream.id}`}
-                                className="group bg-card border border-border/30 overflow-hidden hover:border-primary/30 hover:shadow-md transition-all"
-                            >
-                                {/* Thumbnail */}
-                                <div className="relative aspect-video bg-muted">
-                                    {stream.thumbnail ? (
-                                        <Image
-                                            src={stream.thumbnail}
-                                            alt={stream.title}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/20 to-secondary/20">
-                                            <Radio className="w-10 h-10 text-primary/50" />
-                                        </div>
-                                    )}
-                                    {stream.isLive && (
-                                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold">
-                                            <div className="w-1 h-1 bg-white animate-pulse" />
-                                            LIVE
-                                        </div>
-                                    )}
-                                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px]">
-                                        {formatViewerCount(stream.viewerCount)} viewers
-                                    </div>
-                                </div>
-                                <div className="p-3">
-                                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                                        {stream.title}
-                                    </p>
-                                    <p className="text-[11px] text-muted-foreground mt-1 truncate">{stream.creator.name}</p>
-                                </div>
-                            </Link>
+                            <VideoCard key={stream.id} stream={stream} />
                         ))}
                     </div>
                 </section>

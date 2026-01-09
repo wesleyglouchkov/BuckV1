@@ -25,6 +25,8 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
         (initialTab === "creators" || initialTab === "streams") ? initialTab : "all"
     );
     const [streamCategory, setStreamCategory] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isLiveFilter, setIsLiveFilter] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     // Sync with URL params
@@ -32,51 +34,85 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
         const search = searchParams.get("search") || "";
         const tab = searchParams.get("tab") || "all";
         const category = searchParams.get("category");
+        const page = parseInt(searchParams.get("page") || "1");
+        const isLive = searchParams.get("isLive");
 
         setSearchQuery(search);
         setActiveTab((tab === "creators" || tab === "streams") ? tab : "all");
         setStreamCategory(category);
+        setCurrentPage(page);
+        setIsLiveFilter(isLive === "true" ? true : isLive === "false" ? false : null);
     }, [searchParams]);
 
-    // Update URL when search/tab changes
-    const updateUrl = (newSearch: string, newTab: string, newCategory?: string | null) => {
-        const params = new URLSearchParams();
-        if (newSearch) params.set("search", newSearch);
-        // Always set tab param when in search results view to prevent exiting
-        if (newTab && newTab !== "all") {
-            params.set("tab", newTab);
-        } else if (!newSearch && newTab === "all") {
-            // If no search and going to "all", set tab to keep in search view
-            params.set("tab", "all");
-        }
-        if (newCategory) params.set("category", newCategory);
+    // Update URL when search/tab/category/page/isLive changes
+    const updateUrl = (params: {
+        search?: string;
+        tab?: string;
+        category?: string | null;
+        page?: number;
+        isLive?: boolean | null;
+    }) => {
+        const newParams = new URLSearchParams(searchParams.toString());
 
-        router.push(`/explore?${params.toString()}`, { scroll: false });
+        if (params.search !== undefined) {
+            if (params.search) newParams.set("search", params.search);
+            else newParams.delete("search");
+        }
+
+        if (params.tab !== undefined) {
+            if (params.tab && params.tab !== "all") newParams.set("tab", params.tab);
+            else newParams.delete("tab");
+        }
+
+        if (params.category !== undefined) {
+            if (params.category) newParams.set("category", params.category);
+            else newParams.delete("category");
+        }
+
+        if (params.page !== undefined) {
+            if (params.page > 1) newParams.set("page", params.page.toString());
+            else newParams.delete("page");
+        }
+
+        if (params.isLive !== undefined) {
+            if (params.isLive !== null) newParams.set("isLive", params.isLive.toString());
+            else newParams.delete("isLive");
+        }
+
+        router.push(`/explore?${newParams.toString()}`, { scroll: false });
     };
 
     const handleTabChange = (tab: string) => {
         const newTab = tab as TabType;
         setActiveTab(newTab);
-        updateUrl(searchQuery, newTab, newTab === "streams" ? streamCategory : null);
+        updateUrl({ tab: newTab, page: 1 }); // Reset page on tab change
     };
 
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
 
-        // Clear previous timeout
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
 
-        // Debounce URL update
         debounceTimerRef.current = setTimeout(() => {
-            updateUrl(value, activeTab, activeTab === "streams" ? streamCategory : null);
+            updateUrl({ search: value, page: 1 }); // Reset page on search change
         }, 300);
     };
 
     const handleCategoryChange = (category: string | null) => {
         setStreamCategory(category);
-        updateUrl(searchQuery, activeTab, category);
+        updateUrl({ category, page: 1 }); // Reset page on category change
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        updateUrl({ page });
+    };
+
+    const handleIsLiveChange = (isLive: boolean | null) => {
+        setIsLiveFilter(isLive);
+        updateUrl({ isLive, page: 1 }); // Reset page on filter change
     };
 
     const clearSearch = () => {
@@ -151,12 +187,18 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
                         searchQuery={searchQuery}
                         selectedCategory={streamCategory}
                         onCategoryChange={handleCategoryChange}
+                        page={currentPage}
+                        onPageChange={handlePageChange}
+                        isLive={isLiveFilter}
+                        onIsLiveChange={handleIsLiveChange}
                         isLoading={isLoading}
                     />
                 )}
                 {activeTab === "creators" && (
                     <SearchCreatorsTab
                         searchQuery={searchQuery}
+                        page={currentPage}
+                        onPageChange={handlePageChange}
                         isLoading={isLoading}
                     />
                 )}

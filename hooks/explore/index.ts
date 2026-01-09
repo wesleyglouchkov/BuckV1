@@ -68,9 +68,12 @@ export interface SearchResultStream {
     viewerCount: number;
     isLive: boolean;
     workoutType: string;
+    createdAt: string | Date;
     creator: {
+        id: string;
         name: string;
         username: string;
+        avatar: string | null;
     };
 }
 
@@ -80,10 +83,15 @@ interface QuickSearchResponse {
     streams: SearchResultStream[];
 }
 
+interface SearchResponse extends QuickSearchResponse {
+    tab: string;
+    total?: number;
+}
+
 export function useQuickSearch(query: string, limit: number = 5) {
-    const { data, error, isLoading } = useSWR<QuickSearchResponse>(
-        query && query.length >= 1 ? [`/streams/buck-search`, query, limit] : null,
-        () => streamService.quickSearch(query, limit),
+    const { data, error, isLoading } = useSWR<SearchResponse>(
+        query && query.length >= 1 ? [`/streams/buck-search`, 'all', query, limit] : null,
+        () => streamService.buckSearch({ tab: 'all', query, limit }),
         {
             revalidateOnFocus: false,
             dedupingInterval: 10000,
@@ -95,5 +103,42 @@ export function useQuickSearch(query: string, limit: number = 5) {
         streams: data?.streams || [],
         isLoading: !!query && query.length >= 1 && isLoading,
         isError: !!error,
+    };
+}
+
+export function useBuckSearch(params: {
+    tab: string;
+    query?: string;
+    page?: number;
+    limit?: number;
+    workoutType?: string;
+    isLive?: boolean;
+}) {
+    const { data, error, isLoading, isValidating } = useSWR<SearchResponse>(
+        params.query || params.tab !== 'all' ? [
+            `/streams/buck-search`,
+            params.tab,
+            params.query,
+            params.page,
+            params.limit,
+            params.workoutType,
+            params.isLive
+        ] : null,
+        () => streamService.buckSearch(params),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 5000,
+        }
+    );
+
+    return {
+        creators: data?.creators || [],
+        streams: data?.streams || [],
+        total: data?.total || 0,
+        tab: data?.tab || params.tab,
+        isLoading: isLoading,
+        isValidating,
+        isError: !!error,
+        error
     };
 }

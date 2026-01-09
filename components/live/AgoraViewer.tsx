@@ -477,8 +477,8 @@ function StreamLogic({
                 <div className="absolute inset-0 z-50 bg-black/30 backdrop-blur-xl flex items-center justify-center">
                     <div className="text-center space-y-6 max-w-md mx-4">
                         <div className="space-y-2">
-                            <h2 className="text-3xl font-bold text-foreground">Ready to Join?</h2>
-                            <p className="text-muted-foreground">
+                            <h2 className="text-3xl font-bold text-white">Ready to Join?</h2>
+                            <p className="text-white">
                                 Click below to enter the live stream
                             </p>
                         </div>
