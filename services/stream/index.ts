@@ -1,7 +1,7 @@
 import { createClientAuthInstance, axiosInstance } from "@/utils/axios";
 
 export const streamService = {
-    
+
     // Get Stream Details (Public)
     getStreamDetails: async (streamId: string) => {
         try {
@@ -89,6 +89,17 @@ export const streamService = {
             const err = error as { response?: { data?: { message?: string } } };
             console.error("Failed to report content", err);
             throw new Error(err.response?.data?.message || 'Failed to report content');
+        }
+    },
+
+    // Get Sidebar Streams (Public)
+    getSidebarStreams: async () => {
+        try {
+            const response = await axiosInstance.get('/streams/sidebar');
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            throw new Error(err.response?.data?.message || 'Failed to get sidebar streams');
         }
     }
 };

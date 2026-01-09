@@ -11,14 +11,15 @@ import {
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
 
-// Mock live channels data
-const liveChannels = [
-    { id: 1, name: "Fortnite Live", creator: "ProGamer", viewers: "2.5K", category: "Games" },
-    { id: 2, name: "Guitar Masterclass", creator: "MusicPro", viewers: "1.2K", category: "Music & DJs" },
-    { id: 3, name: "Digital Art Tutorial", creator: "ArtMaster", viewers: "890", category: "Creative" },
-    { id: 4, name: "Just Chatting", creator: "CasualStreamer", viewers: "650", category: "IRL" },
-    { id: 5, name: "Cooking Show", creator: "ChefLife", viewers: "420", category: "IRL" },
-];
+import { useSidebarStreams } from "@/hooks/explore";
+import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
+
+const formatViewerCount = (count: number) => {
+    if (count >= 1000) {
+        return (count / 1000).toFixed(1) + "K";
+    }
+    return count.toString();
+};
 
 interface ExploreSidebarProps {
     sidebarCollapsed: boolean;
@@ -41,6 +42,7 @@ export default function ExploreSidebar({
     mobileMenuOpen,
     setMobileMenuOpen,
 }: ExploreSidebarProps) {
+    const { streams, isLoading } = useSidebarStreams();
     const displayedCategories = showAllCategories ? CATEGORIES : CATEGORIES.slice(0, 4);
 
     return (
@@ -83,38 +85,52 @@ export default function ExploreSidebar({
                         )}
                     </div>
                     <ul className="space-y-1">
-                        {liveChannels.map((channel) => (
-                            <li key={channel.id}>
-                                <Link
-                                    href={`/explore/live/${channel.id}`}
-                                    className={`flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors ${sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
-                                        }`}
-                                >
-                                    <div className="w-8 h-8 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                        <Image
-                                            src="https://static-cdn.jtvnw.net/jtv_user_pictures/a8c959b1-750e-47d2-9cae-d8c2b1327d82-profile_image-70x70.png"
-                                            alt={channel.creator}
-                                            width={32}
-                                            height={32}
-                                            className="rounded-full"
-                                        />
-                                    </div>
-                                    {!sidebarCollapsed && (
-                                        <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min min-w-0">
-                                            <div>
-                                                <p className="text-sm font-medium text-foreground truncate">{channel.name}</p>
-                                                <p className="text-xs text-muted-foreground truncate">{channel.creator}  </p>
-                                            </div>
-
-                                            <div className="flex justify-center items-center font-bold gap-1">
-                                                <p className="text-red-500 text-4xl pt-2">•</p>
-                                                <p className="text-sm">{channel.viewers}</p>
-                                            </div>
+                        {isLoading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <li key={i}>
+                                    <SkeletonSidebarItem collapsed={sidebarCollapsed} />
+                                </li>
+                            ))
+                        ) : (
+                            streams.map((channel) => (
+                                <li key={channel.id}>
+                                    <Link
+                                        href={`/explore/live/${channel.id}`}
+                                        className={`flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors ${sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
+                                            }`}
+                                    >
+                                        <div className="w-8 h-8 shrink-0">
+                                            {channel.creator.avatar ? (
+                                                <Image
+                                                    src={channel.creator.avatar}
+                                                    alt={channel.creator.name}
+                                                    width={32}
+                                                    height={32}
+                                                    className="rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                                                    {channel.creator.name.substring(0, 2).toUpperCase()}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </Link>
-                            </li>
-                        ))}
+                                        {!sidebarCollapsed && (
+                                            <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min-w-0">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-medium text-foreground truncate">{channel.title}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">{channel.creator.name}</p>
+                                                </div>
+
+                                                <div className="flex items-center font-medium gap-1 shrink-0">
+                                                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                                                    <p className="text-xs">{formatViewerCount(channel.viewerCount)}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Link>
+                                </li>
+                            ))
+                        )}
                     </ul>
                 </div>
 
@@ -212,23 +228,49 @@ export default function ExploreSidebar({
                                 </h3>
                             </div>
                             <ul className="space-y-1">
-                                {liveChannels.map((channel) => (
-                                    <li key={channel.id}>
-                                        <Link
-                                            href={`/explore/live/${channel.id}`}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="flex items-center gap-2 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                                        >
-                                            <div className="w-8 h-8 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                                {channel.creator.substring(0, 2).toUpperCase()}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-foreground truncate">{channel.name}</p>
-                                                <p className="text-xs text-muted-foreground truncate">{channel.creator} • {channel.viewers}</p>
-                                            </div>
-                                        </Link>
-                                    </li>
-                                ))}
+                                {isLoading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <li key={i}>
+                                            <SkeletonSidebarItem />
+                                        </li>
+                                    ))
+                                ) : (
+                                    streams.map((channel) => (
+                                        <li key={channel.id}>
+                                            <Link
+                                                href={`/explore/live/${channel.id}`}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="flex items-center gap-2 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                                            >
+                                                <div className="w-8 h-8 shrink-0">
+                                                    {channel.creator.avatar ? (
+                                                        <Image
+                                                            src={channel.creator.avatar}
+                                                            alt={channel.creator.name}
+                                                            width={32}
+                                                            height={32}
+                                                            className="rounded-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                                                            {channel.creator.name.substring(0, 2).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className="text-sm font-medium text-foreground truncate">{channel.title}</p>
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                                            <p className="text-xs font-medium">{formatViewerCount(channel.viewerCount)}</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground truncate">{channel.creator.name}</p>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    ))
+                                )}
                             </ul>
                         </div>
 
