@@ -103,16 +103,23 @@ export const streamService = {
         }
     },
 
-    // Quick Search (Public)
-    quickSearch: async (query: string, limit: number = 5) => {
+    // Buck Search (Public) - New Tabbed/Paginated API
+    buckSearch: async (params: {
+        tab: string;
+        query?: string;
+        page?: number;
+        limit?: number;
+        workoutType?: string;
+        isLive?: boolean;
+    }) => {
         try {
             const response = await axiosInstance.get('/streams/buck-search', {
-                params: { query, limit }
+                params
             });
             return response.data;
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
-            throw new Error(err.response?.data?.message || 'Failed to perform quick search');
+            throw new Error(err.response?.data?.message || 'Failed to perform buck search');
         }
     }
 };

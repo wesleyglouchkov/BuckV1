@@ -1,22 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Radio, Users, ArrowRight, Search } from "lucide-react";
 import { SkeletonCard } from "@/components/ui/skeleton-variants";
-
-// Mock data
-const mockCreators = [
-    { id: 1, name: "FitCoach", username: "fitcoach", category: "HIIT", followers: "54K", avatar: "💪", online: true },
-    { id: 2, name: "YogaMaster", username: "yogamaster", category: "Yoga", followers: "32K", avatar: "🧘", online: false },
-    { id: 3, name: "HIITQueen", username: "hiitqueen", category: "HIIT", followers: "89K", avatar: "🔥", online: true },
-];
-
-const mockStreams = [
-    { id: 1, title: "Morning HIIT Blast", creator: "FitCoach", category: "HIIT", viewers: "1.2K" },
-    { id: 2, title: "Gentle Yoga Flow", creator: "YogaMaster", category: "Yoga", viewers: "890" },
-    { id: 3, title: "Boxing Fundamentals", creator: "BoxingChamp", category: "Boxing", viewers: "650" },
-];
+import { useBuckSearch } from "@/hooks/explore";
 
 interface SearchAllTabProps {
     searchQuery: string;
@@ -24,42 +13,38 @@ interface SearchAllTabProps {
     isLoading?: boolean;
 }
 
-export default function SearchAllTab({ searchQuery, onTabChange, isLoading = false }: SearchAllTabProps) {
-    const lowerQuery = searchQuery.toLowerCase();
+const formatViewerCount = (count: number) => {
+    if (count >= 1000) {
+        return (count / 1000).toFixed(1) + "K";
+    }
+    return count.toString();
+};
 
-    // Filter data
-    const filteredCreators = searchQuery
-        ? mockCreators.filter(c =>
-            c.name.toLowerCase().includes(lowerQuery) ||
-            c.username.toLowerCase().includes(lowerQuery)
-        ).slice(0, 3)
-        : mockCreators.slice(0, 3);
+export default function SearchAllTab({ searchQuery, onTabChange, isLoading: parentLoading = false }: SearchAllTabProps) {
+    const { creators, streams, isLoading: searchLoading } = useBuckSearch({
+        tab: 'all',
+        query: searchQuery,
+        limit: 4
+    });
 
-    const filteredStreams = searchQuery
-        ? mockStreams.filter(s =>
-            s.title.toLowerCase().includes(lowerQuery) ||
-            s.creator.toLowerCase().includes(lowerQuery) ||
-            s.category.toLowerCase().includes(lowerQuery)
-        ).slice(0, 3)
-        : mockStreams.slice(0, 3);
-
-    const hasResults = filteredCreators.length > 0 || filteredStreams.length > 0;
+    const isLoading = parentLoading || searchLoading;
+    const hasResults = creators.length > 0 || streams.length > 0;
 
     if (isLoading) {
         return (
             <div className="space-y-8">
                 <div>
                     <div className="h-6 w-32 bg-muted animate-pulse mb-4" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Array.from({ length: 3 }).map((_, i) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {Array.from({ length: 4 }).map((_, i) => (
                             <SkeletonCard key={i} className="h-[140px]" />
                         ))}
                     </div>
                 </div>
                 <div>
                     <div className="h-6 w-32 bg-muted animate-pulse mb-4" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Array.from({ length: 3 }).map((_, i) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {Array.from({ length: 4 }).map((_, i) => (
                             <SkeletonCard key={i} className="h-[180px]" />
                         ))}
                     </div>
@@ -68,7 +53,7 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading = fal
         );
     }
 
-    if (!hasResults) {
+    if (!hasResults && searchQuery) {
         return (
             <div className="py-16 text-center">
                 <div className="w-16 h-16 bg-muted flex items-center justify-center mx-auto mb-4">
@@ -85,7 +70,7 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading = fal
     return (
         <div className="space-y-10">
             {/* Creators Section */}
-            {filteredCreators.length > 0 && (
+            {creators.length > 0 && (
                 <section>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -94,32 +79,44 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading = fal
                         </div>
                         <button
                             onClick={() => onTabChange("creators")}
-                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
                         >
                             View all
                             <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {filteredCreators.map((creator) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {creators.map((creator) => (
                             <Link
                                 key={creator.id}
                                 href={`/explore/creator/${creator.username}`}
-                                className="group flex items-center gap-4 p-4 bg-card border border-border/30 hover:border-primary/30 hover:shadow-md transition-all"
+                                className="group flex items-center gap-3 p-4 bg-card border border-border/30 hover:border-primary/30 hover:shadow-md transition-all"
                             >
-                                <div className="relative">
-                                    <div className="w-12 h-12 bg-linear-to-br from-primary to-secondary flex items-center justify-center text-2xl">
-                                        {creator.avatar}
-                                    </div>
-                                    {creator.online && (
-                                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card" />
+                                <div className="relative shrink-0">
+                                    {creator.avatar ? (
+                                        <Image
+                                            src={creator.avatar}
+                                            alt={creator.name}
+                                            width={44}
+                                            height={44}
+                                            className="rounded-full object-cover aspect-square"
+                                        />
+                                    ) : (
+                                        <div className="w-11 h-11 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            {creator.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                    )}
+                                    {creator.isLive && (
+                                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-card rounded-full" />
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                                         {creator.name}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">@{creator.username} · {creator.followers}</p>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                        @{creator.username} · {formatViewerCount(creator.followers)} followers
+                                    </p>
                                 </div>
                             </Link>
                         ))}
@@ -128,7 +125,7 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading = fal
             )}
 
             {/* Live Streams Section */}
-            {filteredStreams.length > 0 && (
+            {streams.length > 0 && (
                 <section>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -137,14 +134,14 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading = fal
                         </div>
                         <button
                             onClick={() => onTabChange("streams")}
-                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
                         >
                             View all
                             <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {filteredStreams.map((stream) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {streams.map((stream) => (
                             <Link
                                 key={stream.id}
                                 href={`/live/${stream.id}`}
@@ -152,22 +149,33 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading = fal
                             >
                                 {/* Thumbnail */}
                                 <div className="relative aspect-video bg-muted">
-                                    <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/20 to-secondary/20">
-                                        <Radio className="w-10 h-10 text-primary/50" />
-                                    </div>
-                                    <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white text-xs font-bold">
-                                        <div className="w-1.5 h-1.5 bg-white animate-pulse" />
-                                        LIVE
-                                    </div>
-                                    <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 text-white text-xs">
-                                        {stream.viewers}
+                                    {stream.thumbnail ? (
+                                        <Image
+                                            src={stream.thumbnail}
+                                            alt={stream.title}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/20 to-secondary/20">
+                                            <Radio className="w-10 h-10 text-primary/50" />
+                                        </div>
+                                    )}
+                                    {stream.isLive && (
+                                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold">
+                                            <div className="w-1 h-1 bg-white animate-pulse" />
+                                            LIVE
+                                        </div>
+                                    )}
+                                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px]">
+                                        {formatViewerCount(stream.viewerCount)} viewers
                                     </div>
                                 </div>
                                 <div className="p-3">
-                                    <p className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">
                                         {stream.title}
                                     </p>
-                                    <p className="text-xs text-muted-foreground mt-1">{stream.creator}</p>
+                                    <p className="text-[11px] text-muted-foreground mt-1 truncate">{stream.creator.name}</p>
                                 </div>
                             </Link>
                         ))}
