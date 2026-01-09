@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
 
-import { useExploreSidebarData, SidebarCategory, SidebarStream } from "@/hooks/explore";
+import { useExploreData, SidebarCategory, SidebarStream } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
 
 const formatViewerCount = (count: number) => {
@@ -42,7 +42,7 @@ export default function ExploreSidebar({
     mobileMenuOpen,
     setMobileMenuOpen,
 }: ExploreSidebarProps) {
-    const { streams, categories: apiCategories, isLoading } = useExploreSidebarData();
+    const { streams, categories: apiCategories, isLoading } = useExploreData();
 
     // Enrich static categories with counts from API
     const enrichedCategories = CATEGORIES.map(cat => {

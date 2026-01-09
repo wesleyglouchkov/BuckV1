@@ -17,7 +17,7 @@ import {
   Users
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
-import { useExploreSidebarData, SidebarCategory } from "@/hooks/explore";
+import { useExploreData, SidebarCategory } from "@/hooks/explore";
 
 export default function ExplorePage() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function ExplorePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const { categories: apiCategories, isLoading: isLoadingCategories } = useExploreSidebarData();
+  const { categories: apiCategories, isLoading: isLoadingCategories } = useExploreData();
 
   // Enrich static categories with counts from API
   const enrichedCategories = CATEGORIES.map(cat => {

@@ -24,16 +24,16 @@ export interface SidebarCategory {
     previewStreams: SidebarStream[];
 }
 
-interface ExploreSidebarResponse {
+interface ExploreResponse {
     success: boolean;
     streams: SidebarStream[];
     categories: SidebarCategory[];
 }
 
-export function useExploreSidebarData() {
-    const { data, error, isLoading, mutate } = useSWR<ExploreSidebarResponse>(
-        "/streams/explore/sidebar",
-        () => streamService.getExploreSidebarData(),
+export function useExploreData() {
+    const { data, error, isLoading, mutate } = useSWR<ExploreResponse>(
+        "/streams/explore",
+        () => streamService.getExploreData(),
         {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,

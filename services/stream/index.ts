@@ -92,14 +92,14 @@ export const streamService = {
         }
     },
 
-    // Get Explore Sidebar Data (Public)
-    getExploreSidebarData: async () => {
+    // Get Explore Data (Public)
+    getExploreData: async () => {
         try {
-            const response = await axiosInstance.get('/streams/explore/sidebar');
+            const response = await axiosInstance.get('/streams/explore');
             return response.data;
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
-            throw new Error(err.response?.data?.message || 'Failed to get explore sidebar data');
+            throw new Error(err.response?.data?.message || 'Failed to get explore data');
         }
     }
 };
