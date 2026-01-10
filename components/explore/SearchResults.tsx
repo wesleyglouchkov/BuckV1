@@ -21,6 +21,7 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const [searchQuery, setSearchQuery] = useState(initialSearch);
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearch);
     const [activeTab, setActiveTab] = useState<TabType>(
         (initialTab === "creators" || initialTab === "streams") ? initialTab : "all"
     );
@@ -38,6 +39,7 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
         const isLive = searchParams.get("isLive");
 
         setSearchQuery(search);
+        setDebouncedSearchQuery(search);
         setActiveTab((tab === "creators" || tab === "streams") ? tab : "all");
         setStreamCategory(category);
         setCurrentPage(page);
@@ -99,6 +101,7 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
         }
 
         debounceTimerRef.current = setTimeout(() => {
+            setDebouncedSearchQuery(value);
             updateUrl({ search: value, page: 1 }); // Reset page on search change
         }, 300);
     };
@@ -128,6 +131,8 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
         { id: "streams", label: "Classes" },
         { id: "creators", label: "Creators" },
     ];
+
+    const showSkeletons = isLoading || (searchQuery !== debouncedSearchQuery && searchQuery.length >= 1);
 
     return (
         <div>
@@ -180,29 +185,29 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
             <div className="min-h-[400px]">
                 {activeTab === "all" && (
                     <SearchAllTab
-                        searchQuery={searchQuery}
+                        searchQuery={debouncedSearchQuery}
                         onTabChange={handleTabChange}
-                        isLoading={isLoading}
+                        isLoading={showSkeletons}
                     />
                 )}
                 {activeTab === "streams" && (
                     <SearchStreamsTab
-                        searchQuery={searchQuery}
+                        searchQuery={debouncedSearchQuery}
                         selectedCategory={streamCategory}
                         onCategoryChange={handleCategoryChange}
                         page={currentPage}
                         onPageChange={handlePageChange}
                         isLive={isLiveFilter}
                         onIsLiveChange={handleIsLiveChange}
-                        isLoading={isLoading}
+                        isLoading={showSkeletons}
                     />
                 )}
                 {activeTab === "creators" && (
                     <SearchCreatorsTab
-                        searchQuery={searchQuery}
+                        searchQuery={debouncedSearchQuery}
                         page={currentPage}
                         onPageChange={handlePageChange}
-                        isLoading={isLoading}
+                        isLoading={showSkeletons}
                     />
                 )}
             </div>

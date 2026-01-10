@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Radio, Users, ArrowRight, Search } from "lucide-react";
-import { SkeletonCard } from "@/components/ui/skeleton-variants";
+import { SkeletonCard, SkeletonBox } from "@/components/ui/skeleton-variants";
 import { VideoCard } from "@/components/VideoCard";
 import { useBuckSearch } from "@/hooks/explore";
 
@@ -27,20 +27,26 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading: pare
 
     if (isLoading) {
         return (
-            <div className="space-y-8">
+            <div className="space-y-12">
                 <div>
-                    <div className="h-6 w-32 bg-muted animate-pulse mb-4" />
+                    <div className="h-6 w-48 bg-muted animate-pulse mb-6 opacity-60" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {Array.from({ length: 4 }).map((_, i) => (
-                            <SkeletonCard key={i} className="h-[140px]" />
+                            <div key={i} className="flex items-center gap-3 p-4 bg-card border border-border/20">
+                                <SkeletonBox className="h-11 w-11 rounded-full shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <SkeletonBox className="h-4 w-3/4" />
+                                    <SkeletonBox className="h-3 w-1/2" />
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>
-                <div>
-                    <div className="h-6 w-32 bg-muted animate-pulse mb-4" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="pt-8">
+                    <div className="h-6 w-48 bg-muted animate-pulse mb-6 opacity-60" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {Array.from({ length: 4 }).map((_, i) => (
-                            <SkeletonCard key={i} className="h-[180px]" />
+                            <SkeletonCard key={i} />
                         ))}
                     </div>
                 </div>
