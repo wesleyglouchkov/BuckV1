@@ -204,7 +204,7 @@ export default function MyCreatorsPage() {
             />
 
             <main className={`pt-16 pb-8 transition-all duration-300 ease-out ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"}`}>
-                <div className="md:hidden h-16" />
+                <div className="md:hidden h-10" />
 
                 <div className="p-6 max-w-7xl mx-auto">
                     <div className="mb-8">

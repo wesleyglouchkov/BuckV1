@@ -5,8 +5,8 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import OpenExploreNavbar from "@/components/OpenExploreNavbar";
 import { cn } from "@/lib/utils";
+import ExploreSidebar from "@/components/ExploreSidebar";
 import HelpSupportSidebar from "@/components/HelpSupportSidebar";
-import MobileNavigationDrawer from "@/components/MobileNavigationDrawer";
 
 export default function ProfilePage() {
     const { data: session, status } = useSession();
@@ -21,7 +21,7 @@ export default function ProfilePage() {
     const isMember = userRole === 'member';
 
     const getRoleLabel = () => {
-        const role = session?.user?.role.toLowerCase();
+        const role = session?.user?.role?.toLowerCase();
         if (!role) return "User";
         return role.charAt(0).toUpperCase() + role.slice(1);
     };
@@ -41,7 +41,7 @@ export default function ProfilePage() {
         return [];
     };
     return (
-        <div className={cn("pt-16 min-h-screen bg-background", isMember)}>
+        <div className={cn("pt-16 min-h-screen bg-background")}>
             <OpenExploreNavbar
                 session={session}
                 status={status}
@@ -51,9 +51,10 @@ export default function ProfilePage() {
                 menuItems={getMenuItems()}
             />
 
-            <MobileNavigationDrawer
-                isOpen={mobileMenuOpen}
-                onClose={() => setMobileMenuOpen(false)}
+            <ExploreSidebar
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+                desktopHidden={true}
             />
 
             <div className="container mx-auto py-10 px-4">
