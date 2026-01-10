@@ -66,7 +66,7 @@ export default function SearchStreamsTab({
     return (
         <div>
             {/* Filters Row */}
-            <div className="space-y-4 mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 {/* Category Filters */}
                 <div className="flex flex-wrap items-center gap-2">
                     <button
@@ -98,7 +98,7 @@ export default function SearchStreamsTab({
                 </div>
 
                 {/* Additional Filters */}
-                <div className="flex items-center gap-4">
+                <div className="flex justify-end items-center gap-4 shrink-0 w-full">
                     <label className="flex items-center gap-2 cursor-pointer group">
                         <div
                             onClick={() => onIsLiveChange(isLive === true ? null : true)}

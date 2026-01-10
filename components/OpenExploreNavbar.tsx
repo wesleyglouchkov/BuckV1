@@ -71,7 +71,7 @@ export default function OpenExploreNavbar({
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (localQuery.trim()) {
-            router.push(`/explore?search=${encodeURIComponent(localQuery.trim())}`);
+            router.push(`/explore?search=${encodeURIComponent(localQuery.trim())}&tab=all`);
             setIsSearchFocused(false);
             inputRef.current?.blur();
         }

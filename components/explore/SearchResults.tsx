@@ -60,8 +60,11 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
         }
 
         if (params.tab !== undefined) {
-            if (params.tab && params.tab !== "all") newParams.set("tab", params.tab);
+            if (params.tab) newParams.set("tab", params.tab);
             else newParams.delete("tab");
+        } else if (!newParams.has("tab")) {
+            // Default to 'all' if no tab is present and we want to stay in search view
+            newParams.set("tab", "all");
         }
 
         if (params.category !== undefined) {
@@ -117,7 +120,7 @@ export default function SearchResults({ initialSearch = "", initialTab = "all" }
 
     const clearSearch = () => {
         setSearchQuery("");
-        router.push("/explore", { scroll: false });
+        updateUrl({ search: "", page: 1 });
     };
 
     const tabs = [

@@ -64,7 +64,7 @@ export default function ExplorePage() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/explore?search=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/explore?search=${encodeURIComponent(searchQuery.trim())}&tab=all`);
       setIsSearchFocused(false);
       mobileInputRef.current?.blur();
     }

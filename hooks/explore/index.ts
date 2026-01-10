@@ -115,7 +115,7 @@ export function useBuckSearch(params: {
     isLive?: boolean;
 }) {
     const { data, error, isLoading, isValidating } = useSWR<SearchResponse>(
-        params.query || params.tab !== 'all' ? [
+        [
             `/streams/buck-search`,
             params.tab,
             params.query,
@@ -123,7 +123,7 @@ export function useBuckSearch(params: {
             params.limit,
             params.workoutType,
             params.isLive
-        ] : null,
+        ],
         () => streamService.buckSearch(params),
         {
             revalidateOnFocus: false,

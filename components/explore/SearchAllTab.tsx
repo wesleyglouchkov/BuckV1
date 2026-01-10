@@ -18,7 +18,8 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading: pare
     const { creators, streams, isLoading: searchLoading } = useBuckSearch({
         tab: 'all',
         query: searchQuery,
-        limit: 4
+        limit: 4,
+        isLive: searchQuery === "" ? true : undefined
     });
 
     const isLoading = parentLoading || searchLoading;

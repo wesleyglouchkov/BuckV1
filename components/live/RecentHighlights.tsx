@@ -58,7 +58,7 @@ export function RecentHighlights({ creator }: RecentHighlightsProps) {
                 <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                     Recent highlights and uploads
                 </h3>
-                <span className="text-sm text-primary font-medium flex items-center opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                <span className="text-sm text-primary font-medium flex items-center transition-all duration-300">
                     View All <ChevronRight className="w-4 h-4" />
                 </span>
             </Link>
