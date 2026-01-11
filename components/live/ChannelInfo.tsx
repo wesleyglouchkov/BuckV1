@@ -1,8 +1,14 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, Loader2 } from "lucide-react";
 import { SubscribeDialog } from "./subscribe/SubscribeDialog";
 import { cn } from "@/lib/utils";
+import { memberService } from "@/services/member";
+import { toast } from "sonner";
 
 interface ChannelInfoProps {
     creator: {
@@ -15,11 +21,73 @@ interface ChannelInfoProps {
         subscriptionPrice?: number | null;
         bio?: string;
     };
-    isFollowed?: boolean;
     isSubscribed?: boolean;
+    onFollowChange?: (isFollowing: boolean) => void;
 }
 
-export function ChannelInfo({ creator, isFollowed = false, isSubscribed = false }: ChannelInfoProps) {
+export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: ChannelInfoProps) {
+    const { data: session, status } = useSession();
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+
+    // Check follow status on mount
+    useEffect(() => {
+        const checkStatus = async () => {
+            // Only check if user is logged in as a member
+            if (status !== "authenticated" || session?.user?.role?.toUpperCase() !== "MEMBER") {
+                setIsCheckingStatus(false);
+                return;
+            }
+
+            try {
+                const result = await memberService.checkFollowStatus(creator.id);
+                setIsFollowing(result.isFollowing);
+            } catch (error) {
+                // Silently fail - user might not be following
+                console.error("Failed to check follow status:", error);
+            } finally {
+                setIsCheckingStatus(false);
+            }
+        };
+
+        if (creator.id) {
+            checkStatus();
+        }
+    }, [creator.id, session, status]);
+
+    // Handle follow/unfollow
+    const handleFollowToggle = useCallback(async () => {
+        if (status !== "authenticated") {
+            toast.error("Please sign in to follow creators");
+            return;
+        }
+
+        if (session?.user?.role?.toUpperCase() !== "MEMBER") {
+            toast.error("Only members can follow creators");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            if (isFollowing) {
+                await memberService.unfollowCreatorById(creator.id);
+                setIsFollowing(false);
+                toast.success(`Unfollowed ${creator.name}`);
+                onFollowChange?.(false);
+            } else {
+                await memberService.followCreatorById(creator.id);
+                setIsFollowing(true);
+                toast.success(`Now following ${creator.name}`);
+                onFollowChange?.(true);
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update follow status");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [creator.id, creator.name, isFollowing, session, status, onFollowChange]);
+
     // Format count (followers/subscribers)
     const formatCount = (count?: number) => {
         if (!count && count !== 0) return "0";
@@ -33,6 +101,11 @@ export function ChannelInfo({ creator, isFollowed = false, isSubscribed = false 
         if (!price) return null;
         return `$${price}/month`;
     };
+
+    // Check if current user is the creator (can't follow yourself)
+    const isOwnProfile = session?.user?.id === creator.id;
+    const isMember = session?.user?.role?.toUpperCase() === "MEMBER";
+    const showFollowButton = !isOwnProfile && (isMember || status !== "authenticated");
 
     return (
         <div className="w-full bg-card border-b border-border p-6 mb-6">
@@ -75,7 +148,7 @@ export function ChannelInfo({ creator, isFollowed = false, isSubscribed = false 
                             {formatPrice(creator.subscriptionPrice) && (
                                 <>
                                     <div className="flex text-sm font-medium text-primary gap-1">
-                                       <Star className="w-4 h-4" /> <b> {formatPrice(creator.subscriptionPrice)}</b>
+                                        <Star className="w-4 h-4" /> <b> {formatPrice(creator.subscriptionPrice)}</b>
                                     </div>
                                 </>
                             )}
@@ -84,20 +157,28 @@ export function ChannelInfo({ creator, isFollowed = false, isSubscribed = false 
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Button
-                        variant={isFollowed ? "default" : "outline"}
-                        className={cn(
-                            "flex-1 sm:flex-none gap-2 rounded-none font-semibold transition-all hover:scale-105 active:scale-95",
-                            isFollowed
-                                ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20 shadow-lg"
-                                : "text-purple-600 border-purple-600 hover:bg-purple-600 hover:text-white"
-                        )}
-                    >
-                        <Heart className={cn("w-4 h-4", isFollowed ? "fill-current" : "")} />
-                        {isFollowed ? "Following" : "Follow"}
-                    </Button>
+                    {showFollowButton && (
+                        <Button
+                            variant={isFollowing ? "default" : "outline"}
+                            onClick={handleFollowToggle}
+                            disabled={isLoading || isCheckingStatus}
+                            className={cn(
+                                "flex-1 sm:flex-none gap-2 rounded-none font-semibold transition-all hover:scale-105 active:scale-95",
+                                isFollowing
+                                    ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20 shadow-lg"
+                                    : "text-purple-600 border-purple-600 "
+                            )}
+                        >
+                            {isLoading || isCheckingStatus ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Heart className={cn("w-4 h-4", isFollowing ? "fill-current" : "")} />
+                            )}
+                            {isFollowing ? "Following" : "Follow"}
+                        </Button>
+                    )}
 
-                    {!isSubscribed && (
+                    {!isSubscribed && isMember && (
                         <SubscribeDialog creator={creator}>
                             <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
                                 <Star className="w-4 h-4" />

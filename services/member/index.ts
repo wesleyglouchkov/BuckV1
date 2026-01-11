@@ -82,4 +82,39 @@ export const memberService = {
       throw new Error(error.response?.data?.message || 'Failed to unsubscribe');
     }
   },
+
+  // --- Follow/Unfollow APIs ---
+
+  // Follow a creator
+  followCreatorById: async (creatorId: string) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.post('/member/follow', { creatorId });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to follow creator');
+    }
+  },
+
+  // Check if following a creator
+  checkFollowStatus: async (creatorId: string) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.get(`/member/follow/${creatorId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to check follow status');
+    }
+  },
+
+  // Unfollow a creator by creator ID
+  unfollowCreatorById: async (creatorId: string) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.delete(`/member/follow/${creatorId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to unfollow creator');
+    }
+  },
 };

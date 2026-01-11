@@ -12,6 +12,7 @@ interface SubscribeDialogProps {
     creator: {
         id: string;
         name: string;
+        username?: string;
         avatar?: string;
     };
     children: React.ReactNode;
@@ -58,6 +59,9 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
                                     Subscribe to {creator.name}
                                     <ShieldCheck className="w-4 h-4 text-primary" />
                                 </DialogTitle>
+                                {creator.username && (
+                                    <p className="text-sm text-muted-foreground">@{creator.username}</p>
+                                )}
                             </div>
                         </div>
 
