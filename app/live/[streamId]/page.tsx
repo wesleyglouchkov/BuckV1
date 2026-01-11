@@ -19,6 +19,7 @@ import {
 import { ReportDialog } from "@/components/live/ReportDialog";
 import { ChannelInfo } from "@/components/live/ChannelInfo";
 import { RecentHighlights } from "@/components/live/RecentHighlights";
+import { useCreatorProfile } from "@/hooks/explore";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraViewer = dynamic<AgoraViewerProps>(() => import("../../../components/live/AgoraViewer"), { ssr: false });
@@ -40,6 +41,7 @@ interface StreamDetails {
     creator: {
         id: string;
         name: string;
+        username?: string;
         avatar?: string;
     };
 }
@@ -52,6 +54,25 @@ interface TokenData {
     appId: string;
     userName?: string;
     userAvatar?: string;
+}
+
+// Component to fetch and display creator streams
+function CreatorStreamsSection({
+    creatorUsername,
+    creator
+}: {
+    creatorUsername?: string;
+    creator: { id: string; name: string; username?: string; avatar?: string }
+}) {
+    const { latestStreams, totalStreams } = useCreatorProfile(creatorUsername || null);
+
+    return (
+        <RecentHighlights
+            creator={creator}
+            streams={latestStreams}
+            totalStreams={totalStreams}
+        />
+    );
 }
 
 export default function LiveStreamPage() {
@@ -390,7 +411,7 @@ export default function LiveStreamPage() {
                             )}
                         </div>
                         <ChannelInfo creator={streamDetails.creator} />
-                        <RecentHighlights creator={streamDetails.creator} />
+                        <CreatorStreamsSection creatorUsername={streamDetails.creator.username} creator={streamDetails.creator} />
                     </div>
 
                     {/* Chat Sidebar - Only shown for live streams */}

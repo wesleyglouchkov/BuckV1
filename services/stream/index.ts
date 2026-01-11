@@ -121,5 +121,38 @@ export const streamService = {
             const err = error as { response?: { data?: { message?: string } } };
             throw new Error(err.response?.data?.message || 'Failed to perform buck search');
         }
+    },
+
+    // Get Creator Profile by Username (Public)
+    getCreatorByUsername: async (username: string) => {
+        try {
+            const response = await axiosInstance.get(`/streams/creator/${username}/profile`);
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { status?: number; data?: { message?: string } } };
+            if (err.response?.status === 404) {
+                return { success: false, error: 'Creator not found' };
+            }
+            throw new Error(err.response?.data?.message || 'Failed to get creator profile');
+        }
+    },
+
+    // Get Creator Streams with Pagination (Public)
+    getCreatorStreams: async (params: {
+        creatorId: string;
+        page?: number;
+        limit?: number;
+        isLive?: string;
+    }) => {
+        try {
+            const { creatorId, ...queryParams } = params;
+            const response = await axiosInstance.get(`/streams/creator/${creatorId}/streams`, {
+                params: queryParams
+            });
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            throw new Error(err.response?.data?.message || 'Failed to get creator streams');
+        }
     }
 };

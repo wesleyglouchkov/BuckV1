@@ -142,3 +142,115 @@ export function useBuckSearch(params: {
         error
     };
 }
+
+// Creator Profile Types
+export interface CreatorProfile {
+    id: string;
+    name: string;
+    username: string;
+    avatar?: string;
+    bio?: string;
+    subscriptionPrice?: number | null;
+    followers: number;
+    subscribers: number;
+}
+
+export interface CreatorStream {
+    id: string;
+    title: string;
+    thumbnail: string | null;
+    viewerCount: number;
+    isLive: boolean;
+    createdAt: string;
+    replayUrl: string | null;
+    workoutType?: string;
+}
+
+interface CreatorProfileResponse {
+    success: boolean;
+    error?: string;
+    creator: CreatorProfile;
+    latestStreams: CreatorStream[];
+    previousStreams: CreatorStream[];
+    totalStreams: number;
+    totalPreviousStreams: number;
+}
+
+interface CreatorStreamsResponse {
+    success: boolean;
+    streams: (CreatorStream & {
+        creator: {
+            id: string;
+            name: string;
+            username: string;
+            avatar: string | null;
+        };
+    })[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+}
+
+// Hook: Fetch Creator Profile by Username
+export function useCreatorProfile(username: string | null) {
+    const { data, error, isLoading, mutate } = useSWR<CreatorProfileResponse>(
+        username ? [`/streams/creator/${username}/profile`, username] : null,
+        () => streamService.getCreatorByUsername(username!),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 30000,
+        }
+    );
+
+    const notFound = data?.success === false && data?.error === 'Creator not found';
+
+    return {
+        creator: data?.creator || null,
+        latestStreams: data?.latestStreams || [],
+        previousStreams: data?.previousStreams || [],
+        totalStreams: data?.totalStreams || 0,
+        totalPreviousStreams: data?.totalPreviousStreams || 0,
+        isLoading,
+        isError: !!error,
+        notFound,
+        error: error || (notFound ? 'Creator not found' : null),
+        mutate,
+    };
+}
+
+// Hook: Fetch Creator Streams with Pagination
+export function useCreatorStreams(params: {
+    creatorId: string | null;
+    page?: number;
+    limit?: number;
+    isLive?: string | null;
+}) {
+    const { creatorId, page = 1, limit = 12, isLive } = params;
+
+    const { data, error, isLoading, isValidating, mutate } = useSWR<CreatorStreamsResponse>(
+        creatorId ? [`/streams/creator/${creatorId}/streams`, creatorId, page, limit, isLive] : null,
+        () => streamService.getCreatorStreams({
+            creatorId: creatorId!,
+            page,
+            limit,
+            isLive: isLive || undefined
+        }),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 10000,
+        }
+    );
+
+    return {
+        streams: data?.streams || [],
+        pagination: data?.pagination || null,
+        isLoading,
+        isValidating,
+        isError: !!error,
+        error,
+        mutate,
+    };
+}

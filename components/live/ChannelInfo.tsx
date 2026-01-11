@@ -8,15 +8,32 @@ interface ChannelInfoProps {
     creator: {
         id: string;
         name: string;
+        username?: string;
         avatar?: string;
         followers?: number;
+        subscribers?: number;
+        subscriptionPrice?: number | null;
+        bio?: string;
     };
-    lastLive?: string; // e.g. "8 days ago"
     isFollowed?: boolean;
     isSubscribed?: boolean;
 }
 
-export function ChannelInfo({ creator, lastLive = "2 days ago", isFollowed = false, isSubscribed = false }: ChannelInfoProps) {
+export function ChannelInfo({ creator, isFollowed = false, isSubscribed = false }: ChannelInfoProps) {
+    // Format count (followers/subscribers)
+    const formatCount = (count?: number) => {
+        if (!count && count !== 0) return "0";
+        if (count >= 1000000) return (count / 1000000).toFixed(1) + "M";
+        if (count >= 1000) return (count / 1000).toFixed(1) + "K";
+        return count.toString();
+    };
+
+    // Format subscription price
+    const formatPrice = (price?: number | null) => {
+        if (!price) return null;
+        return `$${price}/month`;
+    };
+
     return (
         <div className="w-full bg-card border-b border-border p-6 mb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -36,12 +53,33 @@ export function ChannelInfo({ creator, lastLive = "2 days ago", isFollowed = fal
                                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                             </svg>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                            last live {lastLive}
-                        </p>
-                        <p className="text-sm font-medium text-foreground mt-1">
-                            {creator.followers ? (creator.followers / 1000000).toFixed(1) + "M" : "5.7M"} followers
-                        </p>
+
+                        {/* Username */}
+                        {creator.username && (
+                            <p className="text-sm text-muted-foreground">
+                                @{creator.username}
+                            </p>
+                        )}
+
+                        {/* Stats Row: Followers, Subscribers, Subscription Price */}
+                        <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                            <span className="text-sm">
+                                <span className="font-semibold text-foreground">{formatCount(creator.followers)}</span>
+                                <span className="text-muted-foreground ml-1">followers</span>
+                            </span>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="text-sm">
+                                <span className="font-semibold text-foreground">{formatCount(creator.subscribers)}</span>
+                                <span className="text-muted-foreground ml-1">subscribers</span>
+                            </span>
+                            {formatPrice(creator.subscriptionPrice) && (
+                                <>
+                                    <div className="flex text-sm font-medium text-primary gap-1">
+                                       <Star className="w-4 h-4" /> <b> {formatPrice(creator.subscriptionPrice)}</b>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -69,6 +107,15 @@ export function ChannelInfo({ creator, lastLive = "2 days ago", isFollowed = fal
                     )}
                 </div>
             </div>
+
+            {/* Bio Section - Inside ChannelInfo */}
+            {creator.bio && (
+                <div className="mt-4 pt-4 border-t border-border/50">
+                    <p className="text-sm text-muted-foreground">
+                        {creator.bio}
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

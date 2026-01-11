@@ -1,80 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
-import { LayoutDashboard, User, Users } from "lucide-react";
+import { LayoutDashboard, User, Users, Loader2 } from "lucide-react";
 import OpenExploreNavbar from "@/components/OpenExploreNavbar";
 import ExploreSidebar from "@/components/ExploreSidebar";
 import { ChannelInfo } from "@/components/live/ChannelInfo";
-import { RecentHighlights } from "@/components/live/RecentHighlights";
+import { RecentHighlights, PreviousStreams } from "@/components/live/RecentHighlights";
+import { useCreatorProfile } from "@/hooks/explore";
 
-// Mock creator data (replace with actual API call)
-const mockCreators: Record<string, {
-    id: string;
-    name: string;
-    username: string;
-    avatar?: string;
-    followers: number;
-    category: string;
-    bio?: string;
-    lastLive?: string;
-}> = {
-    "fitcoach": {
-        id: "fitcoach",
-        name: "FitCoach",
-        username: "fitcoach",
-        avatar: undefined,
-        followers: 54000,
-        category: "HIIT",
-        bio: "Professional fitness coach specializing in HIIT and strength training.",
-        lastLive: "2 days ago"
-    },
-    "yogamaster": {
-        id: "yogamaster",
-        name: "YogaMaster",
-        username: "yogamaster",
-        avatar: undefined,
-        followers: 32000,
-        category: "Yoga",
-        bio: "Certified yoga instructor with 10+ years of experience.",
-        lastLive: "5 days ago"
-    },
-    "hiitqueen": {
-        id: "hiitqueen",
-        name: "HIITQueen",
-        username: "hiitqueen",
-        avatar: undefined,
-        followers: 89000,
-        category: "HIIT",
-        bio: "High-intensity interval training specialist.",
-        lastLive: "1 day ago"
-    },
-};
-
-export default function CreatorPage() {
-    const params = useParams();
-    const creatorId = params.creatorId as string;
+export default function CreatorPage({ params }: { params: Promise<{ creatorId: string }> }) {
+    const { creatorId: creatorUsername } = use(params);
     const { data: session, status } = useSession();
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [categoriesExpanded, setCategoriesExpanded] = useState(true);
     const [showAllCategories, setShowAllCategories] = useState(false);
 
-    // Get creator data
-    const creator = mockCreators[creatorId] || {
-        id: creatorId,
-        name: creatorId,
-        username: creatorId,
-        followers: 0,
-        category: "Unknown",
-        lastLive: "Unknown"
-    };
+    // Use SWR hook for fetching creator data
+    const {
+        creator,
+        latestStreams,
+        previousStreams,
+        totalStreams,
+        totalPreviousStreams,
+        isLoading,
+        notFound,
+        isError
+    } = useCreatorProfile(creatorUsername);
 
     // Set page title
     useEffect(() => {
-        document.title = `${creator.name} | Buck`;
-    }, [creator.name]);
+        if (creator?.username) {
+            document.title = `@${creator.username} | Buck`;
+        }
+    }, [creator?.username]);
 
     const getMenuItems = () => {
         const role = session?.user?.role?.toLowerCase();
@@ -125,41 +85,62 @@ export default function CreatorPage() {
             {/* Main Content */}
             <main className={`pt-16 pb-8 transition-all duration-300 ease-out ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"
                 }`}>
-                {/* Channel Info */}
-                <ChannelInfo
-                    creator={{
-                        id: creator.id,
-                        name: creator.name,
-                        avatar: creator.avatar,
-                        followers: creator.followers
-                    }}
-                    lastLive={creator.lastLive}
-                />
 
-                {/* Creator Bio */}
-                {creator.bio && (
-                    <div className="px-6 mb-6">
-                        <div className="bg-card border border-border p-4">
-                            <h3 className="text-sm font-semibold text-foreground mb-2">About</h3>
-                            <p className="text-sm text-muted-foreground">{creator.bio}</p>
-                            <div className="mt-3 flex items-center gap-4">
-                                <div className="text-sm">
-                                    <span className="text-muted-foreground">Category: </span>
-                                    <span className="font-medium text-primary">{creator.category}</span>
-                                </div>
-                            </div>
-                        </div>
+                {isLoading && (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     </div>
                 )}
 
-                {/* Recent Highlights */}
-                <RecentHighlights
-                    creator={{
-                        id: creator.id,
-                        name: creator.name,
-                        avatar: creator.avatar
-                    }}
-                />
+                {(notFound || isError) && !isLoading && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                        <p className="text-lg text-muted-foreground mb-4">
+                            {notFound ? "Creator not found" : "Failed to load creator profile"}
+                        </p>
+                    </div>
+                )}
+
+                {!isLoading && !notFound && !isError && creator && (
+                    <>
+                        {/* Channel Info - Now includes bio, username, subscribers, subscription price */}
+                        <ChannelInfo
+                            creator={{
+                                id: creator.id,
+                                name: creator.name,
+                                username: creator.username,
+                                avatar: creator.avatar,
+                                followers: creator.followers,
+                                subscribers: creator.subscribers,
+                                subscriptionPrice: creator.subscriptionPrice,
+                                bio: creator.bio
+                            }}
+                        />
+
+                        {/* Recent Highlights - Latest 4 streams */}
+                        <RecentHighlights
+                            creator={{
+                                id: creator.id,
+                                name: creator.name,
+                                username: creator.username,
+                                avatar: creator.avatar
+                            }}
+                            streams={latestStreams}
+                            totalStreams={totalStreams}
+                        />
+
+                        {/* Previous Streams - from API directly */}
+                        <PreviousStreams
+                            creator={{
+                                id: creator.id,
+                                name: creator.name,
+                                username: creator.username,
+                                avatar: creator.avatar
+                            }}
+                            streams={previousStreams}
+                            totalStreams={totalPreviousStreams}
+                        />
+                    </>
+                )}
             </main>
         </div>
     );
