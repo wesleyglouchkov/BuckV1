@@ -163,20 +163,6 @@ export default function MyCreatorsPage() {
                 menuItems={getMenuItems()}
             />
 
-            {/* Mobile Search */}
-            <div className="md:hidden fixed top-16 left-0 right-0 bg-card border-b border-border/20 p-4 z-20">
-                <div className="relative w-full">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                        type="text"
-                        placeholder="Search creator, class..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-input border-border focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
-                    />
-                </div>
-            </div>
-
             <ExploreSidebar
                 sidebarCollapsed={sidebarCollapsed}
                 setSidebarCollapsed={setSidebarCollapsed}
@@ -189,7 +175,6 @@ export default function MyCreatorsPage() {
             />
 
             <main className={`pt-16 pb-8 transition-all duration-300 ease-out ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"}`}>
-                <div className="md:hidden h-10" />
 
                 <div className="p-6 max-w-7xl mx-auto">
                     <div className="mb-8">
