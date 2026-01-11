@@ -31,11 +31,55 @@ export const memberService = {
     }
   },
 
-  // Example: Profile management
-  // getProfile: async () => { ... },
-  // updateProfile: async (data: any) => { ... },
+  // --- My Creators APIs ---
 
-  // Example: Content consumption
-  // getExploreContent: async () => { ... },
-  // getSubscriptions: async () => { ... },
+  // Get Following List with pagination and search
+  getMyFollowing: async (params: { page?: number; limit?: number; search?: string } = {}) => {
+    try {
+      const { page = 1, limit = 10, search = '' } = params;
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.get('/member/my-creators/following', {
+        params: { page, limit, search }
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch following list');
+    }
+  },
+
+  // Get Subscriptions List with pagination and search
+  getMySubscriptions: async (params: { page?: number; limit?: number; search?: string } = {}) => {
+    try {
+      const { page = 1, limit = 10, search = '' } = params;
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.get('/member/my-creators/subscriptions', {
+        params: { page, limit, search }
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch subscriptions list');
+    }
+  },
+
+  // Unfollow a creator
+  unfollowCreator: async (followId: string) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.delete(`/member/my-creators/following/${followId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to unfollow creator');
+    }
+  },
+
+  // Unsubscribe from a creator (uses existing endpoint)
+  unsubscribeFromCreator: async (subscriptionId: string) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.delete(`/member/subscriptions/${subscriptionId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to unsubscribe');
+    }
+  },
 };
