@@ -4,6 +4,8 @@ import { createClientAuthInstance } from "@/utils/axios";
 // Add your member-related API calls and business logic here
 
 export const memberService = {
+  //==================================== Member to Creator Upgrade  ====================================
+
   // Upgrade member to creator
   upgradeToCreator: async (userId: string, userRole?: string) => {
     try {
@@ -15,23 +17,7 @@ export const memberService = {
     }
   },
 
-  // Tip Payment - Create Checkout Session
-  createTipPayment: async (data: {
-    creatorId: string;
-    amount: number;
-    livestreamId?: string;
-    memberId: string;
-  }) => {
-    try {
-      const axios = await createClientAuthInstance('member');
-      const response = await axios.post('/stripe/create-tip-payment', data);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to create tip payment');
-    }
-  },
-
-  // --- My Creators APIs ---
+  //==================================== My Creators APIs ====================================
 
   // Get Following List with pagination and search
   getMyFollowing: async (params: { page?: number; limit?: number; search?: string } = {}) => {
@@ -83,7 +69,7 @@ export const memberService = {
     }
   },
 
-  // --- Follow/Unfollow APIs ---
+  //==================================== Follow/Unfollow APIs ====================================
 
   // Follow a creator
   followCreatorById: async (creatorId: string) => {
@@ -115,6 +101,22 @@ export const memberService = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to unfollow creator');
+    }
+  },
+
+    // Tip Payment - Create Checkout Session
+  createTipPayment: async (data: {
+    creatorId: string;
+    amount: number;
+    livestreamId?: string;
+    memberId: string;
+  }) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.post('/stripe/create-tip-payment', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to create tip payment');
     }
   },
 };
