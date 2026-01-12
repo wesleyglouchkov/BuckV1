@@ -270,7 +270,7 @@ export default function MyCreatorsPage() {
                                                 {/* Creator Cell */}
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
-                                                        <UserAvatar src={item.creator.avatar} name={item.creator.name} className="w-10 h-10" />
+                                                        <UserAvatar src={item?.creator?.avatar} name={item.creator.name} className="w-10 h-10" />
                                                         <div className="flex flex-col">
                                                             <span className="font-semibold text-foreground">{item.creator.name}</span>
                                                             <span className="text-xs text-muted-foreground font-bold">@{item.creator.username}</span>
