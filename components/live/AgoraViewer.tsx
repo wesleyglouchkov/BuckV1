@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalCameraTrack, useLocalMicrophoneTrack, usePublish, useRemoteUsers, useRTCClient } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio, Volume2, VolumeX } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
@@ -60,25 +60,13 @@ function StreamLogic({
     // Track state - start enabled so tracks can be published
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [volume, setVolume] = useState(100);
 
     // Track if user has clicked to enter stream (needed for audio autoplay)
     const [hasEnteredStream, setHasEnteredStream] = useState(false);
 
     const remoteUsers = useRemoteUsers();
 
-    // Apply volume to all remote users when volume state changes
-    useEffect(() => {
-        remoteUsers.forEach(user => {
-            if (user.audioTrack) {
-                try {
-                    user.audioTrack.setVolume(volume);
-                } catch (err) {
-                    console.warn(`Viewer: Failed to set volume for user ${user.uid}:`, err);
-                }
-            }
-        });
-    }, [volume, remoteUsers]);
+
 
     // Local tracks - always create if role is publisher
     const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
@@ -128,9 +116,9 @@ function StreamLogic({
 
                 // Play audio tracks immediately (Enter Stream button provides user interaction)
                 if (mediaType === 'audio' && user.audioTrack) {
-                    user.audioTrack.setVolume(volume);
+                    user.audioTrack.setVolume(100);
                     await user.audioTrack.play();
-                    console.log(`Viewer: Playing audio from user ${user.uid} at volume ${volume}`);
+                    console.log(`Viewer: Playing audio from user ${user.uid} at full volume`);
                 }
             } catch (err) {
                 console.warn(`Viewer: Failed to subscribe/play ${mediaType} from user ${user.uid}:`, err);
@@ -142,7 +130,7 @@ function StreamLogic({
         return () => {
             client.off('user-published', handleUserPublished);
         };
-    }, [client, volume]);
+    }, [client]);
 
     // Handle role switching - MUST complete before publishing in ILS mode
     useEffect(() => {
@@ -612,44 +600,6 @@ function StreamLogic({
                         <div className="w-px h-6 bg-white/20 mx-2" />
                     </>
                 )}
-
-                {/* Volume Control */}
-                <div className="flex items-center gap-2 group/volume relative">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-8 h-8 md:w-10 md:h-10 text-foreground hover:bg-accent p-0"
-                        onClick={() => setVolume(v => v === 0 ? 100 : 0)}
-                    >
-                        {volume === 0 ? <VolumeX className="w-4 h-4 text-destructive" /> : <Volume2 className="w-4 h-4" />}
-                    </Button>
-                    <div className="w-16 md:w-24 h-2 bg-muted/30 rounded-full relative cursor-pointer">
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={volume}
-                            onChange={(e) => setVolume(parseInt(e.target.value))}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                        />
-                        <div
-                            className="absolute left-0 top-0 h-full bg-primary rounded-full transition-all duration-150"
-                            style={{ width: `${volume}%` }}
-                        />
-                        {/* Thumb */}
-                        <div
-                            className="absolute inset-0 pointer-events-none flex items-center z-10"
-                        >
-                            <div
-                                className="w-3 h-3 bg-white border-2 border-primary rounded-full shadow-md transition-all duration-150 group-hover/volume:scale-125 group-active/volume:scale-110"
-                                style={{
-                                    marginLeft: `${volume}%`,
-                                    transform: 'translateX(-50%)'
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
 
                 {role === "subscriber" && (
                     <Button

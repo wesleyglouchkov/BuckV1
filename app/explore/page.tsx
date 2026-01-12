@@ -188,7 +188,7 @@ export default function ExplorePage() {
             /* Default Browse View */
             <>
               {/* Categories Section */}
-              <section className="mt-8 mb-12">
+              <section className="max-md:mt-14 mt-8 mb-12">
                 <h2 className="text-2xl font-bold text-foreground mb-6">Browse Categories</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
                   {isLoadingCategories ? (
