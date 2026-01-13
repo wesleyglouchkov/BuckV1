@@ -40,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Initial sign in
       if (user) {
         token.id = user.id;
+        token.name = user.name;
         token.role = user.role;
         token.username = user.username;
         token.avatar = user.avatar;
@@ -51,6 +52,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (session.user?.role) {
           token.role = session.user.role;
         }
+        if (session.user?.name !== undefined) {
+          token.name = session.user.name;
+        }
+        if (session.user?.username !== undefined) {
+          token.username = session.user.username;
+        }
         if (session.user?.avatar !== undefined) {
           token.avatar = session.user.avatar;
         }
@@ -61,6 +68,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = token.name as string;
         session.user.role = token.role as "admin" | "creator" | "member";
         session.user.username = token.username as string;
         session.user.avatar = token.avatar as string;

@@ -19,7 +19,8 @@ export interface UpdateStreamData {
 
 
 export interface UpdateProfileData {
-
+  name?: string;
+  username?: string;
   bio?: string;
   subscriptionPrice?: number;
   avatar?: string;
@@ -113,6 +114,17 @@ export const creatorService = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update user profile');
+    }
+  },
+
+  // Check if username is available
+  checkUsernameAvailability: async (role: string, username: string): Promise<{ available: boolean; message: string }> => {
+    try {
+      const axios = await createClientAuthInstance(role);
+      const response = await axios.get(`/users/check-username/${encodeURIComponent(username)}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to check username availability');
     }
   },
 

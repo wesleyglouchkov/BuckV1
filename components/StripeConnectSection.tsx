@@ -26,6 +26,8 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
 
     // Fetch profile and check Stripe status on mount
     useEffect(() => {
+        const controller = new AbortController();
+
         const fetchProfileAndCheckStatus = async () => {
             if (!isCreator || !session?.user?.id) {
                 setIsLoading(false);
@@ -35,6 +37,10 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
             try {
                 // Get profile from DB
                 const profile = await creatorService.getUserProfile('CREATOR');
+
+                // If the effect was cleaned up, don't update state
+                if (controller.signal.aborted) return;
+
                 if (profile.success && profile.data) {
                     setStripeConnected(profile.data.stripe_connected || false);
                     setOnboardingCompleted(profile.data.stripe_onboarding_completed || false);
@@ -44,26 +50,37 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                     if (profile.data.stripe_account_id) {
                         try {
                             const statusCheck = await creatorService.getStripeAccountStatus(session.user.id);
+
+                            if (controller.signal.aborted) return;
+
                             if (statusCheck.success) {
                                 setStripeConnected(statusCheck.connected);
                                 setOnboardingCompleted(statusCheck.onboardingCompleted);
                             }
                         } catch (error) {
+                            // Silently catch Stripe check errors during navigation
                             console.error('Failed to check Stripe status:', error);
                         }
                     }
                 }
             } catch (error: any) {
+                if (controller.signal.aborted) return;
                 console.error('Failed to fetch profile:', error);
                 setStripeConnected(false);
                 setOnboardingCompleted(false);
                 setStripeAccountId(null);
             } finally {
-                setIsLoading(false);
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
             }
         };
 
         fetchProfileAndCheckStatus();
+
+        return () => {
+            controller.abort();
+        };
     }, [isCreator, session?.user?.id]);
 
     // Connect or continue Stripe onboarding

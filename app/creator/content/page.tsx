@@ -398,7 +398,7 @@ export default function MyStreamsPage() {
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
-                            <div className="flex items-center px-4 text-sm font-medium">
+                            <div className="flex items-center dark:text-white px-4 text-sm font-medium">
                                 Page {page} of {pagination.totalPages}
                             </div>
                             <Button
