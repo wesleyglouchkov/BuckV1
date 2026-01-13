@@ -1,3 +1,5 @@
+"use client";
+
 import { formatDistanceToNow } from "date-fns";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import Image from "next/image";
@@ -9,6 +11,7 @@ import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
+import { LoginRequiredDialog } from "@/components/live/LoginRequiredDialog";
 
 interface VideoCardProps {
     stream: {
@@ -38,7 +41,17 @@ interface VideoCardProps {
 export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
     // Determine initial snapshot mode: if thumbnail is missing, we'll likely need a snapshot
     const initialIsSnapshot = !stream.thumbnail && !stream.isLive;
-    const session = useSession();
+    const { status } = useSession();
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+    const handleVideoClick = (e: React.MouseEvent) => {
+        // If not live (VOD) and not authenticated, prevent navigation and show login dialog
+        if (!stream.isLive && status !== "authenticated") {
+            e.preventDefault();
+            setShowLoginDialog(true);
+        }
+    };
+
     const [thumbnailState, setThumbnailState] = useState<{
         displayUrl: string | null;
         useVideoSnapshot: boolean;
@@ -181,7 +194,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
 
     return (
         <div className={cn("block group relative", className)}>
-            <Link href={`/live/${stream.id}`}>
+            <Link href={`/live/${stream.id}`} onClick={handleVideoClick}>
                 <div
                     className="relative bg-card border border-border transition-all duration-300 ease-out
                     group-hover:border-l-8 group-hover:border-b-8 group-hover:border-l-primary group-hover:border-b-primary
@@ -248,7 +261,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                     />
                 </Link>
                 <div className="flex-1 min-w-0">
-                    <Link href={`/live/${stream.id}`}>
+                    <Link href={`/live/${stream.id}`} onClick={handleVideoClick}>
                         <h3 className="font-semibold text-sm leading-tight text-foreground truncate group-hover:text-primary transition-colors">
                             {stream.title}
                         </h3>
@@ -263,6 +276,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                     </div>
                 </div>
             </div>
+            <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
         </div>
     );
 }

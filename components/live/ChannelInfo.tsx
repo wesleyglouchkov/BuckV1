@@ -9,6 +9,7 @@ import { SubscribeDialog } from "./subscribe/SubscribeDialog";
 import { cn } from "@/lib/utils";
 import { memberService } from "@/services/member";
 import { toast } from "sonner";
+import { LoginRequiredDialog } from "./LoginRequiredDialog";
 
 interface ChannelInfoProps {
     creator: {
@@ -29,7 +30,9 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
     const { data: session, status } = useSession();
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
     const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
 
     // Check follow status on mount
     useEffect(() => {
@@ -58,8 +61,9 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
 
     // Handle follow/unfollow
     const handleFollowToggle = useCallback(async () => {
+
         if (status !== "authenticated") {
-            toast.error("Please sign in to follow creators");
+            setShowLoginDialog(true);
             return;
         }
 
@@ -178,16 +182,30 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
                         </Button>
                     )}
 
-                    {!isOwnProfile && !isSubscribed && isMember && (
-                        <SubscribeDialog creator={creator}>
-                            <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
+                    {/* Subscribe Button - Modified to show for non-members too */}
+                    {!isOwnProfile && !isSubscribed && (isMember || status !== "authenticated") && (
+                        status === "authenticated" && isMember ? (
+                            <SubscribeDialog creator={creator}>
+                                <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
+                                    <Star className="w-4 h-4" />
+                                    Subscribe
+                                </Button>
+                            </SubscribeDialog>
+                        ) : (
+                            <Button
+                                variant="secondary"
+                                onClick={() => setShowLoginDialog(true)}
+                                className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95"
+                            >
                                 <Star className="w-4 h-4" />
                                 Subscribe
                             </Button>
-                        </SubscribeDialog>
+                        )
                     )}
                 </div>
             </div>
+
+            <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
 
             {/* Bio Section - Inside ChannelInfo */}
             {creator.bio && (
