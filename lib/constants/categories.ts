@@ -48,7 +48,7 @@ export const CATEGORIES: WorkoutCategory[] = [
         id: "yoga",
         name: "Yoga",
         icon: YogaIcon,
-        fallbackImage: "https://images.unsplash.com/photo-1544367563-12123d895951?q=80&w=1200&auto=format&fit=crop"
+        fallbackImage: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1820&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
         id: "pilates",

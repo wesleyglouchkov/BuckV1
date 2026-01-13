@@ -1,11 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Users, Radio, Search as SearchIcon, Loader2 } from "lucide-react";
 import { useQuickSearch } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
+import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
+import { CATEGORIES } from "@/lib/constants/categories";
 
 interface SearchPopupProps {
     query: string;
@@ -118,39 +122,7 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
                             </div>
                             <ul className="space-y-0.5">
                                 {streams.map((stream) => (
-                                    <li key={stream.id}>
-                                        <Link
-                                            href={`/live/${stream.id}`}
-                                            onClick={onClose}
-                                            className="flex items-center gap-3 px-2 py-2 hover:bg-accent transition-colors group"
-                                        >
-                                            <div className="relative w-10 h-10 bg-muted shrink-0 overflow-hidden">
-                                                {stream.thumbnail ? (
-                                                    <Image
-                                                        src={stream.thumbnail}
-                                                        alt={stream.title}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-red-500/5">
-                                                        <Radio className="w-5 h-5 text-red-500/40" />
-                                                    </div>
-                                                )}
-                                                {stream.isLive && (
-                                                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-red-500" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                                                    {stream.title}
-                                                </p>
-                                                <p className="text-[11px] text-muted-foreground truncate italic">
-                                                    {stream.creator.name} · {stream.workoutType || "Class"} {stream.isLive ? `· ${formatViewerCount(stream.viewerCount)} live` : ""}
-                                                </p>
-                                            </div>
-                                        </Link>
-                                    </li>
+                                    <SearchStreamItem key={stream.id} stream={stream} onClose={onClose} />
                                 ))}
                             </ul>
                         </div>
@@ -170,5 +142,122 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
                 </span>
             </Link>
         </div>
+    );
+}
+
+function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => void }) {
+    const initialIsSnapshot = !stream.thumbnail && !stream.isLive;
+    const [thumbnailState, setThumbnailState] = useState<{
+        displayUrl: string | null;
+        useVideoSnapshot: boolean;
+        isLoading: boolean;
+    }>({
+        displayUrl: null,
+        useVideoSnapshot: initialIsSnapshot,
+        isLoading: true // Start loading to check for signed URLs
+    });
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const resolveThumbnail = async () => {
+            // Priority 1: Use explicit thumbnail from S3 (if available)
+            if (stream.thumbnail) {
+                try {
+                    const url = await getSignedStreamUrl(stream.thumbnail);
+                    if (isMounted && url) {
+                        setThumbnailState({
+                            displayUrl: url,
+                            useVideoSnapshot: false,
+                            isLoading: false
+                        });
+                        return; // Done
+                    }
+                } catch (e) {
+                    // Fail silently
+                }
+            }
+
+            // Priority 2: Use video replay/stream URL for snapshot
+            const videoUrl = !stream.isLive ? (stream.replayUrl || stream.streamUrl) : null;
+            if (videoUrl) {
+                try {
+                    const url = await getSignedStreamUrl(videoUrl);
+                    if (isMounted && url) {
+                        setThumbnailState({
+                            displayUrl: url,
+                            useVideoSnapshot: true,
+                            isLoading: false
+                        });
+                        return; // Done
+                    }
+                } catch (e) {
+                    // Fail silently
+                }
+            }
+
+            // Priority 3: Fallback to category image
+            const categoryName = stream.workoutType?.toLowerCase() || 'other';
+            const category = CATEGORIES.find(c => c.name.toLowerCase() === categoryName);
+            if (isMounted && category?.fallbackImage) {
+                setThumbnailState({
+                    displayUrl: category.fallbackImage,
+                    useVideoSnapshot: false,
+                    isLoading: false
+                });
+                return;
+            }
+
+            // Priority 4: Ultimate fallback
+            if (isMounted) {
+                setThumbnailState({
+                    displayUrl: "https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream",
+                    useVideoSnapshot: false,
+                    isLoading: false
+                });
+            }
+        };
+
+        resolveThumbnail();
+        return () => { isMounted = false; };
+    }, [stream]);
+
+    return (
+        <li>
+            <Link
+                href={`/live/${stream.id}`}
+                onClick={onClose}
+                className="flex items-center gap-3 px-2 py-2 hover:bg-accent transition-colors group"
+            >
+                <div className="relative w-10 h-10 bg-muted shrink-0 overflow-hidden">
+                    {thumbnailState.isLoading || !thumbnailState.displayUrl ? (
+                        <div className="w-full h-full bg-muted animate-pulse" />
+                    ) : thumbnailState.useVideoSnapshot ? (
+                        <VideoSnapshot
+                            src={thumbnailState.displayUrl}
+                            className="object-cover w-full h-full"
+                        />
+                    ) : (
+                        <Image
+                            src={thumbnailState.displayUrl}
+                            alt={stream.title}
+                            fill
+                            className="object-cover"
+                        />
+                    )}
+                    {stream.isLive && (
+                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-red-500" />
+                    )}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                        {stream.title}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground truncate italic">
+                        {stream.creator.name} · {stream.workoutType || "Class"} {stream.isLive ? `· ${formatViewerCount(stream.viewerCount)} live` : ""}
+                    </p>
+                </div>
+            </Link>
+        </li>
     );
 }
