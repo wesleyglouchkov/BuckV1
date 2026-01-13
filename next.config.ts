@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.pravatar.cc",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "buck-v1-bucket.s3.us-east-1.amazonaws.com",
+        pathname: "/**",
       }
     ],
   },

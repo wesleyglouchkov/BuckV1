@@ -51,6 +51,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (session.user?.role) {
           token.role = session.user.role;
         }
+        if (session.user?.avatar !== undefined) {
+          token.avatar = session.user.avatar;
+        }
       }
 
       return token;
@@ -61,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role as "admin" | "creator" | "member";
         session.user.username = token.username as string;
         session.user.avatar = token.avatar as string;
-}
+      }
       return session;
     },
   },
@@ -70,7 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: "jwt",
-},
+  },
   secret: process.env.JWT_SECRET,
   trustHost: true,
 });

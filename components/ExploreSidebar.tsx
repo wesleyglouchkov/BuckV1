@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { memo, useMemo } from "react";
 import {
     Radio,
     ChevronDown,
@@ -10,9 +11,11 @@ import {
     ArrowRightFromLine,
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
+import { cn } from "@/lib/utils";
 
 import { useExploreData, SidebarCategory, SidebarStream } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 const formatViewerCount = (count: number) => {
     if (count >= 1000) {
@@ -33,31 +36,69 @@ interface ExploreSidebarProps {
     desktopHidden?: boolean;
 }
 
-export default function ExploreSidebar({
-    sidebarCollapsed = false,
-    setSidebarCollapsed = () => { },
-    categoriesExpanded = true,
-    setCategoriesExpanded = () => { },
-    showAllCategories = false,
-    setShowAllCategories = () => { },
-    mobileMenuOpen,
-    setMobileMenuOpen,
-    desktopHidden = false,
-}: ExploreSidebarProps) {
-    const { streams, categories: apiCategories, isLoading } = useExploreData();
+// Memoized channel item to prevent re-renders
+const ChannelItem = memo(function ChannelItem({
+    channel,
+    sidebarCollapsed,
+    isMobile,
+    onMobileClose,
+}: {
+    channel: SidebarStream;
+    sidebarCollapsed: boolean;
+    isMobile: boolean;
+    onMobileClose?: () => void;
+}) {
+    return (
+        <li>
+            <Link
+                href={`/live/${channel.id}`}
+                onClick={isMobile ? onMobileClose : undefined}
+                className={cn(
+                    "flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+                    !isMobile && sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
+                )}
+            >
+                <div className="w-8 h-8 shrink-0">
+                    <UserAvatar
+                        src={channel.creator.avatar}
+                        name={channel.creator.name}
+                        size="sm"
+                        className="w-8 h-8"
+                    />
+                </div>
+                {(!sidebarCollapsed || isMobile) && (
+                    <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min-w-0">
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground truncate">{channel.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{channel.creator.name}</p>
+                        </div>
 
-    // Enrich static categories with counts from API
-    const enrichedCategories = CATEGORIES.map(cat => {
-        const apiCat = apiCategories.find((ac: SidebarCategory) => ac.name.toLowerCase() === cat.name.toLowerCase());
-        return {
-            ...cat,
-            count: apiCat ? apiCat.count : 0
-        };
-    });
+                        <div className="flex items-center font-medium gap-1 shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                            <p className="text-xs">{formatViewerCount(channel.viewerCount)}</p>
+                        </div>
+                    </div>
+                )}
+            </Link>
+        </li>
+    );
+});
 
-    const displayedCategories = showAllCategories ? enrichedCategories : enrichedCategories.slice(0, 4);
-
-    const LiveChannelsSection = ({ isMobile = false }) => (
+// Memoized live channels section
+const LiveChannelsSection = memo(function LiveChannelsSection({
+    streams,
+    isLoading,
+    sidebarCollapsed,
+    isMobile,
+    onMobileClose,
+}: {
+    streams: SidebarStream[];
+    isLoading: boolean;
+    sidebarCollapsed: boolean;
+    isMobile: boolean;
+    onMobileClose?: () => void;
+}) {
+    return (
         <div className={cn("px-2 py-3 border-b border-border/20", !isMobile && sidebarCollapsed && "px-0")}>
             <div className={cn("flex items-center gap-2 px-2.5 py-2 mb-2", !isMobile && sidebarCollapsed && "justify-center px-0")}>
                 <Radio className="h-4 w-4 text-red-500 animate-pulse" />
@@ -75,51 +116,44 @@ export default function ExploreSidebar({
                         </li>
                     ))
                 ) : (
-                    streams.map((channel: SidebarStream) => (
-                        <li key={channel.id}>
-                            <Link
-                                href={`/live/${channel.id}`}
-                                onClick={isMobile ? () => setMobileMenuOpen(false) : undefined}
-                                className={cn(
-                                    "flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
-                                    !isMobile && sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
-                                )}
-                            >
-                                <div className="w-8 h-8 shrink-0">
-                                    {channel.creator.avatar ? (
-                                        <Image
-                                            src={channel.creator.avatar}
-                                            alt={channel.creator.name}
-                                            width={32}
-                                            height={32}
-                                            className="rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-[10px] font-bold">
-                                            {channel.creator.name.substring(0, 2).toUpperCase()}
-                                        </div>
-                                    )}
-                                </div>
-                                {(!sidebarCollapsed || isMobile) && (
-                                    <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min-w-0">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-foreground truncate">{channel.title}</p>
-                                            <p className="text-xs text-muted-foreground truncate">{channel.creator.name}</p>
-                                        </div>
-
-                                        <div className="flex items-center font-medium gap-1 shrink-0">
-                                            <div className="w-2 h-2 rounded-full bg-red-500" />
-                                            <p className="text-xs">{formatViewerCount(channel.viewerCount)}</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </Link>
-                        </li>
+                    streams.map((channel) => (
+                        <ChannelItem
+                            key={channel.id}
+                            channel={channel}
+                            sidebarCollapsed={sidebarCollapsed}
+                            isMobile={isMobile}
+                            onMobileClose={onMobileClose}
+                        />
                     ))
                 )}
             </ul>
         </div>
     );
+});
+
+export default function ExploreSidebar({
+    sidebarCollapsed = false,
+    setSidebarCollapsed = () => { },
+    categoriesExpanded = true,
+    setCategoriesExpanded = () => { },
+    showAllCategories = false,
+    setShowAllCategories = () => { },
+    mobileMenuOpen,
+    setMobileMenuOpen,
+    desktopHidden = false,
+}: ExploreSidebarProps) {
+    const { streams, categories: apiCategories, isLoading } = useExploreData();
+
+    // Enrich static categories with counts from API
+    const enrichedCategories = useMemo(() => CATEGORIES.map(cat => {
+        const apiCat = apiCategories.find((ac: SidebarCategory) => ac.name.toLowerCase() === cat.name.toLowerCase());
+        return {
+            ...cat,
+            count: apiCat ? apiCat.count : 0
+        };
+    }), [apiCategories]);
+
+    const displayedCategories = showAllCategories ? enrichedCategories : enrichedCategories.slice(0, 4);
 
     const CategoriesSection = ({ isMobile = false }) => {
         if (!isMobile && sidebarCollapsed) return null;
@@ -179,6 +213,8 @@ export default function ExploreSidebar({
         );
     };
 
+    const handleMobileClose = () => setMobileMenuOpen(false);
+
     return (
         <>
             {/* Desktop Sidebar */}
@@ -209,7 +245,12 @@ export default function ExploreSidebar({
                         </button>
                     </div>
 
-                    <LiveChannelsSection />
+                    <LiveChannelsSection
+                        streams={streams}
+                        isLoading={isLoading}
+                        sidebarCollapsed={sidebarCollapsed}
+                        isMobile={false}
+                    />
                     <CategoriesSection />
                 </aside>
             )}
@@ -219,11 +260,11 @@ export default function ExploreSidebar({
                 <div className="md:hidden fixed inset-0 z-50">
                     <div
                         className="absolute inset-0 bg-black/40 transition-opacity duration-300 ease-out"
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={handleMobileClose}
                     />
                     <div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm transform transition-transform duration-300 ease-out animate-in slide-in-from-left overflow-y-auto">
                         <div className="flex items-center gap-3 px-4 h-16 border-b border-border/20">
-                            <Link href="/explore" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/explore" className="flex items-center" onClick={handleMobileClose}>
                                 <Image
                                     src="/buck.svg"
                                     alt="Buck Logo"
@@ -244,13 +285,19 @@ export default function ExploreSidebar({
                             <Link
                                 href="/explore"
                                 className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={handleMobileClose}
                             >
                                 Browse
                             </Link>
                         </div>
 
-                        <LiveChannelsSection isMobile={true} />
+                        <LiveChannelsSection
+                            streams={streams}
+                            isLoading={isLoading}
+                            sidebarCollapsed={false}
+                            isMobile={true}
+                            onMobileClose={handleMobileClose}
+                        />
                         <CategoriesSection isMobile={true} />
                     </div>
                 </div>
@@ -258,6 +305,3 @@ export default function ExploreSidebar({
         </>
     );
 }
-
-import { cn } from "@/lib/utils";
-

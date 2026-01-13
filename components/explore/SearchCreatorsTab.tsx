@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton-variants";
 import { Users } from "lucide-react";
 import { useBuckSearch } from "@/hooks/explore";
 import Pagination from "@/components/explore/Pagination";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -81,19 +81,12 @@ export default function SearchCreatorsTab({
                     >
                         <div className="flex flex-col items-center text-center gap-4 mb-4">
                             <div className="relative">
-                                {creator.avatar ? (
-                                    <Image
-                                        src={creator.avatar}
-                                        alt={creator.name}
-                                        width={80}
-                                        height={80}
-                                        className="rounded-full object-cover aspect-square shadow-sm group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                ) : (
-                                    <div className="w-20 h-20 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-2xl font-bold group-hover:scale-105 transition-transform duration-300 shadow-sm">
-                                        {creator.name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                )}
+                                <UserAvatar
+                                    src={creator.avatar}
+                                    name={creator.name}
+                                    size="xl"
+                                    className="w-20 h-20 shadow-sm group-hover:scale-105 transition-transform duration-300"
+                                />
                                 {creator.isLive && (
                                     <div className="absolute top-0 right-0 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-sm border-2 border-card">
                                         LIVE

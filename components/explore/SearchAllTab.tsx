@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Radio, Users, ArrowRight, Search } from "lucide-react";
 import { SkeletonCard, SkeletonBox } from "@/components/ui/skeleton-variants";
 import { VideoCard } from "@/components/VideoCard";
 import { useBuckSearch } from "@/hooks/explore";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface SearchAllTabProps {
     searchQuery: string;
@@ -94,19 +93,12 @@ export default function SearchAllTab({ searchQuery, onTabChange, isLoading: pare
                                 className="group flex items-center gap-3 p-4 bg-card border border-border/30 hover:border-primary/30 hover:shadow-md transition-all"
                             >
                                 <div className="relative shrink-0">
-                                    {creator.avatar ? (
-                                        <Image
-                                            src={creator.avatar}
-                                            alt={creator.name}
-                                            width={44}
-                                            height={44}
-                                            className="rounded-full object-cover aspect-square"
-                                        />
-                                    ) : (
-                                        <div className="w-11 h-11 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                            {creator.name.substring(0, 2).toUpperCase()}
-                                        </div>
-                                    )}
+                                    <UserAvatar
+                                        src={creator.avatar}
+                                        name={creator.name}
+                                        size="md"
+                                        className="w-11 h-11"
+                                    />
                                     {creator.isLive && (
                                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-card rounded-full" />
                                     )}

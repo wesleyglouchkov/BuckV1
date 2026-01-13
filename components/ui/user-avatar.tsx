@@ -1,5 +1,7 @@
 import { User } from "lucide-react";
 import Image from "next/image";
+import { useState, useEffect } from "react";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 
 interface UserAvatarProps {
     src?: string | null;
@@ -16,24 +18,47 @@ const sizeClasses = {
 };
 
 export function UserAvatar({ src, name, size = "md", className = "" }: UserAvatarProps) {
-    const initials = name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .substring(0, 2);
+    const [signedSrc, setSignedSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchSignedUrl = async () => {
+            if (!src) {
+                setSignedSrc(null);
+                return;
+            }
+
+            try {
+                const url = await getSignedStreamUrl(src);
+                if (isMounted) {
+                    setSignedSrc(url);
+                }
+            } catch (error) {
+                console.error("Failed to sign avatar URL:", error);
+                if (isMounted) setSignedSrc(null);
+            }
+        };
+
+        fetchSignedUrl();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [src]);
 
     const sizeClass = sizeClasses[size];
 
-    if (src) {
+    if (signedSrc) {
         return (
             <div className={`${sizeClass} relative rounded-full overflow-hidden ${className}`}>
                 <Image
-                    src={src}
+                    src={signedSrc}
                     alt={name}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100px, 200px"
+                    unoptimized
                 />
             </div>
         );
@@ -43,7 +68,7 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
         <div
             className={`${sizeClass} bg-linear-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${className}`}
         >
-             <User/>
+            <User />
         </div>
     );
 }

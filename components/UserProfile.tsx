@@ -59,6 +59,15 @@ export default function UserProfile() {
         setEditFormData({
           bio: response.data.bio || "",
         });
+
+        // Update session avatar if it differs from the fetched profile
+        if (response.data.avatar && response.data.avatar !== session.user.avatar) {
+          await updateSession({
+            user: {
+              avatar: response.data.avatar
+            }
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to fetch profile", error);
@@ -189,7 +198,7 @@ export default function UserProfile() {
               />
             ) : (
               <UserAvatar
-                src={displayUser.avatar || null}
+                src={displayUser.avatar}
                 name={displayUser.name || "User"}
                 className="w-24 h-24 text-2xl"
               />

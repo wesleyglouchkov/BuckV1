@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Users, Radio, Search as SearchIcon, Loader2 } from "lucide-react";
 import { useQuickSearch } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface SearchPopupProps {
     query: string;
@@ -78,19 +79,12 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
                                             className="flex items-center gap-3 px-2 py-2 hover:bg-accent transition-colors group"
                                         >
                                             <div className="relative">
-                                                {creator.avatar ? (
-                                                    <Image
-                                                        src={creator.avatar}
-                                                        alt={creator.name}
-                                                        width={36}
-                                                        height={36}
-                                                        className="rounded-full object-cover aspect-square"
-                                                    />
-                                                ) : (
-                                                    <div className="w-9 h-9 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                                        {creator.name.substring(0, 2).toUpperCase()}
-                                                    </div>
-                                                )}
+                                                <UserAvatar
+                                                    src={creator.avatar}
+                                                    name={creator.name}
+                                                    size="md"
+                                                    className="w-9 h-9"
+                                                />
                                                 {creator.isLive && (
                                                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-card rounded-full" />
                                                 )}

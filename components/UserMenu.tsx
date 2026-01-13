@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 import {
     User,
     Moon,
@@ -19,7 +20,7 @@ import { toast } from "sonner";
 import { memberService } from "@/services";
 import { UpgradeToCreatorDialog } from "@/components/UpgradeToCreatorDialog";
 import RedirectingOverlay from "@/components/RedirectingOverlay";
-import Image from "next/image";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface MenuItem {
     label: string;
@@ -43,11 +44,24 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
     const [showRedirecting, setShowRedirecting] = useState(false);
     const profileWrapperRef = useRef<HTMLDivElement | null>(null);
     const isAdmin = session?.user?.role?.toLowerCase() === 'admin';
-    const avatar = session?.user?.avatar;
+    const [signedAvatar, setSignedAvatar] = useState<string | null>(null);
+
     useEffect(() => {
         initTheme();
         setIsDarkMode(getTheme() === "dark");
     }, []);
+
+    useEffect(() => {
+        const fetchSignedAvatar = async () => {
+            if (session?.user?.avatar) {
+                const url = await getSignedStreamUrl(session.user.avatar);
+                setSignedAvatar(url);
+            } else {
+                setSignedAvatar(null);
+            }
+        };
+        fetchSignedAvatar();
+    }, [session?.user?.avatar]);
 
     // Close profile menu when clicking outside or pressing Escape
     useEffect(() => {
@@ -134,9 +148,11 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                 aria-haspopup="menu"
                 aria-expanded={showProfileMenu}
             >
-                <div className="w-8 h-8 bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-                    <User className="w-5 h-5" />
-                </div>
+                <UserAvatar
+                    src={signedAvatar}
+                    name={session?.user?.name || "User"}
+                    size="sm"
+                />
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
 
@@ -156,7 +172,14 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                                 className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors "
                                 onClick={() => setShowProfileMenu(false)}
                             >
-                                {item.icon ? <item.icon className="w-4 h-4" />: avatar ? <Image src={avatar || '/avatar.png'} alt="Avatar" width={20} height={20} className="rounded-full h-10 w-10 object-cover" />: <User className="w-5 h-5" />}
+                                {item.icon ? <item.icon className="w-4 h-4" /> : (
+                                    <UserAvatar
+                                        src={signedAvatar}
+                                        name={session?.user?.name || "User"}
+                                        size="sm"
+                                        className="w-4 h-4"
+                                    />
+                                )}
                                 <p>{item.label}</p>
                             </Link>
                         ))}
@@ -175,7 +198,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                             </button>
                         )}
 
-                     { !isAdmin &&  <Link
+                        {!isAdmin && <Link
                             href="/help"
                             className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors"
                             onClick={() => setShowProfileMenu(false)}
