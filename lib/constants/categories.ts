@@ -25,26 +25,73 @@ export interface WorkoutCategory {
     icon: FC<IconProps>;
     /** Optional display count for explore page */
     count?: number;
+    fallbackImage: string;
 }
 
 /**
  * WORKOUT_CATEGORIES - Single source of truth for all workout/fitness categories
- * Used across the application for:
- * - Schedule Stream Dialog (workout type selection)
- * - Explore Page (category filtering)
- * - Any future category-related features
  */
 export const CATEGORIES: WorkoutCategory[] = [
-    { id: "hiit", name: "HIIT", icon: HIITIcon },
-    { id: "strength-training", name: "Strength Training", icon: StrengthTrainingIcon },
-    { id: "yoga", name: "Yoga", icon: YogaIcon },
-    { id: "pilates", name: "Pilates", icon: PilatesIcon },
-    { id: "cardio", name: "Cardio", icon: CardioIcon },
-    { id: "dance", name: "Dance", icon: DanceIcon },
-    { id: "boxing", name: "Boxing", icon: BoxingIcon },
-    { id: "stretching", name: "Stretching", icon: StretchingIcon },
-    { id: "meditation", name: "Meditation", icon: MeditationIcon },
-    { id: "other", name: "Other", icon: OtherIcon },
+    {
+        id: "hiit",
+        name: "HIIT",
+        icon: HIITIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "strength-training",
+        name: "Strength Training",
+        icon: StrengthTrainingIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "yoga",
+        name: "Yoga",
+        icon: YogaIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1544367563-12123d895951?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "pilates",
+        name: "Pilates",
+        icon: PilatesIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "cardio",
+        name: "Cardio",
+        icon: CardioIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1434682881908-b43d0467b798?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "dance",
+        name: "Dance",
+        icon: DanceIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1547153760-18fc86324498?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "boxing",
+        name: "Boxing",
+        icon: BoxingIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "stretching",
+        name: "Stretching",
+        icon: StretchingIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "meditation",
+        name: "Meditation",
+        icon: MeditationIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1200&auto=format&fit=crop"
+    },
+    {
+        id: "other",
+        name: "Other",
+        icon: OtherIcon,
+        fallbackImage: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=1200&auto=format&fit=crop"
+    },
 ];
 
 

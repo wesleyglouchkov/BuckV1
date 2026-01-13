@@ -3,12 +3,19 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
+import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
+import { CATEGORIES } from "@/lib/constants/categories";
 
 interface VideoCardProps {
     stream: {
         id: string;
         title: string;
         thumbnail?: string | null;
+        replayUrl?: string | null;
+        streamUrl?: string | null;
+        workoutType?: string | null;
         createdAt: Date | string;
         duration?: number; // In seconds
         // Using viewers or views depending on your data model
@@ -27,12 +34,77 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
+    const [displayUrl, setDisplayUrl] = useState<string | null>(signedThumbnailUrl || null);
+    const [useVideoSnapshot, setUseVideoSnapshot] = useState(false);
+
+    useEffect(() => {
+        // If we already have a signed thumbnail passed in props, use it
+        if (signedThumbnailUrl) {
+            setDisplayUrl(signedThumbnailUrl);
+            // useSignedThumbnails hook returns signed video URL if stream.thumbnail is missing
+            setUseVideoSnapshot(!stream.thumbnail);
+            return;
+        }
+
+        let isMounted = true;
+        const resolveThumbnail = async () => {
+            // Priority 1: Use explicit thumbnail from S3 (if available)
+            if (stream.thumbnail) {
+                try {
+                    const url = await getSignedStreamUrl(stream.thumbnail);
+                    if (isMounted && url) {
+                        setDisplayUrl(url);
+                        setUseVideoSnapshot(false);
+                        return; // Done
+                    }
+                } catch (e) {
+                    // Fail silently to fall back
+                }
+            }
+
+            // Priority 2: Use video replay/stream URL for snapshot (frame from video)
+            // We only do this for recorded streams (isLive is false)
+            const videoUrl = !stream.isLive ? (stream.replayUrl || stream.streamUrl) : null;
+            if (videoUrl) {
+                try {
+                    const url = await getSignedStreamUrl(videoUrl);
+                    if (isMounted && url) {
+                        setDisplayUrl(url);
+                        setUseVideoSnapshot(true); // Tell render to use VideoSnapshot
+                        return; // Done
+                    }
+                } catch (e) {
+                    // Fail silently to fall back
+                }
+            }
+
+            // Priority 3: Fallback to category image (workoutType always exists)
+            const categoryName = stream.workoutType?.toLowerCase() || 'other';
+            const category = CATEGORIES.find(c => c.name.toLowerCase() === categoryName);
+            if (isMounted && category?.fallbackImage) {
+                setDisplayUrl(category.fallbackImage);
+                setUseVideoSnapshot(false);
+                return; // Done
+            }
+
+            // Priority 4: Ultimate fallback (should rarely happen)
+            if (isMounted) {
+                setDisplayUrl("https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream");
+                setUseVideoSnapshot(false);
+            }
+        };
+
+        resolveThumbnail();
+        return () => { isMounted = false; };
+    }, [stream, signedThumbnailUrl]);
+
     const formatDuration = (seconds?: number) => {
         if (!seconds) return "00:00";
-        const totalSeconds = Math.floor(seconds); // Ensure integer
-        const h = Math.floor(totalSeconds / 3600);
-        const m = Math.floor((totalSeconds % 3600) / 60);
-        const s = totalSeconds % 60;
+        // Subtract 7 seconds to account for stream processing
+        const adjustedSeconds = Math.max(0, Math.floor(seconds) - 7);
+        const h = Math.floor(adjustedSeconds / 3600);
+        const m = Math.floor((adjustedSeconds % 3600) / 60);
+        const s = adjustedSeconds % 60;
 
         if (h > 0) {
             return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
@@ -48,8 +120,37 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
         return count.toString();
     };
 
-    const displayThumbnail = signedThumbnailUrl || stream.thumbnail || "/placeholder-video.jpg"; // Fallback
     const viewers = stream.viewerCount || stream.views || 0;
+
+    // Determine what to render
+    const renderThumbnail = () => {
+        // If we are using video snapshot and have a URL, render the video frame
+        if (useVideoSnapshot && displayUrl) {
+            // Get category poster
+            const categoryName = stream.workoutType?.toLowerCase() || 'other';
+            const category = CATEGORIES.find(c => c.name.toLowerCase() === categoryName);
+            const poster = category?.fallbackImage;
+
+            return (
+                <VideoSnapshot
+                    src={displayUrl}
+                    poster={poster}
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                />
+            );
+        }
+
+        // Otherwise render the image (thumbnail, category fallback, or placeholder)
+        return (
+            <Image
+                unoptimized
+                src={displayUrl || "https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream"}
+                alt={stream.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+        );
+    };
 
     return (
         <Link href={`/live/${stream.id}`} className={cn("block group relative", className)}>
@@ -61,14 +162,8 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
             >
                 {/* Image Container */}
                 <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                    {/* Thumbnail */}
-                    <Image
-                        unoptimized
-                        src={displayThumbnail}
-                        alt={stream.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    {/* Thumbnail or VideoSnapshot */}
+                    {renderThumbnail()}
 
                     {/* Gradient Overlay for Text Readability */}
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />

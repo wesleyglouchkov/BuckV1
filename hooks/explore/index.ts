@@ -8,6 +8,9 @@ export interface SidebarStream {
     title: string;
     viewerCount: number;
     thumbnail: string | null;
+    replayUrl?: string | null;
+    workoutType?: string | null;
+    duration?: number; // In seconds
     createdAt: string | Date;
     isLive: boolean;
     creator: {
@@ -68,6 +71,8 @@ export interface SearchResultStream {
     viewerCount: number;
     isLive: boolean;
     workoutType: string;
+    replayUrl: string | null;
+    duration: number; // In seconds, computed from startTime - endTime
     createdAt: string | Date;
     creator: {
         id: string;
@@ -164,6 +169,7 @@ export interface CreatorStream {
     createdAt: string;
     replayUrl: string | null;
     workoutType?: string;
+    duration?: number; // In seconds
 }
 
 interface CreatorProfileResponse {
