@@ -179,81 +179,89 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
     };
 
     return (
-        <Link href={`/live/${stream.id}`} className={cn("block group relative", className)}>
-            <div
-                className="relative bg-card border border-border transition-all duration-300 ease-out
-                group-hover:border-l-8 group-hover:border-b-8 group-hover:border-l-primary group-hover:border-b-primary
-                mobile-touch-interaction
-                "
-            >
-                {/* Image Container */}
-                <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                    {/* Thumbnail or VideoSnapshot */}
-                    {renderThumbnail()}
+        <div className={cn("block group relative", className)}>
+            <Link href={`/live/${stream.id}`}>
+                <div
+                    className="relative bg-card border border-border transition-all duration-300 ease-out
+                    group-hover:border-l-8 group-hover:border-b-8 group-hover:border-l-primary group-hover:border-b-primary
+                    mobile-touch-interaction
+                    "
+                >
+                    {/* Image Container */}
+                    <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                        {/* Thumbnail or VideoSnapshot */}
+                        {renderThumbnail()}
 
-                    {/* Gradient Overlay for Text Readability */}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />
+                        {/* Gradient Overlay for Text Readability */}
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />
 
 
-                    {/* Live Badge - Top Right */}
-                    <div className="absolute top-2 right-2 z-10">
-                        {stream.isLive && (
-                            <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">
-                                Live
-                            </span>
+                        {/* Live Badge - Top Right */}
+                        <div className="absolute top-2 right-2 z-10">
+                            {stream.isLive && (
+                                <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">
+                                    Live
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Duration - Bottom Right (hidden when live) */}
+                        {!stream.isLive && (
+                            <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-xs font-medium rounded-sm z-10">
+                                {formatDuration(stream.duration)}
+                            </div>
+                        )}
+
+                        {/* Views/Viewers - Top Left */}
+                        {viewers > 0 && (
+                            <div className="absolute top-2 left-2 z-10">
+                                <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
+                                    {formatViewers(viewers)} {stream.isLive
+                                        ? (viewers === 1 ? 'viewer' : 'viewers')
+                                        : (viewers === 1 ? 'view' : 'views')}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Time Ago - Bottom Left (hidden when live) */}
+                        {!stream.isLive && (
+                            <div className="absolute bottom-2 left-2 z-10">
+                                <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
+                                    {formatDistanceToNow(new Date(stream.createdAt), { addSuffix: true })}
+                                </span>
+                            </div>
                         )}
                     </div>
-
-                    {/* Duration - Bottom Right (hidden when live) */}
-                    {!stream.isLive && (
-                        <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-xs font-medium rounded-sm z-10">
-                            {formatDuration(stream.duration)}
-                        </div>
-                    )}
-
-                    {/* Views/Viewers - Top Left */}
-                    {viewers > 0 && (
-                        <div className="absolute top-2 left-2 z-10">
-                            <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
-                                {formatViewers(viewers)} {stream.isLive
-                                    ? (viewers === 1 ? 'viewer' : 'viewers')
-                                    : (viewers === 1 ? 'view' : 'views')}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Time Ago - Bottom Left (hidden when live) */}
-                    {!stream.isLive && (
-                        <div className="absolute bottom-2 left-2 z-10">
-                            <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
-                                {formatDistanceToNow(new Date(stream.createdAt), { addSuffix: true })}
-                            </span>
-                        </div>
-                    )}
                 </div>
-
-
-            </div>
-
+            </Link>
 
 
             {/* Content Details */}
             <div className="mt-3 flex gap-3">
-                <UserAvatar
-                    src={stream.creator.avatar}
-                    name={stream.creator.name}
-                    size="sm"
-                    className="ring-1 ring-border"
-                />
+                <Link href={`/explore/creator/${stream.creator.username || stream.creator.id}`}>
+                    <UserAvatar
+                        src={stream.creator.avatar}
+                        name={stream.creator.name}
+                        size="sm"
+                        className="ring-1 ring-border"
+                    />
+                </Link>
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm leading-tight text-foreground truncate group-hover:text-primary transition-colors">
-                        {stream.title}
-                    </h3>
+                    <Link href={`/live/${stream.id}`}>
+                        <h3 className="font-semibold text-sm leading-tight text-foreground truncate group-hover:text-primary transition-colors">
+                            {stream.title}
+                        </h3>
+                    </Link>
                     <div className="text-xs text-muted-foreground mt-1">
-                        <span className="hover:text-foreground transition-colors">{stream.creator.name}</span>
+                        <Link
+                            href={`/explore/creator/${stream.creator.username || stream.creator.id}`}
+                            className="hover:text-foreground transition-colors"
+                        >
+                            {stream.creator.name}
+                        </Link>
                     </div>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 }
