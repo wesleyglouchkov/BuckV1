@@ -178,7 +178,7 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
                         </Button>
                     )}
 
-                    {!isSubscribed && isMember && (
+                    {!isOwnProfile && !isSubscribed && isMember && (
                         <SubscribeDialog creator={creator}>
                             <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
                                 <Star className="w-4 h-4" />

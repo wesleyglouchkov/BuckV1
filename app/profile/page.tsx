@@ -74,7 +74,7 @@ export default function ProfilePage() {
                     {/* Sidebar - Role-specific info */}
                     <div className="space-y-6">
                         {/* Account Overview */}
-                        <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+                        <div className="bg-card border border-border p-6 shadow-sm">
                             <h2 className="text-lg font-semibold text-foreground mb-4">
                                 Account Overview
                             </h2>
