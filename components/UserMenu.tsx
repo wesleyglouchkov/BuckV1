@@ -162,8 +162,8 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                                     <UserAvatar
                                         src={(session?.user as any)?.avatar}
                                         name={session?.user?.name || "User"}
-                                        size="sm"
-                                        className="w-4 h-4"
+                                        size="md"
+                                        className="w-10 h-10"
                                     />
                                 )}
                                 <p>{item.label}</p>
