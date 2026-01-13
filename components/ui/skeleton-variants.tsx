@@ -31,7 +31,7 @@ export function SkeletonCard({ className }: SkeletonCardProps) {
         <Skeleton className="h-4 w-1/2" />
       </div>
       <div className="flex items-center gap-2">
-        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-8 w-8" />
         <Skeleton className="h-4 w-24" />
       </div>
     </div>
@@ -66,7 +66,7 @@ export function SkeletonAvatar({ size = "md", className }: SkeletonAvatarProps) 
 
   return (
     <Skeleton
-      className={cn("rounded-full", sizeClasses[size], className)}
+      className={cn(sizeClasses[size], className)}
     />
   );
 }
@@ -85,7 +85,7 @@ export function SkeletonBox({ width, height, className }: SkeletonBoxProps) {
 export function SkeletonListItem({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-4 p-4", className)}>
-      <Skeleton className="h-12 w-12 rounded-full" />
+      <Skeleton className="h-12 w-12" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-1/3" />
         <Skeleton className="h-3 w-1/2" />
@@ -178,7 +178,7 @@ export function SkeletonLiveStream({ className }: { className?: string }) {
 export function SkeletonSidebarItem({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <div className={cn("flex items-center gap-2 py-2", collapsed ? "justify-center" : "px-2.5")}>
-      <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+      <Skeleton className="h-8 w-8 shrink-0" />
       {!collapsed && (
         <div className="flex-1 space-y-1 overflow-hidden">
           <Skeleton className="h-4 w-3/4" />

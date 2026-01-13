@@ -2,11 +2,13 @@ import { User } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { getSignedStreamUrl } from "@/app/actions/s3-actions";
+import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
     src?: string | null;
     name: string;
     size?: "sm" | "md" | "lg" | "xl";
+    rounded?: boolean;
     className?: string;
 }
 
@@ -17,7 +19,13 @@ const sizeClasses = {
     xl: "w-24 h-24 text-3xl",
 };
 
-export function UserAvatar({ src, name, size = "md", className = "" }: UserAvatarProps) {
+export function UserAvatar({
+    src,
+    name,
+    size = "md",
+    rounded = false,
+    className = ""
+}: UserAvatarProps) {
     const [signedSrc, setSignedSrc] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
 
@@ -50,6 +58,7 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
     }, [src]);
 
     const sizeClass = sizeClasses[size];
+    const roundedClass = rounded ? "rounded-full" : "";
 
     const initials = name
         ? name
@@ -62,7 +71,7 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
 
     if (signedSrc && !hasError) {
         return (
-            <div className={`${sizeClass} relative rounded-full overflow-hidden border border-border/50 shrink-0 ${className}`}>
+            <div className={cn(sizeClass, "relative overflow-hidden border border-border/50 shrink-0", roundedClass, className)}>
                 <Image
                     src={signedSrc}
                     alt={name}
@@ -78,7 +87,12 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
 
     return (
         <div
-            className={`${sizeClass} bg-linear-to-br from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30 rounded-full flex items-center justify-center text-primary font-bold shadow-inner shrink-0 border border-primary/20 ${className}`}
+            className={cn(
+                sizeClass,
+                "bg-linear-to-br from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30 flex items-center justify-center text-primary font-bold shadow-inner shrink-0 border border-primary/20",
+                roundedClass,
+                className
+            )}
         >
             <span className="antialiased">
                 {name ? initials : <User className="w-1/2 h-1/2" />}

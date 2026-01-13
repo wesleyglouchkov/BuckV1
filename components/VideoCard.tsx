@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { CATEGORIES } from "@/lib/constants/categories";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface VideoCardProps {
     stream: {
@@ -34,27 +35,45 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
-    const [displayUrl, setDisplayUrl] = useState<string | null>(signedThumbnailUrl || null);
-    const [useVideoSnapshot, setUseVideoSnapshot] = useState(false);
+    // Determine initial snapshot mode: if thumbnail is missing, we'll likely need a snapshot
+    const initialIsSnapshot = !stream.thumbnail && !stream.isLive;
+
+    const [thumbnailState, setThumbnailState] = useState<{
+        displayUrl: string | null;
+        useVideoSnapshot: boolean;
+        isLoading: boolean;
+    }>({
+        displayUrl: signedThumbnailUrl || null,
+        useVideoSnapshot: initialIsSnapshot,
+        isLoading: !signedThumbnailUrl // If we have the URL already, we are "ready"
+    });
 
     useEffect(() => {
-        // If we already have a signed thumbnail passed in props, use it
-        if (signedThumbnailUrl) {
-            setDisplayUrl(signedThumbnailUrl);
-            // useSignedThumbnails hook returns signed video URL if stream.thumbnail is missing
-            setUseVideoSnapshot(!stream.thumbnail);
-            return;
-        }
-
         let isMounted = true;
+
         const resolveThumbnail = async () => {
-            // Priority 1: Use explicit thumbnail from S3 (if available)
+            // Priority 1: Use explicit props if provided (already handled in initial state, but update if props change)
+            if (signedThumbnailUrl) {
+                if (isMounted) {
+                    setThumbnailState({
+                        displayUrl: signedThumbnailUrl,
+                        useVideoSnapshot: !stream.thumbnail && !stream.isLive,
+                        isLoading: false
+                    });
+                }
+                return;
+            }
+
+            // Priority 2: Use explicit thumbnail from S3 (if available)
             if (stream.thumbnail) {
                 try {
                     const url = await getSignedStreamUrl(stream.thumbnail);
                     if (isMounted && url) {
-                        setDisplayUrl(url);
-                        setUseVideoSnapshot(false);
+                        setThumbnailState({
+                            displayUrl: url,
+                            useVideoSnapshot: false,
+                            isLoading: false
+                        });
                         return; // Done
                     }
                 } catch (e) {
@@ -62,15 +81,18 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                 }
             }
 
-            // Priority 2: Use video replay/stream URL for snapshot (frame from video)
+            // Priority 3: Use video replay/stream URL for snapshot (frame from video)
             // We only do this for recorded streams (isLive is false)
             const videoUrl = !stream.isLive ? (stream.replayUrl || stream.streamUrl) : null;
             if (videoUrl) {
                 try {
                     const url = await getSignedStreamUrl(videoUrl);
                     if (isMounted && url) {
-                        setDisplayUrl(url);
-                        setUseVideoSnapshot(true); // Tell render to use VideoSnapshot
+                        setThumbnailState({
+                            displayUrl: url,
+                            useVideoSnapshot: true,
+                            isLoading: false
+                        });
                         return; // Done
                     }
                 } catch (e) {
@@ -78,19 +100,25 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                 }
             }
 
-            // Priority 3: Fallback to category image (workoutType always exists)
+            // Priority 4: Fallback to category image (workoutType always exists)
             const categoryName = stream.workoutType?.toLowerCase() || 'other';
             const category = CATEGORIES.find(c => c.name.toLowerCase() === categoryName);
             if (isMounted && category?.fallbackImage) {
-                setDisplayUrl(category.fallbackImage);
-                setUseVideoSnapshot(false);
+                setThumbnailState({
+                    displayUrl: category.fallbackImage,
+                    useVideoSnapshot: false,
+                    isLoading: false
+                });
                 return; // Done
             }
 
-            // Priority 4: Ultimate fallback (should rarely happen)
+            // Priority 5: Ultimate fallback (should rarely happen)
             if (isMounted) {
-                setDisplayUrl("https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream");
-                setUseVideoSnapshot(false);
+                setThumbnailState({
+                    displayUrl: "https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream",
+                    useVideoSnapshot: false,
+                    isLoading: false
+                });
             }
         };
 
@@ -124,17 +152,15 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
 
     // Determine what to render
     const renderThumbnail = () => {
-        // If we are using video snapshot and have a URL, render the video frame
-        if (useVideoSnapshot && displayUrl) {
-            // Get category poster
-            const categoryName = stream.workoutType?.toLowerCase() || 'other';
-            const category = CATEGORIES.find(c => c.name.toLowerCase() === categoryName);
-            const poster = category?.fallbackImage;
+        if (thumbnailState.isLoading || !thumbnailState.displayUrl) {
+            return <Skeleton className="w-full h-full" />;
+        }
 
+        // If we are using video snapshot and have a URL, render the video frame
+        if (thumbnailState.useVideoSnapshot) {
             return (
                 <VideoSnapshot
-                    src={displayUrl}
-                    poster={poster}
+                    src={thumbnailState.displayUrl}
                     className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                 />
             );
@@ -144,7 +170,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
         return (
             <Image
                 unoptimized
-                src={displayUrl || "https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream"}
+                src={thumbnailState.displayUrl}
                 alt={stream.title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -189,7 +215,9 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                     {viewers > 0 && (
                         <div className="absolute top-2 left-2 z-10">
                             <span className="px-1.5 py-0.5 bg-black/60 text-white text-xs font-semibold rounded-sm">
-                                {formatViewers(viewers)} {stream.isLive ? 'viewers' : 'views'}
+                                {formatViewers(viewers)} {stream.isLive
+                                    ? (viewers === 1 ? 'viewer' : 'viewers')
+                                    : (viewers === 1 ? 'view' : 'views')}
                             </span>
                         </div>
                     )}
