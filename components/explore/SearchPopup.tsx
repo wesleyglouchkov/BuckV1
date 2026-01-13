@@ -161,7 +161,23 @@ function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => voi
         let isMounted = true;
 
         const resolveThumbnail = async () => {
-            // Priority 1: Use explicit thumbnail from S3 (if available)
+            // Priority 1: STRICT Live Stream Logic
+            // User requested: "the live one should not show image just the icon red of live"
+            // So if it is live, we explicitly set no URL to trigger the Red Radio Icon.
+            if (stream.isLive) {
+                if (isMounted) {
+                    setThumbnailState({
+                        displayUrl: null,
+                        useVideoSnapshot: false,
+                        isLoading: false
+                    });
+                }
+                return;
+            }
+
+            // Priority 2: Recorded Stream Logic (!isLive)
+
+            // 2a. Explicit Thumbnail (Highest priority for recorded)
             if (stream.thumbnail) {
                 try {
                     const url = await getSignedStreamUrl(stream.thumbnail);
@@ -178,8 +194,8 @@ function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => voi
                 }
             }
 
-            // Priority 2: Use video replay/stream URL for snapshot
-            const videoUrl = !stream.isLive ? (stream.replayUrl || stream.streamUrl) : null;
+            // 2b. Video Snapshot (If replay/stream URL exists)
+            const videoUrl = stream.replayUrl || stream.streamUrl;
             if (videoUrl) {
                 try {
                     const url = await getSignedStreamUrl(videoUrl);
@@ -196,7 +212,8 @@ function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => voi
                 }
             }
 
-            // Priority 3: Fallback to category image
+            // 2c. Category Fallback (If no video/snapshot available)
+            // "if not live and no replay url then fallback image based on workoutType"
             const categoryName = stream.workoutType?.toLowerCase() || 'other';
             const category = CATEGORIES.find(c => c.name.toLowerCase() === categoryName);
             if (isMounted && category?.fallbackImage) {
@@ -208,7 +225,7 @@ function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => voi
                 return;
             }
 
-            // Priority 4: Ultimate fallback
+            // 2d. Ultimate Fallback
             if (isMounted) {
                 setThumbnailState({
                     displayUrl: "https://placehold.co/1200x675/1a1a1a/ffffff?text=Buck+Stream",
@@ -230,8 +247,12 @@ function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => voi
                 className="flex items-center gap-3 px-2 py-2 hover:bg-accent transition-colors group"
             >
                 <div className="relative w-10 h-10 bg-muted shrink-0 overflow-hidden">
-                    {thumbnailState.isLoading || !thumbnailState.displayUrl ? (
+                    {thumbnailState.isLoading ? (
                         <div className="w-full h-full bg-muted animate-pulse" />
+                    ) : !thumbnailState.displayUrl ? (
+                        <div className="w-full h-full flex items-center justify-center bg-red-500/5">
+                            <Radio className="w-5 h-5 text-red-500/40" />
+                        </div>
                     ) : thumbnailState.useVideoSnapshot ? (
                         <VideoSnapshot
                             src={thumbnailState.displayUrl}

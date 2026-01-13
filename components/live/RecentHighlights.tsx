@@ -72,6 +72,7 @@ export function RecentHighlights({ creator, streams, totalStreams }: RecentHighl
                             creator: {
                                 id: creator.id,
                                 name: creator.name,
+                                username: creator.username,
                                 avatar: creator.avatar || null
                             }
                         }}
@@ -137,6 +138,7 @@ export function PreviousStreams({ creator, streams, totalStreams }: PreviousStre
                             creator: {
                                 id: creator.id,
                                 name: creator.name,
+                                username: creator.username,
                                 avatar: creator.avatar || null
                             }
                         }}

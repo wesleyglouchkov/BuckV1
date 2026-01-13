@@ -8,6 +8,7 @@ import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "next-auth/react";
 
 interface VideoCardProps {
     stream: {
@@ -37,7 +38,7 @@ interface VideoCardProps {
 export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
     // Determine initial snapshot mode: if thumbnail is missing, we'll likely need a snapshot
     const initialIsSnapshot = !stream.thumbnail && !stream.isLive;
-
+    const session = useSession();
     const [thumbnailState, setThumbnailState] = useState<{
         displayUrl: string | null;
         useVideoSnapshot: boolean;
@@ -238,7 +239,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
 
             {/* Content Details */}
             <div className="mt-3 flex gap-3">
-                <Link href={`/explore/creator/${stream.creator.username || stream.creator.id}`}>
+                <Link href={`/explore/creator/${stream.creator.username}`}>
                     <UserAvatar
                         src={stream.creator.avatar}
                         name={stream.creator.name}
@@ -254,7 +255,7 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                     </Link>
                     <div className="text-xs text-muted-foreground mt-1">
                         <Link
-                            href={`/explore/creator/${stream.creator.username || stream.creator.id}`}
+                            href={`/explore/creator/${stream.creator.username}`}
                             className="hover:text-foreground transition-colors"
                         >
                             {stream.creator.name}
