@@ -266,10 +266,10 @@ export default function CreatorSubscribersPage() {
                                         <TableRow key={sub.id} className="border-border/10 hover:bg-muted/10 transition-colors">
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                    <UserAvatar src={sub.member.avatar} name={sub.member.name} className="w-10 h-10" />
+                                                    <UserAvatar src={sub?.member?.avatar} name={sub?.member?.name} className="w-10 h-10" />
                                                     <div className="flex flex-col">
-                                                        <span className="font-semibold text-foreground">{sub.member.name}</span>
-                                                        <span className="text-xs text-muted-foreground italic">@{sub.member.username}</span>
+                                                        <span className="font-semibold text-foreground">{sub?.member?.name}</span>
+                                                        <span className="text-xs text-muted-foreground italic">@{sub?.member?.username}</span>
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -360,10 +360,10 @@ export default function CreatorSubscribersPage() {
                                         <TableRow key={follow.id} className="border-border/10 hover:bg-muted/10 transition-colors">
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                    <UserAvatar src={follow.follower.avatar} name={follow.follower.name} className="w-10 h-10" />
+                                                    <UserAvatar src={follow?.follower?.avatar} name={follow?.follower?.name} className="w-10 h-10" />
                                                     <div className="flex flex-col">
-                                                        <span className="font-semibold text-foreground">{follow.follower.name}</span>
-                                                        <span className="text-xs text-muted-foreground italic">@{follow.follower.username}</span>
+                                                        <span className="font-semibold text-foreground">{follow?.follower?.name}</span>
+                                                        <span className="text-xs text-muted-foreground italic">@{follow?.follower?.username}</span>
                                                     </div>
                                                 </div>
                                             </TableCell>
