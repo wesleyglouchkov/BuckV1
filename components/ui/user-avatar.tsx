@@ -19,9 +19,11 @@ const sizeClasses = {
 
 export function UserAvatar({ src, name, size = "md", className = "" }: UserAvatarProps) {
     const [signedSrc, setSignedSrc] = useState<string | null>(null);
+    const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
+        setHasError(false);
 
         const fetchSignedUrl = async () => {
             if (!src) {
@@ -49,9 +51,18 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
 
     const sizeClass = sizeClasses[size];
 
-    if (signedSrc) {
+    const initials = name
+        ? name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2)
+        : "?";
+
+    if (signedSrc && !hasError) {
         return (
-            <div className={`${sizeClass} relative rounded-full overflow-hidden ${className}`}>
+            <div className={`${sizeClass} relative rounded-full overflow-hidden border border-border/50 shrink-0 ${className}`}>
                 <Image
                     src={signedSrc}
                     alt={name}
@@ -59,6 +70,7 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
                     className="object-cover"
                     sizes="(max-width: 768px) 100px, 200px"
                     unoptimized
+                    onError={() => setHasError(true)}
                 />
             </div>
         );
@@ -66,9 +78,11 @@ export function UserAvatar({ src, name, size = "md", className = "" }: UserAvata
 
     return (
         <div
-            className={`${sizeClass} bg-linear-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${className}`}
+            className={`${sizeClass} bg-linear-to-br from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30 rounded-full flex items-center justify-center text-primary font-bold shadow-inner shrink-0 border border-primary/20 ${className}`}
         >
-            <User />
+            <span className="antialiased">
+                {name ? initials : <User className="w-1/2 h-1/2" />}
+            </span>
         </div>
     );
 }

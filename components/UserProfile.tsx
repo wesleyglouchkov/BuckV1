@@ -303,10 +303,10 @@ export default function UserProfile() {
 
   const displayUser = profile || {
     name: session.user.name,
-    username: session.user.username,
+    username: (session.user as any).username,
     email: session.user.email,
-    avatar: session.user.image,
-    role: session.user.role,
+    avatar: (session.user as any).avatar,
+    role: (session.user as any).role,
     bio: null,
     createdAt: new Date().toISOString(), // Fallback
     _count: { followers: 0, subscribers: 0, createdStreams: 0 }

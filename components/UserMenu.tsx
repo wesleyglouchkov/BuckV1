@@ -44,24 +44,10 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
     const [showRedirecting, setShowRedirecting] = useState(false);
     const profileWrapperRef = useRef<HTMLDivElement | null>(null);
     const isAdmin = session?.user?.role?.toLowerCase() === 'admin';
-    const [signedAvatar, setSignedAvatar] = useState<string | null>(null);
-
     useEffect(() => {
         initTheme();
         setIsDarkMode(getTheme() === "dark");
     }, []);
-
-    useEffect(() => {
-        const fetchSignedAvatar = async () => {
-            if (session?.user?.avatar) {
-                const url = await getSignedStreamUrl(session.user.avatar);
-                setSignedAvatar(url);
-            } else {
-                setSignedAvatar(null);
-            }
-        };
-        fetchSignedAvatar();
-    }, [session?.user?.avatar]);
 
     // Close profile menu when clicking outside or pressing Escape
     useEffect(() => {
@@ -149,7 +135,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                 aria-expanded={showProfileMenu}
             >
                 <UserAvatar
-                    src={signedAvatar}
+                    src={(session?.user as any)?.avatar}
                     name={session?.user?.name || "User"}
                     size="sm"
                 />
@@ -174,7 +160,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                             >
                                 {item.icon ? <item.icon className="w-4 h-4" /> : (
                                     <UserAvatar
-                                        src={signedAvatar}
+                                        src={(session?.user as any)?.avatar}
                                         name={session?.user?.name || "User"}
                                         size="sm"
                                         className="w-4 h-4"
