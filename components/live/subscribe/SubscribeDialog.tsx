@@ -14,6 +14,7 @@ interface SubscribeDialogProps {
         name: string;
         username?: string;
         avatar?: string;
+        subscriptionPrice?: number | null;
     };
     children: React.ReactNode;
 }
@@ -53,6 +54,7 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
                                 <UserAvatar
                                     src={creator.avatar}
                                     name={creator.name}
+                                    rounded
                                     className="w-16 h-16 border-4 border-card shadow-lg mb-2"
                                 />
                                 <DialogTitle className="text-lg font-bold flex items-center gap-1.5 text-foreground">
@@ -69,8 +71,8 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
                             {/* Monthly Price */}
                             <div className="text-center space-y-1">
                                 <div className="flex items-baseline justify-center gap-1">
-                                    <span className="text-3xl font-bold text-foreground">$4.99</span>
-                                    <span className="text-muted-foreground font-medium">/ month</span>
+                                   {creator.subscriptionPrice && <><span className="text-3xl font-bold text-foreground">${creator.subscriptionPrice} USD</span>
+                                    <span className="text-muted-foreground font-medium">/ month</span></>}
                                 </div>
                                 <p className="text-xs text-muted-foreground">Cancel anytime. Stripe Secure payment.</p>
                             </div>
@@ -120,7 +122,7 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
                         </div>
 
                         <div className="p-0">
-                            <StripeSubscription onCancel={() => setStep("details")} />
+                            <StripeSubscription creatorId={creator.id} onCancel={() => setStep("details")} />
                         </div>
                     </div>
                 )}

@@ -156,6 +156,9 @@ export interface CreatorProfile {
     avatar?: string;
     bio?: string;
     subscriptionPrice?: number | null;
+    stripe_account_id?: string | null;
+    stripe_connected?: boolean | null;
+    stripe_onboarding_completed?: boolean | null;
     followers: number;
     subscribers: number;
 }

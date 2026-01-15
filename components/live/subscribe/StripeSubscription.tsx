@@ -1,33 +1,59 @@
+"use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { memberService } from "@/services/member";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 interface StripeSubscriptionProps {
-    priceId?: string;
+    creatorId: string;
     onCancel?: () => void;
 }
 
-export function StripeSubscription({ priceId, onCancel }: StripeSubscriptionProps) {
+export function StripeSubscription({ creatorId, onCancel }: StripeSubscriptionProps) {
+    const { data: session } = useSession();
+
+    useEffect(() => {
+        const initiateCheckout = async () => {
+             if (!session?.user?.id) {
+                 toast.error("Please log in");
+                 onCancel?.();
+                 return;
+             }
+             try {
+                 const result = await memberService.subscribeToCreator({
+                     creatorId,
+                     memberId: session.user.id
+                 });
+                 if (result.checkoutUrl) {
+                     window.location.href = result.checkoutUrl;
+                 } else {
+                     throw new Error("No checkout URL returned");
+                 }
+             } catch (e: any) {
+                 console.error(e);
+                 toast.error(e.message || "Failed to start checkout");
+                 onCancel?.();
+             }
+        };
+
+        if (session) {
+            initiateCheckout();
+        }
+    }, [creatorId, session, onCancel]);
+
     return (
-        <div className="w-full h-full min-h-[300px] flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted bg-muted/10 animate-in fade-in zoom-in-95 duration-300 rounded-none">
-            <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-primary/20 flex items-center justify-center mx-auto mb-4 rounded-none">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Stripe Secure Checkout</h3>
-                <p className="text-muted-foreground text-sm max-w-[250px] mx-auto">
-                    This component will handle secure payments via Stripe.
-                </p>
-                {/* 
-                   TODO: Implement Stripe Elements here.
-                   This is a placeholder as requested.
-                */}
-                <div className="pt-4">
-                    <Button variant="outline" onClick={onCancel} className="rounded-none">
-                        Cancel
-                    </Button>
-                </div>
-            </div>
+        <div className="w-full h-full min-h-[300px] flex flex-col items-center justify-center p-6 bg-muted/10 rounded-none">
+             <div className="text-center space-y-4">
+                 <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" />
+                 <h3 className="text-lg font-semibold dark:text-white">Preparing Checkout...</h3>
+                 <p className="text-muted-foreground text-sm">Redirecting to Stripe secure payment page.</p>
+                 <Button variant="outline" onClick={onCancel} className="mt-4">
+                     Cancel
+                 </Button>
+             </div>
         </div>
     );
 }

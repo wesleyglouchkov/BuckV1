@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import AgoraRTC, { AgoraRTCProvider, useJoin, useLocalCameraTrack, useLocalMicrophoneTrack, usePublish, useRemoteUsers, useRTCClient } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio, DollarSign } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
 import Image from "next/image";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
+import { TipButton } from "./TipButton";
 import { LoginRequiredDialog } from "./LoginRequiredDialog";
 
 
@@ -36,6 +37,7 @@ export interface AgoraViewerProps {
     userAvatar?: string;
     hostName?: string;
     hostAvatar?: string;
+    hostDbId?: string;
 }
 
 function StreamLogic({
@@ -54,7 +56,8 @@ function StreamLogic({
     userName,
     userAvatar,
     hostName,
-    hostAvatar
+    hostAvatar,
+    hostDbId
 }: AgoraViewerProps) {
     const router = useRouter();
 
@@ -575,6 +578,21 @@ function StreamLogic({
 
             {/* Controls Overlay (Always Visible, Bottom Fixed) */}
             <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 bg-background/60 backdrop-blur-md px-4 py-3 border-t border-white/10 z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+                {/* Tip Button - Always visible if hostDbId is present */}
+                {hostDbId && (
+                    <TipButton creatorId={hostDbId} livestreamId={channelName} asChild>
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            className="w-12 h-12 rounded-full shadow-lg shadow-green-500/20 bg-linear-to-tr from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-2 border-white/20 hover:scale-110 transition-all duration-300"
+                            title="Send BUCK"
+                        >
+                            <DollarSign className="w-6 h-6 fill-white" />
+                        </Button>
+                    </TipButton>
+                )}
+
                 {role === "publisher" && (
                     <>
                         <Button

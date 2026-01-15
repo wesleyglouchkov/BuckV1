@@ -56,7 +56,7 @@ export default function MyCreatorsPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     // Page State
-    const [activeTab, setActiveTab] = useState("following");
+    const [activeTab, setActiveTab] = useState("subscribed");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [followingPage, setFollowingPage] = useState(1);
@@ -184,21 +184,11 @@ export default function MyCreatorsPage() {
                         </p>
                     </div>
 
-                    <Tabs defaultValue="following" className="w-full" onValueChange={(v) => {
+                    <Tabs defaultValue="subscribed" className="w-full" onValueChange={(v) => {
                         setActiveTab(v);
                     }}>
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                             <TabsList className="bg-muted/50 p-1 h-12 rounded-none border border-border/20">
-                                <TabsTrigger
-                                    value="following"
-                                    className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
-                                >
-                                    <Heart className="w-4 h-4" />
-                                    Following
-                                    {followingPagination && (
-                                        <span className="text-xs text-muted-foreground">({followingPagination.total})</span>
-                                    )}
-                                </TabsTrigger>
                                 <TabsTrigger
                                     value="subscribed"
                                     className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
@@ -207,6 +197,16 @@ export default function MyCreatorsPage() {
                                     Subscribed
                                     {subscriptionsPagination && (
                                         <span className="text-xs text-muted-foreground">({subscriptionsPagination.total})</span>
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="following"
+                                    className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
+                                >
+                                    <Heart className="w-4 h-4" />
+                                    Following
+                                    {followingPagination && (
+                                        <span className="text-xs text-muted-foreground">({followingPagination.total})</span>
                                     )}
                                 </TabsTrigger>
                             </TabsList>

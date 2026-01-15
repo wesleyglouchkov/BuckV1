@@ -21,6 +21,9 @@ interface ChannelInfoProps {
         subscribers?: number;
         subscriptionPrice?: number | null;
         bio?: string;
+        stripe_account_id?: string | null;
+        stripe_connected?: boolean | null;
+        stripe_onboarding_completed?: boolean | null;
     };
     isSubscribed?: boolean;
     onFollowChange?: (isFollowing: boolean) => void;
@@ -182,26 +185,29 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
                         </Button>
                     )}
 
-                    {/* Subscribe Button - Modified to show for non-members too */}
-                    {!isOwnProfile && !isSubscribed && (isMember || status !== "authenticated") && (
-                        status === "authenticated" && isMember ? (
-                            <SubscribeDialog creator={creator}>
-                                <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
+                    {/* Subscribe Button - Show for all roles except the owner */}
+                    {!isOwnProfile && !isSubscribed && (status !== "authenticated" || status === "authenticated") &&
+                        creator.stripe_account_id &&
+                        creator.stripe_connected &&
+                        creator.stripe_onboarding_completed && (
+                            status === "authenticated" ? (
+                                <SubscribeDialog creator={creator}>
+                                    <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
+                                        <Star className="w-4 h-4" />
+                                        Subscribe
+                                    </Button>
+                                </SubscribeDialog>
+                            ) : (
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setShowLoginDialog(true)}
+                                    className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95"
+                                >
                                     <Star className="w-4 h-4" />
                                     Subscribe
                                 </Button>
-                            </SubscribeDialog>
-                        ) : (
-                            <Button
-                                variant="secondary"
-                                onClick={() => setShowLoginDialog(true)}
-                                className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95"
-                            >
-                                <Star className="w-4 h-4" />
-                                Subscribe
-                            </Button>
-                        )
-                    )}
+                            )
+                        )}
                 </div>
             </div>
 

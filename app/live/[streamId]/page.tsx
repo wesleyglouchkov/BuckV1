@@ -43,6 +43,11 @@ interface StreamDetails {
         name: string;
         username?: string;
         avatar?: string;
+        bio?: string;
+        subscriptionPrice?: number | null;
+        stripe_account_id?: string | null;
+        stripe_connected?: boolean | null;
+        stripe_onboarding_completed?: boolean | null;
     };
 }
 
@@ -392,6 +397,7 @@ export default function LiveStreamPage() {
                                         userAvatar={tokenData.userAvatar}
                                         hostName={streamDetails.creator.name}
                                         hostAvatar={streamDetails.creator.avatar}
+                                        hostDbId={streamDetails.creator.id}
                                     />
                                 ) : (
                                     <StreamConnecting creatorName={streamDetails.creator.name} />

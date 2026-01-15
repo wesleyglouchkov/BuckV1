@@ -104,7 +104,7 @@ export const memberService = {
     }
   },
 
-    // Tip Payment - Create Checkout Session
+  // Tip Payment - Create Checkout Session
   createTipPayment: async (data: {
     creatorId: string;
     amount: number;
@@ -113,10 +113,33 @@ export const memberService = {
   }) => {
     try {
       const axios = await createClientAuthInstance('member');
-      const response = await axios.post('/stripe/create-tip-payment', data);
+      // Fix: Endpoint is mounted under /api/member/stripe...
+      const response = await axios.post('/member/stripe/create-tip-payment', data);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to create tip payment');
     }
   },
+
+  // Create Subscription Checkout Session
+  subscribeToCreator: async (data: { creatorId: string; memberId: string }) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.post('/member/subscriptions/checkout', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to initiate subscription');
+    }
+  },
+
+  // Cancel Subscription (replaces unsubscribeFromCreator mostly, but we can keep both or alias)
+  cancelSubscription: async (subscriptionId: string) => {
+    try {
+      const axios = await createClientAuthInstance('member');
+      const response = await axios.delete(`/member/subscriptions/${subscriptionId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to cancel subscription');
+    }
+  }
 };
