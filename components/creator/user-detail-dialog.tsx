@@ -22,13 +22,15 @@ interface UserDetailDialogProps {
 export function UserDetailDialog({ isOpen, onClose, user, type }: UserDetailDialogProps) {
     if (!user) return null;
 
-    const userData = type === "subscriber" ? user.member : user.follower;
+    const userData = user.member || user.follower;
+    if (!userData) return null;
+
     const stats = [
         { label: "Email", value: userData.email, icon: Mail },
         { label: "Username", value: `@${userData.username}`, icon: User },
         {
-            label: type === "subscriber" ? "Subscribed Since" : "Followed Since",
-            value: formatDate(type === "subscriber" ? user.startDate : user.createdAt),
+            label: user.startDate ? "Subscribed Since" : user.createdAt ? "Followed Since" : "Activity Date",
+            value: formatDate(user.startDate || user.createdAt || user.created_at),
             icon: Calendar
         },
     ];
@@ -38,8 +40,8 @@ export function UserDetailDialog({ isOpen, onClose, user, type }: UserDetailDial
             <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-border/20 bg-card">
                 <DialogHeader className="p-4 pb-0">
                     <DialogTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
-                        {type === "subscriber" ? <Star className="w-4 h-4 text-primary fill-primary" /> : <Shield className="w-4 h-4 text-primary" />}
-                        {type === "subscriber" ? "Subscriber Details" : "Follower Details"}
+                        {user.startDate ? <Star className="w-4 h-4 text-primary fill-primary" /> : <Shield className="w-4 h-4 text-primary" />}
+                        {user.startDate ? "Subscriber Details" : user.createdAt ? "Follower Details" : "Member Details"}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -53,9 +55,14 @@ export function UserDetailDialog({ isOpen, onClose, user, type }: UserDetailDial
                         <div className="flex flex-col">
                             <h3 className="text-xl font-bold text-foreground leading-tight">{userData.name}</h3>
                             <p className="text-muted-foreground text-sm italic">@{userData.username}</p>
-                            {type === "subscriber" && (
+                            {user.startDate && user.status === 'active' && (
                                 <Badge className="mt-1 w-fit bg-primary text-white rounded-none border-none px-2 py-0 text-[9px] font-black uppercase tracking-widest">
                                     Active Subscriber
+                                </Badge>
+                            )}
+                            {user.amount_cents && (
+                                <Badge className="mt-1 w-fit bg-green-600 text-white rounded-none border-none px-2 py-0 text-[9px] font-black uppercase tracking-widest">
+                                    Tipper
                                 </Badge>
                             )}
                         </div>
