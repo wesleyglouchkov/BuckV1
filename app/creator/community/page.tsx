@@ -37,7 +37,8 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { formatDateTime } from "@/utils/dateTimeUtils";
+import { formatDate } from "@/utils/dateTimeUtils";
+import { UserDetailDialog } from "@/components/creator/user-detail-dialog";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -52,6 +53,11 @@ export default function CreatorSubscribersPage() {
     const [isEditingPrice, setIsEditingPrice] = useState(false);
     const [newPrice, setNewPrice] = useState("");
     const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+
+    // Details Dialog State
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [detailsType, setDetailsType] = useState<"subscriber" | "follower">("subscriber");
 
     // Fetch profile for subscription price
     const { data: profile, isLoading: isProfileLoading } = useSWR(
@@ -235,9 +241,9 @@ export default function CreatorSubscribersPage() {
                                 <TableRow className="border-border/10 hover:bg-transparent">
                                     <TableHead className="w-[300px]">Subscriber</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Monthly Fee</TableHead>
-                                    <TableHead>Joined At</TableHead>
-                                    <TableHead className="text-right">Expires</TableHead>
+                                    <TableHead>Joined Since</TableHead>
+                                    <TableHead>Cycle</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -268,26 +274,55 @@ export default function CreatorSubscribersPage() {
                                                 <div className="flex items-center gap-3">
                                                     <UserAvatar src={sub?.member?.avatar} name={sub?.member?.name} className="w-10 h-10" />
                                                     <div className="flex flex-col">
-                                                        <span className="font-semibold text-foreground">{sub?.member?.name}</span>
-                                                        <span className="text-xs text-muted-foreground italic">@{sub?.member?.username}</span>
+                                                        <span className="font-semibold text-foreground leading-none">{sub?.member?.name}</span>
+                                                        <span className="text-[11px] text-muted-foreground mt-1">@{sub?.member?.username}</span>
+                                                        <span className="text-[10px] text-primary/70 font-medium uppercase tracking-tighter mt-0.5">{sub?.member?.email}</span>
                                                     </div>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge className={`rounded-none uppercase text-[10px] font-bold tracking-widest ${sub.status === 'active'
+                                                <Badge className={`rounded-none uppercase text-[9px] font-black tracking-widest px-2 py-0.5 ${sub.status === 'active'
                                                     ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                                    : sub.status === 'cancelled'
+                                                        ? 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                                                        : 'bg-red-500/10 text-red-500 border-red-500/20'
                                                     }`}>
                                                     {sub.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="font-medium text-foreground">${sub.fee}</TableCell>
-                                            <TableCell className="text-sm text-muted-foreground flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5 opacity-50" />
-                                                {formatDateTime(sub.startDate)}
+                                            <TableCell className="text-[13px] text-muted-foreground align-middle">
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                                                    <span>{formatDate(sub.startDate)}</span>
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="text-right text-sm text-muted-foreground">
-                                                {sub.endDate ? formatDateTime(sub.endDate) : <span className="text-[10px] opacity-30 italic">RECURRING</span>}
+                                            <TableCell className="text-right text-[13px] text-muted-foreground align-middle">
+                                                {sub.endDate ? (
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[10px] font-bold text-primary opacity-60 uppercase tracking-tighter mb-0.5">
+                                                            {sub.status === 'active' ? 'Renews' : 'Expired'}
+                                                        </span>
+                                                        <span className={sub.status !== 'active' ? 'line-through opacity-50' : ''}>
+                                                            {formatDate(sub.endDate)}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[9px] font-black text-primary/40 italic tracking-widest bg-primary/5 px-2 py-0.5">RECURRING</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="rounded-none border-border/40 hover:bg-primary hover:text-white transition-all px-4 h-9"
+                                                    onClick={() => {
+                                                        setSelectedUser(sub);
+                                                        setDetailsType("subscriber");
+                                                        setIsDetailsOpen(true);
+                                                    }}
+                                                >
+                                                    View Profile
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -362,21 +397,28 @@ export default function CreatorSubscribersPage() {
                                                 <div className="flex items-center gap-3">
                                                     <UserAvatar src={follow?.follower?.avatar} name={follow?.follower?.name} className="w-10 h-10" />
                                                     <div className="flex flex-col">
-                                                        <span className="font-semibold text-foreground">{follow?.follower?.name}</span>
-                                                        <span className="text-xs text-muted-foreground italic">@{follow?.follower?.username}</span>
+                                                        <span className="font-semibold text-foreground leading-none">{follow?.follower?.name}</span>
+                                                        <span className="text-[11px] text-muted-foreground mt-1">@{follow?.follower?.username}</span>
+                                                        <span className="text-[10px] text-primary/70 font-medium uppercase tracking-tighter mt-0.5">{follow?.follower?.email}</span>
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5 opacity-50" />
-                                                {formatDateTime(follow.createdAt)}
+                                            <TableCell className="text-[13px] text-muted-foreground">
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                                                    <span>{formatDate(follow.createdAt)}</span>
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="text-right gap-2 flex justify-end">
+                                            <TableCell className="text-right">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="rounded-none border-border/40 hover:bg-primary hover:text-white transition-all px-4"
-                                                    onClick={() => toast.info("Profile viewing coming soon")}
+                                                    className="rounded-none border-border/40 hover:bg-primary hover:text-white transition-all px-4 h-9"
+                                                    onClick={() => {
+                                                        setSelectedUser(follow);
+                                                        setDetailsType("follower");
+                                                        setIsDetailsOpen(true);
+                                                    }}
                                                 >
                                                     View Profile
                                                 </Button>
@@ -418,6 +460,13 @@ export default function CreatorSubscribersPage() {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <UserDetailDialog
+                isOpen={isDetailsOpen}
+                onClose={() => setIsDetailsOpen(false)}
+                user={selectedUser}
+                type={detailsType}
+            />
         </div>
     );
 }

@@ -33,16 +33,20 @@ import {
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
-import { formatDateTime } from "@/utils/dateTimeUtils";
+import { formatDate } from "@/utils/dateTimeUtils";
+import { UserDetailDialog } from "@/components/creator/user-detail-dialog";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function CreatorRevenuePage() {
     const { data: session } = useSession();
-    const [activeTab, setActiveTab] = useState("tips");
+    const [activeTab, setActiveTab] = useState("subscriptions");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [page, setPage] = useState(1);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [detailsType, setDetailsType] = useState<"subscriber" | "follower">("subscriber");
 
     // Handle debouncing
     useEffect(() => {
@@ -73,8 +77,8 @@ export default function CreatorRevenuePage() {
     const stats = statsResponse?.data || { totalRevenue: 0, totalTips: 0, totalTipsCount: 0 };
     const currentResponse = activeTab === "tips" ? tipsResponse : subscriptionResponse;
     const isLoadingData = activeTab === "tips" ? isTipsLoading : isSubscriptionLoading;
-    const list = currentResponse?.data?.items || [];
-    const pagination = currentResponse?.data?.pagination || { page: 1, totalPages: 1, total: 0 };
+    const list = currentResponse?.items || [];
+    const pagination = currentResponse?.pagination || { page: 1, totalPages: 1, total: 0 };
 
     return (
         <div className="p-6">
@@ -116,25 +120,25 @@ export default function CreatorRevenuePage() {
                 </div>
             </div>
 
-            <Tabs defaultValue="tips" className="w-full" onValueChange={(v) => {
+            <Tabs value={activeTab} className="w-full" onValueChange={(v) => {
                 setActiveTab(v);
                 setPage(1);
             }}>
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                     <TabsList className="bg-muted/50 p-1 h-12 rounded-none border border-border/20">
                         <TabsTrigger
-                            value="tips"
-                            className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
-                        >
-                            <DollarSign className="w-4 h-4" />
-                            Tips (Bucks)
-                        </TabsTrigger>
-                        <TabsTrigger
                             value="subscriptions"
                             className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
                         >
                             <CreditCard className="w-4 h-4" />
                             Subscriptions Ledger
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="tips"
+                            className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
+                        >
+                            <DollarSign className="w-4 h-4" />
+                            Tips (Bucks)
                         </TabsTrigger>
                     </TabsList>
 
@@ -155,11 +159,23 @@ export default function CreatorRevenuePage() {
                         <TableHeader className="bg-muted/30">
                             <TableRow className="border-border/10 hover:bg-transparent">
                                 <TableHead className="w-[300px]">Member</TableHead>
-                                <TableHead>{activeTab === "tips" ? "Total Amount" : "Monthly Fee"}</TableHead>
-                                <TableHead>Platform Fee</TableHead>
-                                <TableHead>You Received</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Date</TableHead>
+                                {activeTab === "tips" ? (
+                                    <>
+                                        <TableHead>Total Amount</TableHead>
+                                        <TableHead>Platform Fee</TableHead>
+                                        <TableHead>You Received</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Date</TableHead>
+                                    </>
+                                ) : (
+                                    <>
+                                        <TableHead>Joined Since</TableHead>
+                                        <TableHead>Monthly Fee</TableHead>
+                                        <TableHead>Net Monthly Exc. Tax (USD)</TableHead>
+                                        <TableHead>Total Lifetime Revenue</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </>
+                                )}
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -200,46 +216,80 @@ export default function CreatorRevenuePage() {
                                             </div>
                                         </TableCell>
 
-                                        {/* Amount Cell */}
-                                        <TableCell className="font-medium text-foreground">
-                                            ${activeTab === "tips"
-                                                ? (item.amount_cents / 100).toFixed(2)
-                                                : parseFloat(item.fee).toFixed(2)}
-                                        </TableCell>
-
-                                        {/* Platform Fee Cell */}
-                                        <TableCell className="text-muted-foreground text-sm">
-                                            ${activeTab === "tips"
-                                                ? (item.platform_fee_cents / 100).toFixed(2)
-                                                : (item.platformFee || 0).toFixed(2)}
-                                        </TableCell>
-
-                                        {/* Net Amount Cell */}
-                                        <TableCell className="font-bold text-green-600">
-                                            ${activeTab === "tips"
-                                                ? (item.creator_receives_cents / 100).toFixed(2)
-                                                : (item.creatorReceives || 0).toFixed(2)}
-                                        </TableCell>
-
-                                        {/* Status Cell */}
-                                        <TableCell>
-                                            <Badge className={`rounded-none uppercase text-[10px] font-bold tracking-widest ${(item.status === 'completed' || item.status === 'active')
-                                                ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                                : item.status === 'pending'
-                                                    ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
-                                                }`}>
-                                                {item.status}
-                                            </Badge>
-                                        </TableCell>
-
-                                        {/* Date Cell */}
-                                        <TableCell className="text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5 opacity-50" />
-                                                {formatDateTime(item.created_at || item.startDate)}
-                                            </div>
-                                        </TableCell>
+                                        {activeTab === "tips" ? (
+                                            <>
+                                                {/* Amount Cell */}
+                                                <TableCell className="font-medium text-foreground">
+                                                    ${(item.amount_cents / 100).toFixed(2)}
+                                                </TableCell>
+                                                {/* Platform Fee Cell */}
+                                                <TableCell className="text-muted-foreground text-sm">
+                                                    ${(item.platform_fee_cents / 100).toFixed(2)}
+                                                </TableCell>
+                                                {/* Net Amount Cell */}
+                                                <TableCell className="font-bold text-green-600">
+                                                    ${(item.creator_receives_cents / 100).toFixed(2)}
+                                                </TableCell>
+                                                {/* Status Cell */}
+                                                <TableCell>
+                                                    <Badge className={`rounded-none uppercase text-[10px] font-bold tracking-widest ${item.status === 'completed'
+                                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                                        : item.status === 'pending'
+                                                            ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                                                            : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                                        }`}>
+                                                        {item.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                {/* Date Cell */}
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-3.5 h-3.5 opacity-50" />
+                                                        {formatDate(item.created_at)}
+                                                    </div>
+                                                </TableCell>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {/* Joined Since */}
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-3.5 h-3.5 opacity-50" />
+                                                        {formatDate(item.startDate)}
+                                                    </div>
+                                                </TableCell>
+                                                {/* Monthly Fee */}
+                                                <TableCell className="font-medium text-foreground">
+                                                    ${parseFloat(item.fee).toFixed(2)}
+                                                </TableCell>
+                                                {/* Monthly Net USD */}
+                                                <TableCell className="font-bold text-primary italic">
+                                                    ${parseFloat(item.creatorReceives).toFixed(2)} USD
+                                                </TableCell>
+                                                {/* Total Lifetime Revenue */}
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-black text-green-600 dark:text-green-400">
+                                                            ${parseFloat(item.totalLifetimeRevenue || 0).toFixed(2)}
+                                                        </span>
+                                                        <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-tighter">
+                                                            {item.monthsActive} {item.monthsActive === 1 ? 'Month' : 'Months'}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                {/* Status Cell */}
+                                                <TableCell>
+                                                    <Badge className={`rounded-none uppercase text-[10px] font-bold tracking-widest ${item.status === 'active'
+                                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                                        : item.status === 'cancelled'
+                                                            ? 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                                                            : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                                        }`}>
+                                                        {item.status}
+                                                    </Badge>
+                                                </TableCell>
+                                            </>
+                                        )}
 
                                         {/* Action Cell */}
                                         <TableCell className="text-right">
@@ -247,8 +297,13 @@ export default function CreatorRevenuePage() {
                                                 variant="outline"
                                                 size="sm"
                                                 className="rounded-none border-border/40 hover:bg-primary hover:text-white transition-all px-4"
+                                                onClick={() => {
+                                                    setSelectedUser(item);
+                                                    setDetailsType(activeTab === "tips" ? "follower" : "subscriber");
+                                                    setIsDetailsOpen(true);
+                                                }}
                                             >
-                                                Details
+                                                View Member
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -287,6 +342,13 @@ export default function CreatorRevenuePage() {
                     )}
                 </div>
             </Tabs>
+
+            <UserDetailDialog
+                isOpen={isDetailsOpen}
+                onClose={() => setIsDetailsOpen(false)}
+                user={selectedUser}
+                type={detailsType}
+            />
         </div>
     );
 }
