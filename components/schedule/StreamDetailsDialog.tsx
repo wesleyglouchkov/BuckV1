@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import {
     Dialog,
     DialogContent,
@@ -73,6 +73,7 @@ export default function StreamDetailsDialog({
 
     const isLive = stream.resource?.isLive;
     const isPast = stream.start < new Date();
+    const isToday = isSameDay(stream.start, new Date());
 
     return (
         <>
@@ -185,7 +186,7 @@ export default function StreamDetailsDialog({
                     </div>
 
                     <DialogFooter className="flex flex-row gap-2 justify-end">
-                        {!isLive && !isPast && (
+                        {!isLive && (
                             <>
                                 <Button
                                     variant="destructive"
@@ -200,6 +201,7 @@ export default function StreamDetailsDialog({
                                     variant="outline"
                                     size="sm"
                                     onClick={handleReschedule}
+                                    disabled={!isPast}
                                     className="whitespace-nowrap text-sm"
                                 >
                                     <Edit className="w-3 h-3 mr-1" />
@@ -210,13 +212,13 @@ export default function StreamDetailsDialog({
                         <Button
                             size="sm"
                             onClick={handleStartStream}
-                            disabled={isPast && !isLive}
-                            variant={isPast && !isLive ? "secondary" : "default"}
+                            disabled={!isPast && !isLive && !isToday}
+                            variant={!isPast && !isLive && !isToday ? "secondary" : "default"}
                             className="whitespace-nowrap text-sm"
                         >
                             <Radio className="w-3 h-3 mr-1" />
                             <span className="mt-1">
-                                {isLive ? "View Stream" : isPast ? "Stream Ended" : "Start Stream"}
+                                {isLive ? "View Stream" : isPast ? "Start Stream (Late)" : "Start Stream"}
                             </span>
                         </Button>
                     </DialogFooter>
