@@ -238,7 +238,7 @@ export default function CreatorSubscribersPage() {
                     <div className="bg-card border border-border/20 overflow-hidden">
                         <Table>
                             <TableHeader className="bg-muted/30">
-                                <TableRow className="border-border/10 hover:bg-transparent">
+                                <TableRow className="border-border/10 hover:bg-transparent h-16">
                                     <TableHead className="w-[300px]">Subscriber</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Joined Since</TableHead>
