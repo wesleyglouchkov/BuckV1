@@ -82,14 +82,14 @@ export const memberService = {
     }
   },
 
-  // Check if following a creator
-  checkFollowStatus: async (creatorId: string) => {
+  // Check member's relationship with a creator (follow + subscription status)
+  getCreatorRelationship: async (creatorId: string) => {
     try {
       const axios = await createClientAuthInstance('member');
-      const response = await axios.get(`/member/follow/${creatorId}`);
+      const response = await axios.get(`/member/relationship/${creatorId}`);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to check follow status');
+      throw new Error(error.response?.data?.message || 'Failed to check relationship status');
     }
   },
 
