@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import { authService } from "@/services";
+import { authService } from "@/services/auth";
 import { creatorService, CreatorProfile } from "@/services/creator";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Label } from "@/components/ui/label";
@@ -322,7 +324,9 @@ export default function UserProfile() {
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-6 items-start">
           <div className="relative group">
-            {isAdmin ? (
+            {isLoadingProfile ? (
+              <Skeleton className="w-24 h-24 rounded-full" />
+            ) : isAdmin ? (
               <UserAvatar
                 src={'/Wesley.jpg'}
                 name={displayUser.name || "User"}
@@ -426,9 +430,16 @@ export default function UserProfile() {
 
             {!isAdmin && (
               !isEditing ? (
-                <p className="text-gray-600 dark:text-gray-300 mt-4">
-                  {displayUser.bio || "No bio provided"}
-                </p>
+                isLoadingProfile ? (
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-4 w-full md:w-2/3" />
+                    <Skeleton className="h-4 w-3/4 md:w-1/2" />
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300 mt-4">
+                    {displayUser.bio || "No bio provided"}
+                  </p>
+                )
               ) : (
                 <div className="mt-4">
                   <Label htmlFor="bio">Bio</Label>
@@ -447,49 +458,73 @@ export default function UserProfile() {
       </div>
 
       {/* Stats Grid (Creator Only) */}
-      {isCreator && profile && (
+      {isCreator && (profile || isLoadingProfile) && (
         <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x border-b border-gray-200 dark:border-gray-700">
           <div className="p-6 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Followers</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {profile._count?.followers || 0}
-            </p>
+            {isLoadingProfile ? (
+              <Skeleton className="h-8 w-16 mx-auto mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {profile?._count?.followers || 0}
+              </p>
+            )}
           </div>
           <div className="p-6 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Subscribers</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {profile._count?.subscribers || 0}
-            </p>
+            {isLoadingProfile ? (
+              <Skeleton className="h-8 w-16 mx-auto mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {profile?._count?.subscribers || 0}
+              </p>
+            )}
           </div>
           <div className="p-6 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Streams</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {profile._count?.createdStreams || 0}
-            </p>
+            {isLoadingProfile ? (
+              <Skeleton className="h-8 w-16 mx-auto mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {profile?._count?.createdStreams || 0}
+              </p>
+            )}
           </div>
         </div>
       )}
 
       {/* Stats Grid (Member Only) */}
-      {isMember && profile && (
+      {isMember && (profile || isLoadingProfile) && (
         <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x border-b border-gray-200 dark:border-gray-700">
           <div className="p-6 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Subscriptions</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {profile._count?.subscriptions || 0}
-            </p>
+            {isLoadingProfile ? (
+              <Skeleton className="h-8 w-16 mx-auto mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {profile?._count?.subscriptions || 0}
+              </p>
+            )}
           </div>
           <div className="p-6 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Following</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {profile._count?.following || 0}
-            </p>
+            {isLoadingProfile ? (
+              <Skeleton className="h-8 w-16 mx-auto mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {profile?._count?.following || 0}
+              </p>
+            )}
           </div>
           <div className="p-6 text-center">
             <p className="text-sm text-red-500 uppercase tracking-wider font-semibold">Warnings</p>
-            <p className="text-2xl font-bold text-red-600 mt-1">
-              {profile.isWarnedTimes || 0}
-            </p>
+            {isLoadingProfile ? (
+              <Skeleton className="h-8 w-16 mx-auto mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-red-600 mt-1">
+                {profile?.isWarnedTimes || 0}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -508,9 +543,13 @@ export default function UserProfile() {
             <div>
               <Label>Monthly Subscription Price ($)</Label>
               <div className="mt-1 flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700">
-                <span className="text-gray-900 dark:text-gray-100 font-medium">
-                  {profile?.subscriptionPrice ? `$${profile.subscriptionPrice}` : 'Not set'}
-                </span>
+                {isLoadingProfile ? (
+                  <Skeleton className="h-5 w-24" />
+                ) : (
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">
+                    {profile?.subscriptionPrice ? `$${profile.subscriptionPrice}` : 'Not set'}
+                  </span>
+                )}
                 <Link
                   href="/creator/community"
                   className="text-xs text-primary hover:underline font-semibold uppercase tracking-wider"
