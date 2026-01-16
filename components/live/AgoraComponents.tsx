@@ -352,6 +352,7 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
                                         e.stopPropagation();
                                         handleBrowserFullscreen();
                                     }}
+                                    data-tour="fullscreen-btn"
                                 >
                                     <Maximize2 className="w-3.5 h-3.5" />
                                 </div>

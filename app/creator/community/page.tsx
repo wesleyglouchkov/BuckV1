@@ -128,7 +128,7 @@ export default function CreatorSubscribersPage() {
                 </div>
 
                 {/* Price Management Section */}
-                <div className="bg-card border border-border/40 p-4 min-w-[300px] relative transition-all">
+                <div className="bg-card border border-border/40 p-4 min-w-[300px] relative transition-all" data-tour="subscription-price-section">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-primary/10 text-primary">
                             <DollarSign className="w-5 h-5" />

@@ -30,6 +30,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 
 
 
@@ -159,6 +160,20 @@ function LiveBroadcast({
     }, [localMicrophoneTrack, isAudioEnabled]);
 
     const [isHostJoined, setIsHostJoined] = useState(false);
+
+    // Stream controls tour - shows once for host
+    const { startTour } = useStreamControlsTour({ isHost: true, hasJoined: isHostJoined });
+
+    // Trigger tour when host joins stream
+    useEffect(() => {
+        if (isHostJoined) {
+            // Small delay to ensure controls are rendered
+            const timer = setTimeout(() => {
+                startTour();
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [isHostJoined, startTour]);
 
     // 2. Ensure client role is set to host for the creator BEFORE joining
     useEffect(() => {
@@ -593,7 +608,7 @@ function LiveBroadcast({
             </div>
 
             {/* Bottom Bar - Unified Controls */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-background/90 backdrop-blur-sm px-4 py-2 border-t border-white/10 z-30 transition-all duration-300">
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-background/90 backdrop-blur-sm px-4 py-2 border-t border-white/10 z-30 transition-all duration-300" data-tour="stream-controls">
                 {/* Left: REC Indicator */}
                 <div className="flex-1 flex justify-start">
                     {isRecording && (
@@ -605,7 +620,7 @@ function LiveBroadcast({
                 </div>
 
                 {/* Center: Main Controls */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" data-tour="media-controls">
                     <Button
                         onClick={() => setIsVideoEnabled(!isVideoEnabled)}
                         variant={isVideoEnabled ? "secondary" : "destructive"}
@@ -632,6 +647,7 @@ function LiveBroadcast({
                                 variant="destructive"
                                 size="icon"
                                 className="w-9 h-9 shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                                data-tour="end-stream-btn"
                             >
                                 <PhoneOff className="w-4 h-4" />
                             </Button>
@@ -663,6 +679,7 @@ function LiveBroadcast({
                             window.scrollTo({ top: 0, behavior: "smooth" });
                             setIsChatVisible?.(!isChatVisible);
                         }}
+                        data-tour="chat-toggle"
                     >
                         {isChatVisible ? <ArrowRightFromLine className="w-4 h-4" /> : <ArrowLeftToLine className="w-4 h-4" />}
                         <span className="hidden sm:inline text-xs font-medium uppercase tracking-wider">{isChatVisible ? "Hide Chat" : "Chat"}</span>

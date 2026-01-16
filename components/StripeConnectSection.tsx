@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Unlink, CheckCircle, AlertCircle, Link } from "lucide-react";
-import { creatorService } from "@/services";
+import { creatorService } from "@/services/creator";
 import { SkeletonCard } from "@/components/ui/skeleton-variants";
+import { useStripeConnectTour } from "@/hooks/use-onboarding-tours";
 
 interface StripeConnectSectionProps {
     isCreator: boolean;
@@ -83,6 +85,23 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
         };
     }, [isCreator, session?.user?.id]);
 
+    // Stripe Connect Tour
+    const { startTour: startStripeConnectTour } = useStripeConnectTour({
+        isStripeConnected: stripeConnected && onboardingCompleted,
+        hasSubscriptionPrice: false, // Could be updated if we fetch this info
+    });
+
+    // Start tour after loading is complete and user is not connected
+    useEffect(() => {
+        if (!isLoading && isCreator && !stripeConnected) {
+            // Small delay to ensure DOM is ready
+            const timer = setTimeout(() => {
+                startStripeConnectTour();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoading, isCreator, stripeConnected, startStripeConnectTour]);
+
     // Connect or continue Stripe onboarding
     const handleConnectStripe = async () => {
         if (!session?.user?.id) {
@@ -144,7 +163,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
     }
 
     return (
-        <div className="bg-card border border-border  p-6 shadow-sm">
+        <div className="bg-card border border-border  p-6 shadow-sm" data-tour="stripe-connect-section">
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2">
@@ -292,6 +311,7 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                         variant="default"
                         size="sm"
                         className="w-full"
+                        data-tour="stripe-connect-btn"
                     >
                         {isConnecting ? (
                             <>
@@ -327,11 +347,28 @@ export default function StripeConnectSection({ isCreator }: StripeConnectSection
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Disconnect Stripe Account?</DialogTitle>
-                        <DialogDescription className="space-y-2">
-                            Are you sure you want to disconnect your Stripe account?
-                            <span className="font-medium text-destructive mt-2 block">
-                                ⚠️ You won't be able to receive tips or subscription payments until you reconnect.
-                            </span>
+                        <DialogDescription asChild>
+                            <div className="space-y-3 text-sm text-muted-foreground">
+                                <p>Are you sure you want to disconnect your Stripe account?</p>
+                                <ul className="text-destructive text-sm space-y-1.5 list-none pl-0">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-destructive mt-0.5">•</span>
+                                        <span>You won't be able to receive tips or subscription payments until you reconnect</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-destructive mt-0.5">•</span>
+                                        <span>Your current balance will be paid out to your linked bank account within 2-3 business days</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-destructive mt-0.5">•</span>
+                                        <span>All subscribed users will be automatically unsubscribed and notified via email</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-destructive mt-0.5">•</span>
+                                        <span>You can reconnect your Stripe account at any time</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2">

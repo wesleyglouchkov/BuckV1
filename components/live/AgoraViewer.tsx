@@ -17,6 +17,7 @@ import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import { TipButton } from "./TipButton";
 import { LoginRequiredDialog } from "./LoginRequiredDialog";
 import { SubscribeDialog } from "./subscribe/SubscribeDialog";
+import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 
 
 
@@ -76,6 +77,21 @@ function StreamLogic({
 
     // Track if user has clicked to enter stream (needed for audio autoplay)
     const [hasEnteredStream, setHasEnteredStream] = useState(false);
+
+    // Stream controls tour - shows once per user (viewer vs host have separate keys)
+    const isHost = role === "publisher";
+    const { startTour } = useStreamControlsTour({ isHost, hasJoined: hasEnteredStream });
+
+    // Trigger tour when user enters stream
+    useEffect(() => {
+        if (hasEnteredStream) {
+            // Small delay to ensure controls are rendered
+            const timer = setTimeout(() => {
+                startTour();
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [hasEnteredStream, startTour]);
 
     const remoteUsers = useRemoteUsers();
 
@@ -488,7 +504,7 @@ function StreamLogic({
             )}
 
             {/* 1. HOST (Main Screen / Left on Desktop) */}
-            <div ref={hostContainerRef} className="flex-1 relative order-1 md:order-1 overflow-hidden bg-black flex items-center justify-center group/host">
+            <div ref={hostContainerRef} className="flex-1 relative order-1 md:order-1 overflow-hidden bg-black flex items-center justify-center group/host" data-tour="video-area">
                 {hostUser ? (
                     <div className="w-full h-full relative">
                         <ParticipantTile
@@ -510,6 +526,7 @@ function StreamLogic({
                                         e.stopPropagation();
                                         onToggleChat?.();
                                     }}
+                                    data-tour="chat-toggle"
                                 >
                                     {isChatVisible ? (
                                         <ArrowRightFromLine className="w-3.5 h-3.5" />
@@ -569,16 +586,16 @@ function StreamLogic({
             </div>
 
             {/* Controls Overlay (Always Visible, Bottom Fixed) */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 bg-background/60 backdrop-blur-md px-4 py-3 border-t border-white/10 z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 bg-background/60 backdrop-blur-md px-4 py-3 border-t border-white/10 z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500" data-tour="stream-controls">
 
-                {/* Tip Button - Always visible if hostDbId is present */}
                 {hostDbId && (
                     <TipButton creatorId={hostDbId} livestreamId={channelName} asChild>
                         <Button
                             variant="secondary"
                             size="icon"
-                            className="w-12 h-12 rounded-full shadow-lg shadow-green-500/20 bg-linear-to-tr from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-2 border-white/20 hover:scale-110 transition-all duration-300"
+                            className="w-12 h-12 shadow-lg shadow-green-500/20 bg-linear-to-tr from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-2 border-white/20 hover:scale-110 transition-all duration-300"
                             title="Send BUCK"
+                            data-tour="tip-button"
                         >
                             <DollarSign className="w-6 h-6 fill-white" />
                         </Button>
@@ -586,7 +603,7 @@ function StreamLogic({
                 )}
 
                 {role === "publisher" && (
-                    <>
+                    <div className="flex items-center gap-2" data-tour="media-controls">
                         <Button
                             onClick={() => setIsVideoEnabled(!isVideoEnabled)}
                             variant={isVideoEnabled ? "secondary" : "destructive"}
@@ -605,7 +622,7 @@ function StreamLogic({
                             {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                         </Button>
                         <div className="w-px h-6 bg-white/20 mx-2" />
-                    </>
+                    </div>
                 )}
 
                 {role === "subscriber" && (
@@ -613,6 +630,7 @@ function StreamLogic({
                         onClick={handleJoinRequest}
                         variant="default"
                         className="h-9 px-4 bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
+                        data-tour="join-stream-btn"
                     >
                         <VideoIcon className="w-4 h-4" />
                         Join Stream
@@ -625,6 +643,7 @@ function StreamLogic({
                     size="icon"
                     className={`w-10 h-10 shadow-lg hover:bg-accent hover:text-accent-foreground border ${!isParticipantsVisible ? "border-primary dark:border-transparent" : "border-transparent"}`}
                     title={isParticipantsVisible ? "Hide Participants" : "Show Participants"}
+                    data-tour="participants-grid"
                 >
                     <Users className="w-4 h-4 dark:text-white" />
                 </Button>
@@ -656,6 +675,7 @@ function StreamLogic({
                             variant="destructive"
                             size="icon"
                             className="w-10 h-10 shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                            data-tour="end-stream-btn"
                         >
                             <PhoneOff className="w-4 h-4" />
                         </Button>
