@@ -30,6 +30,7 @@ import { type AgoraViewerProps } from '../../../components/live/AgoraViewer'
 import { streamService } from "@/services/stream";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
+import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
 interface StreamDetails {
     id: string;
     title: string;
@@ -94,6 +95,7 @@ export default function LiveStreamPage() {
     const [hasJoined, setHasJoined] = useState(false);
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [reportDialogOpen, setReportDialogOpen] = useState(false);
+    const [rtmReady, setRtmReady] = useState(false);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -101,6 +103,25 @@ export default function LiveStreamPage() {
             setIsChatVisible(false);
         }
     }, []);
+
+    // Subscribe to RTM singleton readiness - AgoraViewer initializes RTM and notifies subscribers
+    useEffect(() => {
+        // If already ready, set immediately
+        if (viewerRtmSingleton.instance) {
+            setRtmReady(true);
+            return;
+        }
+
+        // Subscribe to be notified when RTM becomes ready
+        const callback = (ready: boolean) => {
+            setRtmReady(ready);
+        };
+        viewerRtmSingleton.subscribers.add(callback);
+
+        return () => {
+            viewerRtmSingleton.subscribers.delete(callback);
+        };
+    }, [hasJoined]); // Re-check when hasJoined changes
 
     // Fetch stream details and auto-join as viewer
     useEffect(() => {
@@ -446,6 +467,7 @@ export default function LiveStreamPage() {
                                         isCreator={false}
                                         isChatVisible={isChatVisible}
                                         onClose={() => setIsChatVisible(false)}
+                                        rtmManager={viewerRtmSingleton.instance}
                                     />
                                 ) : (
                                     <div className="bg-card border border-border p-6 h-full flex flex-col items-center justify-center text-center">

@@ -70,7 +70,7 @@ export const StreamChatMessage = memo(function StreamChatMessage({
                         )}
                     </span>
                 </div>
-                <p className="text-sm text-foreground/90 dark:text-foreground/90 wrap-break-word">
+                <p className="text-sm text-foreground/90 dark:text-foreground/90 break-all overflow-hidden">
                     {msg.message}
                 </p>
             </div>

@@ -17,6 +17,7 @@ import StreamSetupCard from "@/components/live/StreamSetupCard";
 import Loader from "@/components/Loader";
 import StreamExpiredCard from "@/components/live/StreamExpiredCard";
 import { SharePopover } from "@/components/SharePopover";
+import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -446,6 +447,7 @@ export default function CreatorLivePage() {
                                     isCreator={true}
                                     onClose={() => setIsChatVisible(false)}
                                     isChatVisible={isChatVisible}
+                                    rtmManager={rtmSingleton.instance}
                                 />
                             ) : (
                                 <StreamSetupCard
