@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Users, Radio, Search as SearchIcon, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useQuickSearch } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -26,7 +28,52 @@ const formatViewerCount = (count: number) => {
 };
 
 export default function SearchPopup({ query, debouncedQuery, isVisible, onClose }: SearchPopupProps) {
+    const router = useRouter();
     const { creators, streams, isLoading } = useQuickSearch(debouncedQuery);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+
+    // Total number of items including "View all" link
+    const totalItems = (creators?.length || 0) + (streams?.length || 0) + 1;
+
+    // Reset selected index when results change
+    useEffect(() => {
+        setSelectedIndex(-1);
+    }, [creators?.length, streams?.length, debouncedQuery]);
+
+    // Handle keyboard navigation
+    useEffect(() => {
+        if (!isVisible) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setSelectedIndex(prev => (prev < totalItems - 1 ? prev + 1 : 0));
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setSelectedIndex(prev => (prev > 0 ? prev - 1 : totalItems - 1));
+            } else if (e.key === "Enter") {
+                if (selectedIndex >= 0) {
+                    e.preventDefault();
+                    if (selectedIndex < creators.length) {
+                        // Creator link
+                        const creator = creators[selectedIndex];
+                        router.push(`/explore/creator/${creator.username}`);
+                    } else if (selectedIndex < creators.length + streams.length) {
+                        // Stream link
+                        const stream = streams[selectedIndex - creators.length];
+                        router.push(`/live/${stream.id}`);
+                    } else {
+                        // View all link
+                        router.push(`/explore?search=${encodeURIComponent(query)}`);
+                    }
+                    onClose();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isVisible, totalItems, selectedIndex, creators, streams, query, router, onClose]);
 
     if (!isVisible || !query.trim() || query.length < 1) return null;
 
@@ -75,12 +122,15 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Creators</span>
                             </div>
                             <ul className="space-y-0.5">
-                                {creators.map((creator) => (
+                                {creators.map((creator, index) => (
                                     <li key={creator.id}>
                                         <Link
                                             href={`/explore/creator/${creator.username}`}
                                             onClick={onClose}
-                                            className="flex items-center gap-3 px-2 py-2 hover:bg-accent transition-colors group"
+                                            className={cn(
+                                                "flex items-center gap-3 px-2 py-2 transition-colors group",
+                                                selectedIndex === index ? "bg-accent" : "hover:bg-accent"
+                                            )}
                                         >
                                             <div className="relative">
                                                 <UserAvatar
@@ -121,9 +171,17 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Classes</span>
                             </div>
                             <ul className="space-y-0.5">
-                                {streams.map((stream) => (
-                                    <SearchStreamItem key={stream.id} stream={stream} onClose={onClose} />
-                                ))}
+                                {streams.map((stream, index) => {
+                                    const streamIndex = creators.length + index;
+                                    return (
+                                        <SearchStreamItem
+                                            key={stream.id}
+                                            stream={stream}
+                                            onClose={onClose}
+                                            isSelected={selectedIndex === streamIndex}
+                                        />
+                                    );
+                                })}
                             </ul>
                         </div>
                     )}
@@ -134,7 +192,10 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
             <Link
                 href={`/explore?search=${encodeURIComponent(query)}`}
                 onClick={onClose}
-                className="flex items-center justify-center gap-2 py-3 bg-muted/30 hover:bg-muted/50 transition-colors border-t border-border/30"
+                className={cn(
+                    "flex items-center justify-center gap-2 py-3 transition-colors border-t border-border/30",
+                    selectedIndex === creators.length + streams.length ? "bg-accent" : "bg-muted/30 hover:bg-muted/50"
+                )}
             >
                 <SearchIcon className="w-4 h-4 text-primary" />
                 <span className="text-xs font-bold text-primary uppercase tracking-tight">
@@ -145,7 +206,7 @@ export default function SearchPopup({ query, debouncedQuery, isVisible, onClose 
     );
 }
 
-function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => void }) {
+function SearchStreamItem({ stream, onClose, isSelected }: { stream: any, onClose: () => void, isSelected?: boolean }) {
     const initialIsSnapshot = !stream.thumbnail && !stream.isLive;
     const [thumbnailState, setThumbnailState] = useState<{
         displayUrl: string | null;
@@ -244,7 +305,10 @@ function SearchStreamItem({ stream, onClose }: { stream: any, onClose: () => voi
             <Link
                 href={`/live/${stream.id}`}
                 onClick={onClose}
-                className="flex items-center gap-3 px-2 py-2 hover:bg-accent transition-colors group"
+                className={cn(
+                    "flex items-center gap-3 px-2 py-2 transition-colors group",
+                    isSelected ? "bg-accent" : "hover:bg-accent"
+                )}
             >
                 <div className="relative w-10 h-10 bg-muted shrink-0 overflow-hidden">
                     {thumbnailState.isLoading ? (
