@@ -283,7 +283,9 @@ function LiveBroadcast({
         rtmSingleton.isInitializing = true;
         rtmSingleton.channelName = channelName;
 
-        const initRTM = async () => {
+        const initRTM = async (retryCount = 0): Promise<void> => {
+            const maxRetries = 3;
+
             try {
                 // Double-check no instance was created while we were waiting
                 if (rtmSingleton.instance) {
@@ -313,7 +315,17 @@ function LiveBroadcast({
                 // Notify all subscribers
                 rtmSingleton.subscribers.forEach(cb => cb(true));
             } catch (err: any) {
-                console.warn("RTM: Login failed:", err?.message || err);
+                console.warn(`RTM: Login failed (attempt ${retryCount + 1}/${maxRetries}):`, err?.message || err);
+
+                // Retry with exponential backoff
+                if (retryCount < maxRetries - 1) {
+                    const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+                    console.log(`RTM: Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return initRTM(retryCount + 1);
+                }
+
+                console.error("RTM: All login attempts failed");
                 rtmSingleton.isInitializing = false;
                 rtmSingleton.subscribers.forEach(cb => cb(false));
             }
@@ -431,37 +443,39 @@ function LiveBroadcast({
     };
 
     const handleRemoveRemoteUser = async (remoteUid: string | number) => {
-        if (!isRTMReady || !rtmSingleton.instance) {
-            console.error("RTM: Signaling not ready", { isRTMReady, hasInstance: !!rtmSingleton.instance });
-            toast.error("Signaling still connecting. Please wait a moment and try again.");
-            return;
+        // Try to send RTM kick message if connected
+        const rtmConnected = isRTMReady && rtmSingleton.instance && rtmSingleton.instance.isConnected();
+
+        if (rtmConnected) {
+            try {
+                const message = {
+                    type: "KICK_USER" as const,
+                    payload: {
+                        userId: remoteUid,
+                        mediaType: "all" as const,
+                        mute: true
+                    }
+                };
+
+                await rtmSingleton.instance!.sendMessage(message);
+                console.log("RTM: Kick message sent successfully");
+            } catch (err) {
+                console.warn("RTM: Failed to send kick command:", err);
+                // Continue anyway - we'll still remove from UI
+            }
+        } else {
+            console.warn("RTM: Not connected, removing user from UI only");
         }
 
-        if (!rtmSingleton.instance.isConnected()) {
-            console.error("RTM: Not connected to signaling");
-            toast.error("Not connected to signaling service. Reconnecting...");
-            return;
-        }
+        // Always remove from UI (optimistic update)
+        setKickedUsers(prev => new Set(prev).add(remoteUid.toString()));
 
-        try {
-            const message = {
-                type: "KICK_USER" as const,
-                payload: {
-                    userId: remoteUid,
-                    mediaType: "all" as const, // Placeholder
-                    mute: true // Placeholder
-                }
-            };
-
-            await rtmSingleton.instance.sendMessage(message);
-
-            // Optimistic UI update: immediately remove from grid
-            setKickedUsers(prev => new Set(prev).add(remoteUid.toString()));
-
+        if (rtmConnected) {
             toast.success(`Removed User ${remoteUid} from the stream`, { description: "User has been removed" });
-        } catch (err) {
-            console.error("RTM: Failed to send kick command:", err);
-            toast.error("Failed to remove user", { description: "Please check your connection and try again" });
+        } else {
+            toast.success(`Removed User ${remoteUid} from your view`, {
+                description: "Note: User may still be connected if signaling is unavailable"
+            });
         }
     };
 
