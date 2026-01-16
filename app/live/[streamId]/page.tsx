@@ -407,6 +407,7 @@ export default function LiveStreamPage() {
                                 <StreamReplay
                                     replayUrl={streamDetails.replayUrl}
                                     streamTitle={streamDetails.title}
+                                    creator={streamDetails.creator}
                                 />
                             ) : !streamDetails.endTime && streamDetails.startTime ? (
                                 // SCHEDULED (not started yet)
