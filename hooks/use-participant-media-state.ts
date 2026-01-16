@@ -23,15 +23,28 @@ export function useParticipantMediaState(client: IAgoraRTCClient | null) {
         if (!client) return;
 
         const handleUserPublished = async (user: any, mediaType: 'audio' | 'video') => {
+            const odor = user.uid.toString();
+            console.log(`[useParticipantMediaState] user-published: ${odor} ${mediaType}`);
+
             try {
-                // Subscribe to the remote user's track to receive the media
+                // Subscribe if not already subscribed
+                // In some cases, useRemoteUsers might have already triggered a subscription
                 await client.subscribe(user, mediaType);
-                console.log(`Subscribed to ${user.uid}'s ${mediaType}`);
-            } catch (error) {
-                console.warn(`Failed to subscribe to ${user.uid}'s ${mediaType}:`, error);
+                console.log(`[useParticipantMediaState] Subscribed to ${odor}'s ${mediaType}`);
+
+                // Play audio tracks immediately
+                if (mediaType === 'audio' && user.audioTrack) {
+                    user.audioTrack.setVolume(100);
+                    await user.audioTrack.play();
+                    console.log(`[useParticipantMediaState] Playing audio from user ${odor}`);
+                }
+            } catch (error: any) {
+                // Ignore "ALREADY_SUBSCRIBED" errors
+                if (error.code !== 'ALREADY_SUBSCRIBED') {
+                    console.warn(`[useParticipantMediaState] Failed to subscribe to ${odor}'s ${mediaType}:`, error);
+                }
             }
 
-            const odor = user.uid.toString();
             setParticipantMediaState(prev => ({
                 ...prev,
                 [odor]: {
@@ -43,6 +56,7 @@ export function useParticipantMediaState(client: IAgoraRTCClient | null) {
 
         const handleUserUnpublished = (user: any, mediaType: 'audio' | 'video') => {
             const odor = user.uid.toString();
+            console.log(`[useParticipantMediaState] user-unpublished: ${odor} ${mediaType}`);
             setParticipantMediaState(prev => ({
                 ...prev,
                 [odor]: {
@@ -54,12 +68,32 @@ export function useParticipantMediaState(client: IAgoraRTCClient | null) {
 
         const handleUserLeft = (user: any) => {
             const odor = user.uid.toString();
+            console.log(`[useParticipantMediaState] user-left: ${odor}`);
             setParticipantMediaState(prev => {
                 const newState = { ...prev };
                 delete newState[odor];
                 return newState;
             });
         };
+
+        // Initialize with existing remote users
+        if (client.remoteUsers.length > 0) {
+            console.log(`[useParticipantMediaState] Initializing with ${client.remoteUsers.length} existing users`);
+            client.remoteUsers.forEach(user => {
+                const odor = user.uid.toString();
+                setParticipantMediaState(prev => ({
+                    ...prev,
+                    [odor]: {
+                        hasVideo: user.hasVideo,
+                        hasAudio: user.hasAudio
+                    }
+                }));
+
+                // Try to subscribe to existing tracks if they are already published
+                if (user.hasVideo) handleUserPublished(user, 'video');
+                if (user.hasAudio) handleUserPublished(user, 'audio');
+            });
+        }
 
         client.on('user-published', handleUserPublished);
         client.on('user-unpublished', handleUserUnpublished);
@@ -70,6 +104,7 @@ export function useParticipantMediaState(client: IAgoraRTCClient | null) {
             client.off('user-unpublished', handleUserUnpublished);
             client.off('user-left', handleUserLeft);
         };
+
     }, [client]);
 
     return participantMediaState;

@@ -205,7 +205,20 @@ function LiveBroadcast({
         };
     }, [client]);
 
+    // 6. Manual subscription listener removed - now handled by useParticipantMediaState hook.
+    // This hook automatically handles subscribing to audio/video tracks for all participants.
 
+
+    // Debug logging for participants
+    useEffect(() => {
+        if (remoteUsers.length > 0) {
+            console.log("Host: Current Remote Users detected by SDK:", remoteUsers.map(u => ({
+                uid: u.uid,
+                hasVideo: u.hasVideo,
+                hasAudio: u.hasAudio
+            })));
+        }
+    }, [remoteUsers]);
 
 
 
@@ -498,34 +511,49 @@ function LiveBroadcast({
     };
 
     // Prepare participants list (filter out kicked users)
-    const participants = [
-        {
-            uid,
-            name: "You (Host)", // Creator already knows they are host
-            videoTrack: localCameraTrack || undefined,
-            audioTrack: localMicrophoneTrack || undefined,
-            isLocal: true,
-            cameraOn: isVideoEnabled,
-            micOn: isAudioEnabled
-        },
-        ...remoteUsers
-            .filter(user => !kickedUsers.has(user.uid.toString())) // Filter out kicked users
-            .map(user => {
-                const odor = user.uid.toString();
-                // Use reactive state from event listeners, falling back to SDK properties
-                const mediaState = participantMediaState[odor];
-                return {
-                    uid: user.uid,
-                    name: userNames[odor]?.name || `User ${user.uid}`,
-                    videoTrack: user.videoTrack,
-                    audioTrack: user.audioTrack,
-                    isLocal: false,
-                    cameraOn: mediaState?.hasVideo ?? user.hasVideo,
-                    micOn: mediaState?.hasAudio ?? user.hasAudio,
-                    agoraUser: user
-                };
-            })
-    ];
+    const participants = useMemo(() => {
+        const list = [
+            {
+                uid,
+                name: "You (Host)", // Creator already knows they are host
+                videoTrack: localCameraTrack || undefined,
+                audioTrack: localMicrophoneTrack || undefined,
+                isLocal: true,
+                cameraOn: isVideoEnabled,
+                micOn: isAudioEnabled,
+                agoraUser: undefined
+            },
+            ...remoteUsers
+                .filter(user => !kickedUsers.has(user.uid.toString())) // Filter out kicked users
+                .map(user => {
+                    const odor = user.uid.toString();
+                    // Use reactive state from event listeners, falling back to SDK properties
+                    const mediaState = participantMediaState[odor];
+                    return {
+                        uid: user.uid,
+                        name: userNames[odor]?.name || `User ${user.uid}`,
+                        videoTrack: user.videoTrack,
+                        audioTrack: user.audioTrack,
+                        isLocal: false,
+                        cameraOn: mediaState?.hasVideo ?? user.hasVideo,
+                        micOn: mediaState?.hasAudio ?? user.hasAudio,
+                        agoraUser: user
+                    };
+                })
+        ];
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`Host: Rendered participants list (${list.length}):`, list.map(p => ({
+                uid: p.uid,
+                isLocal: p.isLocal,
+                cameraOn: p.cameraOn,
+                hasVideoTrack: !!p.videoTrack,
+                hasAgoraUser: !!p.agoraUser
+            })));
+        }
+
+        return list;
+    }, [uid, localCameraTrack, localMicrophoneTrack, isVideoEnabled, isAudioEnabled, remoteUsers, kickedUsers, participantMediaState, userNames]);
 
 
     return (
@@ -827,13 +855,15 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
     );
 }
 
-// Main wrapper - only use AgoraRTCProvider when live AND token is available
+// Main wrapper - only use AgoraRTCProvider when live
 export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
-    // Memoize the client to prevent reconnection on parent re-renders
+    // Memoize the client - CRITICAL: Don't recreate on token changes! 
+    // Recreating the client destroys all internal state and listeners.
     const client = useMemo(() => {
-        if (!props.isLive || !props.token) return null;
+        if (!props.isLive) return null;
+        console.log("Agora: Creating new RTC client");
         return AgoraRTC.createClient({ mode: "live", codec: "vp8" });
-    }, [props.isLive, props.token]);
+    }, [props.isLive]); // Only recreate if live status changes
 
     // For preview, we don't need Agora at all
     if (!props.isLive) {

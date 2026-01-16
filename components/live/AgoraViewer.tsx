@@ -109,32 +109,8 @@ function StreamLogic({
         };
     }, [client]);
 
-    // Subscribe to remote user tracks when they publish (required for audience in live mode)
-    useEffect(() => {
-        if (!client) return;
+    // Manual subscription listener removed - now handled by useParticipantMediaState hook.
 
-        const handleUserPublished = async (user: any, mediaType: 'audio' | 'video') => {
-            try {
-                await client.subscribe(user, mediaType);
-                console.log(`Viewer: Subscribed to ${mediaType} track from user ${user.uid}`);
-
-                // Play audio tracks immediately (Enter Stream button provides user interaction)
-                if (mediaType === 'audio' && user.audioTrack) {
-                    user.audioTrack.setVolume(100);
-                    await user.audioTrack.play();
-                    console.log(`Viewer: Playing audio from user ${user.uid} at full volume`);
-                }
-            } catch (err) {
-                console.warn(`Viewer: Failed to subscribe/play ${mediaType} from user ${user.uid}:`, err);
-            }
-        };
-
-        client.on('user-published', handleUserPublished);
-
-        return () => {
-            client.off('user-published', handleUserPublished);
-        };
-    }, [client]);
 
     // Handle role switching - MUST complete before publishing in ILS mode
     useEffect(() => {
@@ -405,8 +381,10 @@ function StreamLogic({
             audioTrack: localMicrophoneTrack || undefined,
             isLocal: true,
             cameraOn: isVideoEnabled,
-            micOn: isAudioEnabled
+            micOn: isAudioEnabled,
+            agoraUser: undefined
         }] : []),
+
 
         ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => {
             // Look up name in RTM map
