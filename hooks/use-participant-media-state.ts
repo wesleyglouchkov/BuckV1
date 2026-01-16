@@ -22,7 +22,15 @@ export function useParticipantMediaState(client: IAgoraRTCClient | null) {
     useEffect(() => {
         if (!client) return;
 
-        const handleUserPublished = (user: any, mediaType: 'audio' | 'video') => {
+        const handleUserPublished = async (user: any, mediaType: 'audio' | 'video') => {
+            try {
+                // Subscribe to the remote user's track to receive the media
+                await client.subscribe(user, mediaType);
+                console.log(`Subscribed to ${user.uid}'s ${mediaType}`);
+            } catch (error) {
+                console.warn(`Failed to subscribe to ${user.uid}'s ${mediaType}:`, error);
+            }
+
             const odor = user.uid.toString();
             setParticipantMediaState(prev => ({
                 ...prev,
