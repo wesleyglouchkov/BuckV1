@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, TrendingUp, Settings, User, ArrowLeftToLine, ArrowRightFromLine, Users, DollarSign, Calendar } from "lucide-react";
+import { LayoutDashboard, Radio, Settings, User, ArrowLeftToLine, ArrowRightFromLine, Users, DollarSign, Calendar } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import HelpSupportSidebar from "@/components/HelpSupportSidebar";
@@ -13,7 +13,7 @@ const creatorMenu = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/creator/dashboard" },
   { icon: Calendar, label: "My Schedule", href: "/creator/schedule" },
   { icon: Users, label: "My Community", href: "/creator/community" },
-  { icon: FileText, label: "My Streams", href: "/creator/content" },
+  { icon: Radio, label: "My Streams", href: "/creator/content" },
   { icon: DollarSign, label: "Revenue", href: "/creator/revenue" },
   { icon: User, label: "Account Profile", href: "/creator/profile" },
 ];
