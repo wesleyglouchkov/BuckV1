@@ -127,6 +127,8 @@ function LiveBroadcast({
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     // User Names Map (from RTM presence)
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
+    // Track kicked users for optimistic UI removal
+    const [kickedUsers, setKickedUsers] = useState<Set<string>>(new Set());
     const isStreamEndingRef = useRef(false);
 
     const client = useRTCClient();
@@ -453,7 +455,10 @@ function LiveBroadcast({
 
             await rtmSingleton.instance.sendMessage(message);
 
-            toast.success(`Removed User ${remoteUid} from the stream`, { description: "User will be disconnected shortly" });
+            // Optimistic UI update: immediately remove from grid
+            setKickedUsers(prev => new Set(prev).add(remoteUid.toString()));
+
+            toast.success(`Removed User ${remoteUid} from the stream`, { description: "User has been removed" });
         } catch (err) {
             console.error("RTM: Failed to send kick command:", err);
             toast.error("Failed to remove user", { description: "Please check your connection and try again" });
@@ -478,7 +483,7 @@ function LiveBroadcast({
         onStreamEnd();
     };
 
-    // Prepare participants list
+    // Prepare participants list (filter out kicked users)
     const participants = [
         {
             uid,
@@ -489,21 +494,23 @@ function LiveBroadcast({
             cameraOn: isVideoEnabled,
             micOn: isAudioEnabled
         },
-        ...remoteUsers.map(user => {
-            const odor = user.uid.toString();
-            // Use reactive state from event listeners, falling back to SDK properties
-            const mediaState = participantMediaState[odor];
-            return {
-                uid: user.uid,
-                name: userNames[odor]?.name || `User ${user.uid}`,
-                videoTrack: user.videoTrack,
-                audioTrack: user.audioTrack,
-                isLocal: false,
-                cameraOn: mediaState?.hasVideo ?? user.hasVideo,
-                micOn: mediaState?.hasAudio ?? user.hasAudio,
-                agoraUser: user
-            };
-        })
+        ...remoteUsers
+            .filter(user => !kickedUsers.has(user.uid.toString())) // Filter out kicked users
+            .map(user => {
+                const odor = user.uid.toString();
+                // Use reactive state from event listeners, falling back to SDK properties
+                const mediaState = participantMediaState[odor];
+                return {
+                    uid: user.uid,
+                    name: userNames[odor]?.name || `User ${user.uid}`,
+                    videoTrack: user.videoTrack,
+                    audioTrack: user.audioTrack,
+                    isLocal: false,
+                    cameraOn: mediaState?.hasVideo ?? user.hasVideo,
+                    micOn: mediaState?.hasAudio ?? user.hasAudio,
+                    agoraUser: user
+                };
+            })
     ];
 
 
