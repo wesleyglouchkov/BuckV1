@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { Heart, Star, Loader2 } from "lucide-react";
+import { Heart, Star, StarOff, Loader2 } from "lucide-react";
 import { SubscribeDialog } from "./subscribe/SubscribeDialog";
+import { UnsubscribeDialog } from "./subscribe/UnsubscribeDialog";
 import { cn } from "@/lib/utils";
 import { memberService } from "@/services/member";
 import { toast } from "sonner";
@@ -29,15 +30,18 @@ interface ChannelInfoProps {
     onFollowChange?: (isFollowing: boolean) => void;
 }
 
-export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: ChannelInfoProps) {
+export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false, onFollowChange }: ChannelInfoProps) {
     const { data: session, status } = useSession();
     const [isFollowing, setIsFollowing] = useState(false);
+    const [isSubscribedState, setIsSubscribedState] = useState(initialIsSubscribed);
+    const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isUnsubscribing, setIsUnsubscribing] = useState(false);
 
     const [isCheckingStatus, setIsCheckingStatus] = useState(true);
     const [showLoginDialog, setShowLoginDialog] = useState(false);
 
-    // Check follow status on mount
+    // Check follow and subscription status on mount
     useEffect(() => {
         const checkStatus = async () => {
             // Only check if user is logged in as a member
@@ -47,11 +51,13 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
             }
 
             try {
-                const result = await memberService.checkFollowStatus(creator.id);
+                const result = await memberService.getCreatorRelationship(creator.id);
                 setIsFollowing(result.isFollowing);
+                setIsSubscribedState(result.isSubscribed);
+                setSubscriptionId(result.subscriptionId);
             } catch (error) {
                 // Silently fail - user might not be following
-                console.error("Failed to check follow status:", error);
+                console.error("Failed to check relationship status:", error);
             } finally {
                 setIsCheckingStatus(false);
             }
@@ -94,6 +100,26 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
             setIsLoading(false);
         }
     }, [creator.id, creator.name, isFollowing, session, status, onFollowChange]);
+
+    // Handle unsubscribe
+    const handleUnsubscribe = useCallback(async () => {
+        if (!subscriptionId) {
+            toast.error("No subscription found");
+            return;
+        }
+
+        setIsUnsubscribing(true);
+        try {
+            await memberService.cancelSubscription(subscriptionId);
+            setIsSubscribedState(false);
+            setSubscriptionId(null);
+            toast.success(`Unsubscribed from ${creator.name}`);
+        } catch (error: any) {
+            toast.error(error.message || "Failed to unsubscribe");
+        } finally {
+            setIsUnsubscribing(false);
+        }
+    }, [subscriptionId, creator.name]);
 
     // Format count (followers/subscribers)
     const formatCount = (count?: number) => {
@@ -185,12 +211,29 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
                         </Button>
                     )}
 
-                    {/* Subscribe Button - Show for all roles except the owner */}
-                    {!isOwnProfile && !isSubscribed && (status !== "authenticated" || status === "authenticated") &&
+                    {/* Subscribe/Unsubscribe Button - Show for all roles except the owner */}
+                    {!isOwnProfile &&
                         creator.stripe_account_id &&
                         creator.stripe_connected &&
                         creator.stripe_onboarding_completed && (
-                            status === "authenticated" ? (
+                            isSubscribedState ? (
+                                // Already subscribed - show Subscribed button with unsubscribe dialog
+                                <UnsubscribeDialog creator={creator} onConfirm={handleUnsubscribe}>
+                                    <Button
+                                        variant="secondary"
+                                        disabled={isUnsubscribing || isCheckingStatus}
+                                        className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-green-600 hover:bg-green-700 text-white transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        {isUnsubscribing ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <Star className="w-4 h-4 fill-current" />
+                                        )}
+                                        Subscribed
+                                    </Button>
+                                </UnsubscribeDialog>
+                            ) : status === "authenticated" ? (
+                                // Not subscribed and logged in - show Subscribe dialog
                                 <SubscribeDialog creator={creator}>
                                     <Button variant="secondary" className="flex-1 sm:flex-none gap-2 rounded-none font-semibold bg-secondary/80 hover:bg-secondary transition-all hover:scale-105 active:scale-95">
                                         <Star className="w-4 h-4" />
@@ -198,6 +241,7 @@ export function ChannelInfo({ creator, isSubscribed = false, onFollowChange }: C
                                     </Button>
                                 </SubscribeDialog>
                             ) : (
+                                // Not logged in - show login prompt
                                 <Button
                                     variant="secondary"
                                     onClick={() => setShowLoginDialog(true)}
