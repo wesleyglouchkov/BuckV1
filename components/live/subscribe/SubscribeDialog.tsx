@@ -16,10 +16,13 @@ interface SubscribeDialogProps {
         avatar?: string;
         subscriptionPrice?: number | null;
     };
-    children: React.ReactNode;
+    children?: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    onAllowNavigation?: () => void;
 }
 
-export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
+export function SubscribeDialog({ creator, children, open, onOpenChange, onAllowNavigation }: SubscribeDialogProps) {
     const [step, setStep] = useState<"details" | "payment">("details");
 
     const benefits = [
@@ -27,18 +30,21 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
         "Access to subscriber-only streams"
     ];
 
-    const handleOpenChange = (open: boolean) => {
-        if (!open) {
+    const handleOpenChange = (isOpen: boolean) => {
+        if (!isOpen) {
             // Reset step after a short delay to allow close animation to finish
             setTimeout(() => setStep("details"), 300);
         }
+        onOpenChange?.(isOpen);
     };
 
     return (
-        <Dialog onOpenChange={handleOpenChange}>
-            <DialogTrigger asChild>
-                {children}
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            {children && (
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[420px] p-0 overflow-hidden bg-card border-border shadow-2xl rounded-none">
                 <DialogTitle className="hidden"></DialogTitle>
                 {step === "details" ? (
@@ -71,8 +77,8 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
                             {/* Monthly Price */}
                             <div className="text-center space-y-1">
                                 <div className="flex items-baseline justify-center gap-1">
-                                   {creator.subscriptionPrice && <><span className="text-3xl font-bold text-foreground">${creator.subscriptionPrice} USD</span>
-                                    <span className="text-muted-foreground font-medium">/ month</span></>}
+                                    {creator.subscriptionPrice && <><span className="text-3xl font-bold text-foreground">${creator.subscriptionPrice} USD</span>
+                                        <span className="text-muted-foreground font-medium">/ month</span></>}
                                 </div>
                                 <p className="text-xs text-muted-foreground">Cancel anytime. Stripe Secure payment.</p>
                             </div>
@@ -122,7 +128,11 @@ export function SubscribeDialog({ creator, children }: SubscribeDialogProps) {
                         </div>
 
                         <div className="p-0">
-                            <StripeSubscription creatorId={creator.id} onCancel={() => setStep("details")} />
+                            <StripeSubscription
+                                creatorId={creator.id}
+                                onCancel={() => setStep("details")}
+                                onAllowNavigation={onAllowNavigation}
+                            />
                         </div>
                     </div>
                 )}

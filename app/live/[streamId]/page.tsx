@@ -28,6 +28,7 @@ import { StreamConnecting, StreamReplay, StreamScheduled, StreamEnded } from "@/
 import RecordingConsentDialog from "@/components/live/RecordingConsentDialog";
 import { type AgoraViewerProps } from '../../../components/live/AgoraViewer'
 import { streamService } from "@/services/stream";
+import { memberService } from "@/services/member";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
@@ -96,6 +97,7 @@ export default function LiveStreamPage() {
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [reportDialogOpen, setReportDialogOpen] = useState(false);
     const [rtmReady, setRtmReady] = useState(false);
+    const [isSubscribed, setIsSubscribed] = useState(false);
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -154,12 +156,24 @@ export default function LiveStreamPage() {
             }
         };
 
+        const checkSubscriptionStatus = async (creatorId: string) => {
+            if (status === "authenticated" && session?.user?.role?.toUpperCase() === "MEMBER") {
+                try {
+                    const result = await memberService.getCreatorRelationship(creatorId);
+                    setIsSubscribed(result.isSubscribed);
+                } catch (error) {
+                    console.error("Failed to check subscription status:", error);
+                }
+            }
+        };
+
         const fetchStreamDetails = async () => {
             try {
                 const response = await streamService.getStreamDetails(streamId);
 
                 if (response.success && response.stream) {
                     setStreamDetails(response.stream);
+                    await checkSubscriptionStatus(response.stream.creator.id);
 
                     // If stream is live, attempt to join
                     if (response.stream.isLive) {
@@ -185,7 +199,7 @@ export default function LiveStreamPage() {
         };
 
         fetchStreamDetails();
-    }, [streamId, session?.user?.id, router]);
+    }, [streamId, session?.user?.id, router, status]);
 
     const isNavigatingAway = useRef(false);
     const hasPushedState = useRef(false);
@@ -276,6 +290,10 @@ export default function LiveStreamPage() {
             setTokenData(null);
             setViewerRole(null);
         }, 100);
+    };
+
+    const handleAllowNavigation = () => {
+        isNavigatingAway.current = true;
     };
 
 
@@ -411,6 +429,7 @@ export default function LiveStreamPage() {
                                         role={viewerRole}
                                         session={session}
                                         onLeave={handleLeave}
+                                        onAllowNavigation={handleAllowNavigation}
                                         onRequestUpgrade={() => setShowConsentDialog(true)}
                                         isChatVisible={isChatVisible}
                                         onToggleChat={() => setIsChatVisible(!isChatVisible)}
@@ -419,6 +438,9 @@ export default function LiveStreamPage() {
                                         hostName={streamDetails.creator.name}
                                         hostAvatar={streamDetails.creator.avatar}
                                         hostDbId={streamDetails.creator.id}
+                                        hostUsername={streamDetails.creator.username}
+                                        hostSubscriptionPrice={streamDetails.creator.subscriptionPrice}
+                                        isSubscribed={isSubscribed}
                                     />
                                 ) : (
                                     <StreamConnecting creatorName={streamDetails.creator.name} />

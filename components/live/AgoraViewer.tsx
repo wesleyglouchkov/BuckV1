@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import { TipButton } from "./TipButton";
 import { LoginRequiredDialog } from "./LoginRequiredDialog";
+import { SubscribeDialog } from "./subscribe/SubscribeDialog";
 
 
 
@@ -29,6 +30,7 @@ export interface AgoraViewerProps {
     hostUid?: number; // Optional: Explicit host UID
     session: Session | null; // User session for checking login status
     onLeave: () => void;
+    onAllowNavigation?: () => void;
     onRequestUpgrade: () => void;
     isChatVisible?: boolean;
     onToggleChat?: () => void;
@@ -38,6 +40,9 @@ export interface AgoraViewerProps {
     hostName?: string;
     hostAvatar?: string;
     hostDbId?: string;
+    hostUsername?: string;
+    hostSubscriptionPrice?: number | null;
+    isSubscribed?: boolean;
 }
 
 function StreamLogic({
@@ -50,6 +55,7 @@ function StreamLogic({
     hostUid,
     session,
     onLeave,
+    onAllowNavigation,
     onRequestUpgrade,
     isChatVisible,
     onToggleChat,
@@ -57,7 +63,10 @@ function StreamLogic({
     userAvatar,
     hostName,
     hostAvatar,
-    hostDbId
+    hostDbId,
+    hostUsername,
+    hostSubscriptionPrice,
+    isSubscribed = false
 }: AgoraViewerProps) {
     const router = useRouter();
 
@@ -410,10 +419,15 @@ function StreamLogic({
 
     // --- Join / Login Logic ---
     const [showLoginDialog, setShowLoginDialog] = useState(false);
+    const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
 
     const handleJoinRequest = () => {
         if (viewerIsLoggedIn) {
-            onRequestUpgrade();
+            if (isSubscribed) {
+                onRequestUpgrade();
+            } else {
+                setShowSubscribeDialog(true);
+            }
         } else {
             setShowLoginDialog(true);
         }
@@ -618,6 +632,23 @@ function StreamLogic({
                 <div className="w-px h-6 bg-border mx-2" />
 
                 <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
+
+                {hostDbId && (
+                    <SubscribeDialog
+                        creator={{
+                            id: hostDbId,
+                            name: hostName || "Host",
+                            username: hostUsername,
+                            avatar: hostAvatar,
+                            subscriptionPrice: hostSubscriptionPrice
+                        }}
+                        open={showSubscribeDialog}
+                        onOpenChange={setShowSubscribeDialog}
+                        onAllowNavigation={onAllowNavigation}
+                    >
+                        <div className="hidden" />
+                    </SubscribeDialog>
+                )}
 
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
