@@ -16,6 +16,7 @@ import { streamService } from "@/services/stream/index";
 import { LoginRequiredDialog } from "./LoginRequiredDialog";
 import { Theme, getTheme } from "@/lib/theme";
 import { useEffect } from "react";
+import { mutate } from "swr";
 
 // Initialize Stripe outside component to avoid recreation
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -190,7 +191,6 @@ export function TipButton({
 
     const handleSuccess = async () => {
         setPaymentStep('success');
-        toast.success("Tip sent successfully!");
 
         // Send chat message
         if (livestreamId && session?.user?.name) {
@@ -199,6 +199,9 @@ export function TipButton({
                 // We use the direct service, but in a real app this might trigger from webhook to backend to socket
                 // For immediate feedback we send it here
                 await streamService.sendChatMessage(livestreamId, message);
+
+                // Revalidate chat history so it shows up for the sender
+                mutate(`/streams/${livestreamId}/chat`);
             } catch (e) {
                 console.error("Failed to send tip message", e);
             }
