@@ -62,6 +62,43 @@ const WORKOUT_TYPES = [
     ...CATEGORIES.map((c) => c.name)
 ];
 
+// Format duration from seconds to readable format
+const formatDuration = (seconds?: number | null) => {
+    if (!seconds || seconds <= 0) return null;
+    // Subtract 7 seconds to account for stream processing
+    const adjustedSeconds = Math.max(0, Math.floor(seconds) - 7);
+    const h = Math.floor(adjustedSeconds / 3600);
+    const m = Math.floor((adjustedSeconds % 3600) / 60);
+    const s = adjustedSeconds % 60;
+
+    if (h > 0) {
+        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    }
+    return `${m}:${s.toString().padStart(2, "0")}`;
+};
+
+// Calculate duration from startTime and endTime if duration field is not available
+const calculateDuration = (stream: { duration?: number | null; startTime?: string | Date; endTime?: string | Date }) => {
+    // If duration is already available, use it
+    if (stream.duration && stream.duration > 0) {
+        return formatDuration(stream.duration);
+    }
+    
+    // Calculate from startTime and endTime
+    if (stream.startTime && stream.endTime) {
+        const start = new Date(stream.startTime).getTime();
+        const end = new Date(stream.endTime).getTime();
+        const durationMs = end - start;
+        
+        if (durationMs > 0) {
+            const durationSeconds = Math.floor(durationMs / 1000);
+            return formatDuration(durationSeconds);
+        }
+    }
+    
+    return null;
+};
+
 export default function MyStreamsPage() {
     const { data: session } = useSession();
     const router = useRouter();
@@ -303,6 +340,9 @@ export default function MyStreamsPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="font-medium text-foreground truncate max-w-[150px] lg:max-w-xs">{stream.title}</div>
+                                            {calculateDuration(stream) && (
+                                                <div className="text-xs text-muted-foreground mt-0.5">{calculateDuration(stream)}</div>
+                                            )}
                                             <div className="flex flex-wrap gap-1 mt-1">
                                                 {stream.isLive ? (
                                                     <span className="text-[10px] uppercase font-bold tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.5 border border-red-500/20 flex items-center gap-1">
