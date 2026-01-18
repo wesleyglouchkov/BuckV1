@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import StreamChat from "@/components/live/StreamChat";
 import { creatorService } from "@/services/creator";
 import { SkeletonLiveStream } from "@/components/ui/skeleton-variants";
