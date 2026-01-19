@@ -25,9 +25,9 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "buck-v1-bucket.s3.us-east-1.amazonaws.com",
+        hostname: `${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`,
         pathname: "/**",
-      }
+      },
     ],
   },
   experimental: {
