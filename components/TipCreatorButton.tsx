@@ -149,7 +149,7 @@ export default function TipCreatorButton({
                         </div>
 
                         {/* Total Display */}
-                        <div className="bg-muted/50 border border-border rounded-lg p-4">
+                        <div className="bg-muted/50 border border-border p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-muted-foreground">Total</span>
                                 <div className="text-right">

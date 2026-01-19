@@ -36,8 +36,8 @@ export default function EmailSentPage() {
 
           {/* Email illustration */}
           <div className="mt-12 relative">
-            <div className="w-32 h-24 bg-white/20 rounded-lg transform rotate-3 absolute -right-4 -top-2"></div>
-            <div className="w-32 h-24 bg-white/30 rounded-lg transform -rotate-3 relative flex items-center justify-center">
+            <div className="w-32 h-24 bg-white/20 transform rotate-3 absolute -right-4 -top-2"></div>
+            <div className="w-32 h-24 bg-white/30 transform -rotate-3 relative flex items-center justify-center">
               <Mail className="w-12 h-12 text-white" />
             </div>
           </div>

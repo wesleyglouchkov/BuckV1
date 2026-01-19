@@ -43,7 +43,7 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
 
                 <div className="space-y-6">
                     {/* Profile Header */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 bg-linear-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-border/30">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 bg-linear-to-br from-blue-500/10 to-purple-500/10  border border-border/30">
                         <UserAvatar src={creator.avatar} name={creator.name} size="xl" />
                         <div className="flex-1">
                             <h2 className="text-2xl font-bold text-foreground">{creator.name}</h2>
@@ -72,7 +72,7 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
 
                     {/* Bio */}
                     {creator.bio && (
-                        <div className="p-4 bg-muted/50 rounded-lg border border-border/20">
+                        <div className="p-4 bg-muted/50  border border-border/20">
                             <h3 className="text-sm font-semibold text-muted-foreground mb-2">Bio</h3>
                             <p className="text-foreground">{creator.bio}</p>
                         </div>
@@ -81,9 +81,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {userType === 'creator' && (
-                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                            <div className="p-4 bg-card  border border-border/30 shadow-sm">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-green-500/10  flex items-center justify-center">
                                         <DollarSign className="w-5 h-5 text-green-500" />
                                     </div>
                                     <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
@@ -92,9 +92,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                             </div>
                         )}
 
-                        <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                        <div className="p-4 bg-card  border border-border/30 shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-yellow-500/10  flex items-center justify-center">
                                     <Star className="w-5 h-5 text-yellow-500" />
                                 </div>
                                 <h3 className="text-sm font-medium text-muted-foreground">
@@ -104,9 +104,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                             <p className="text-2xl font-bold text-foreground">{creator.followers.toLocaleString()}</p>
                         </div>
 
-                        <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                        <div className="p-4 bg-card  border border-border/30 shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-purple-500/10  flex items-center justify-center">
                                     <User className="w-5 h-5 text-purple-500" />
                                 </div>
                                 <h3 className="text-sm font-medium text-muted-foreground">
@@ -118,9 +118,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
 
                         {/* Warning Count - Show in first row for members, second row for creators */}
                         {userType === 'member' && (
-                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                            <div className="p-4 bg-card  border border-border/30 shadow-sm">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-red-500/10  flex items-center justify-center">
                                         <Activity className="w-5 h-5 text-red-500" />
                                     </div>
                                     <h3 className="text-sm font-medium text-muted-foreground">Warning Count</h3>
@@ -139,9 +139,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                     {/* Additional Stats - Only for creators */}
                     {userType === 'creator' && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                            <div className="p-4 bg-card  border border-border/30 shadow-sm">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-orange-500/10  flex items-center justify-center">
                                         <FileText className="w-5 h-5 text-orange-500" />
                                     </div>
                                     <h3 className="text-sm font-medium text-muted-foreground">Total Streams</h3>
@@ -149,9 +149,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                                 <p className="text-2xl font-bold text-foreground">{creator.totalStreams}</p>
                             </div>
 
-                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                            <div className="p-4 bg-card  border border-border/30 shadow-sm">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-red-500/10  flex items-center justify-center">
                                         <Activity className="w-5 h-5 text-red-500" />
                                     </div>
                                     <h3 className="text-sm font-medium text-muted-foreground">Warning Count</h3>
@@ -165,9 +165,9 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                                 </p>
                             </div>
 
-                            <div className="p-4 bg-card rounded-lg border border-border/30 shadow-sm">
+                            <div className="p-4 bg-card  border border-border/30 shadow-sm">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-blue-500/10  flex items-center justify-center">
                                         <DollarSign className="w-5 h-5 text-blue-500" />
                                     </div>
                                     <h3 className="text-sm font-medium text-muted-foreground">Subscription Price</h3>
@@ -180,7 +180,7 @@ export function UserInfoDialog({ creator, isOpen, onClose, userType = 'creator' 
                     )}
 
                     {/* Join Date */}
-                    <div className="p-4 bg-muted/30 rounded-lg border border-border/20">
+                    <div className="p-4 bg-muted/30  border border-border/20">
                         <div className="flex items-center gap-2 mb-1">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
                             <h3 className="text-sm font-medium text-muted-foreground">Joined</h3>

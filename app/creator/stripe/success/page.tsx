@@ -89,7 +89,7 @@ export default function StripeSuccessPage() {
     if (error) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background p-6">
-                <div className="max-w-md w-full bg-card border border-border rounded-lg p-8 text-center space-y-6">
+                <div className="max-w-md w-full bg-card border border-border p-8 text-center space-y-6">
                     <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
                         <AlertCircle className="w-8 h-8 text-destructive" />
                     </div>
@@ -115,7 +115,7 @@ export default function StripeSuccessPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6">
-            <div className="max-w-2xl w-full bg-card border border-border rounded-lg p-8 space-y-6">
+            <div className="max-w-2xl w-full bg-card border border-border p-8 space-y-6">
                 {/* Success Icon */}
                 <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
                     <CheckCircle className="w-12 h-12 text-green-500" />
@@ -136,7 +136,7 @@ export default function StripeSuccessPage() {
                 {/* Status Cards */}
                 <div className="space-y-3">
                     {/* Charges Enabled */}
-                    <div className={`flex items-center gap-3 p-4 rounded-lg border ${status.chargesEnabled
+                    <div className={`flex items-center gap-3 p-4 border ${status.chargesEnabled
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                         : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
                         }`}>
@@ -161,7 +161,7 @@ export default function StripeSuccessPage() {
                     </div>
 
                     {/* Payouts Enabled */}
-                    <div className={`flex items-center gap-3 p-4 rounded-lg border ${status.payoutsEnabled
+                    <div className={`flex items-center gap-3 p-4 border ${status.payoutsEnabled
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                         : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                         }`}>
@@ -188,7 +188,7 @@ export default function StripeSuccessPage() {
 
                 {/* Next Steps */}
                 {canAcceptPayments && (
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <div className="bg-primary/5 border border-primary/20 p-4">
                         <h3 className="text-sm font-semibold text-foreground mb-2">What's Next?</h3>
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li className="flex items-start gap-2">

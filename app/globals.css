@@ -348,7 +348,6 @@ input[type="time"]:focus {
 .animated-border-btn {
   position: relative;
   padding: 1px;
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -363,7 +362,6 @@ input[type="time"]:focus {
 .animated-border-btn>button {
   position: relative;
   z-index: 1;
-  border-radius: 6px;
 }
 
 @keyframes spin-border {

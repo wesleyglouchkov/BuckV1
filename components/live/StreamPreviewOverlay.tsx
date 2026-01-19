@@ -90,7 +90,7 @@ export default function StreamPreviewOverlay({
                             onClick={onGoLive}
                             disabled={isGoingLive || !canGoLive}
                             size="lg"
-                            className="bg-destructive hover:bg-destructive/90 text-white px-6 py-4 text-base rounded-full shadow-lg disabled:opacity-50 w-auto"
+                            className="bg-destructive hover:bg-destructive/90 text-white px-6 py-4 text-base shadow-lg disabled:opacity-50 w-auto"
                         >
                             <Radio className="w-5 h-5 mr-2" />
                             {isGoingLive ? "Starting..." : "Go Live"}

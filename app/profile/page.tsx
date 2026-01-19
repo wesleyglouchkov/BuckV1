@@ -96,7 +96,7 @@ export default function ProfilePage() {
 
                         {/* Creator-specific sidebar */}
                         {isCreator && (
-                            <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
+                            <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20  p-6">
                                 <h2 className="text-lg font-semibold text-foreground mb-4">
                                     Creator Dashboard
                                 </h2>

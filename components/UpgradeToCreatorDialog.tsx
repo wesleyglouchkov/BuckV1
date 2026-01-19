@@ -38,7 +38,7 @@ export function UpgradeToCreatorDialog({
                 </DialogHeader>
 
                 <div className="py-6 space-y-4">
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <div className="bg-primary/5 border border-primary/20 p-4">
                         <h3 className="font-semibold text-foreground mb-3">
                             As a Creator, you'll be able to:
                         </h3>

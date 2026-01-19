@@ -319,7 +319,7 @@ export default function ModerationPage() {
 
                         {/* Message Detail Dialog */}
                         <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-                            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 rounded-lg shadow-2xl">
+                            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0  shadow-2xl">
                                 <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/20">
                                     <DialogTitle className="text-2xl font-bold">Message Details</DialogTitle>
                                 </DialogHeader>
@@ -498,7 +498,7 @@ export default function ModerationPage() {
 
                                 {/* Display violating content */}
                                 {warnTarget.violatingContent && (
-                                    <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/5">
+                                    <div className="p-3  border border-red-500/30 bg-red-500/5">
                                         <p className="text-xs font-semibold text-red-500 mb-2">Violating Content:</p>
                                         <p className="text-sm text-foreground">{warnTarget.violatingContent}</p>
                                     </div>

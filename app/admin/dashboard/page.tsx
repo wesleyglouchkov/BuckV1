@@ -112,7 +112,7 @@ export default function AdminDashboard() {
   return (
     <div className="p-6">
       {/* Greeting Section */}
-      <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-border/20">
+      <div className="mb-6 flex items-center gap-4 bg-linear-to-r from-primary/5 to-secondary/5  p-6 border border-border/20">
           <UserAvatar src={'/Wesley.jpg'} size="xl" name="Wesley"/>
         <div>
           <h2 className="text-xl font-bold text-foreground">{getGreeting()}, {getUserDisplayName()}!</h2>
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Chart - Full Width */}
-        <div className="bg-card pt-6 pr-6 pb-6 rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-card pt-6 pr-6 pb-6  border border-border/30 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4 px-6">
             <p className="text-lg font-semibold text-card-foreground">Users Growth</p>
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
             ))
           ) : (
             statsData.map((stat, index) => (
-              <div key={index} className="bg-card p-6 rounded-lg border border-border/20 shadow-sm hover:shadow-md transition-shadow">
+              <div key={index} className="bg-card p-6  border border-border/20 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   {stat.title}
                 </h3>
@@ -227,11 +227,11 @@ export default function AdminDashboard() {
 
       {/* Top Creators Section */}
       <div className="mt-6">
-        <div className="bg-card rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+        <div className="bg-card  border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           <div className="p-6 border-b border-border/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-yellow-500/10  flex items-center justify-center">
                   <Award className="w-5 h-5 text-yellow-500" />
                 </div>
                 <h3 className="text-lg font-semibold text-card-foreground">
@@ -337,10 +337,10 @@ export default function AdminDashboard() {
       {/* New Features Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Average Revenue Per Creator */}
-        <div className="bg-card rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+        <div className="bg-card  border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           <div className="p-6 border-b border-border/20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-500/10  flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-green-500" />
               </div>
               <h3 className="text-lg font-semibold text-card-foreground">
@@ -370,11 +370,11 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Signups (Last 7 Days) */}
-        <div className="lg:col-span-2 bg-card rounded-lg border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+        <div className="lg:col-span-2 bg-card  border border-border/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           <div className="p-6 border-b border-border/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-500/10  flex items-center justify-center">
                   <UserPlus className="w-5 h-5 text-blue-500" />
                 </div>
                 <h3 className="text-lg font-semibold text-card-foreground">

@@ -25,7 +25,7 @@ export function MessageFilters({
   onRemoveFilter,
 }: FiltersProps) {
   return (
-    <div className="bg-card rounded-lg border border-border/30 shadow-sm p-6 mb-6">
+    <div className="bg-card  border border-border/30 shadow-sm p-6 mb-6">
       {/* Search Bar */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-foreground mb-2">Search Messages</label>
@@ -76,7 +76,7 @@ export function MessageFilters({
               <button
                 key={word}
                 onClick={() => onAddFilter(word)}
-                className={`cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`cursor-pointer px-3 py-1.5  text-sm font-medium transition-all ${
                   isActive ? "bg-red-500 text-white shadow-md" : "bg-red-500/10 text-red-500 hover:bg-red-500/20"
                 }`}
               >

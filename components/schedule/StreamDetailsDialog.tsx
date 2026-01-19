@@ -157,7 +157,7 @@ export default function StreamDetailsDialog({
                         )}
 
                         {/* Status */}
-                        <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="bg-muted/50 p-3">
                             <p className="text-sm">
                                 <span className="font-medium dark:text-white">Status: </span>
                                 {isLive ? (

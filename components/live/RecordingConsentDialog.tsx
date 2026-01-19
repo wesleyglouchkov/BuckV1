@@ -37,7 +37,7 @@ export default function RecordingConsentDialog({
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                    <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                    <div className="bg-muted/50 p-4 border border-border">
                         <h4 className="font-semibold text-foreground mb-2">{streamTitle}</h4>
                         <p className="text-sm text-muted-foreground">
                             This live stream <strong>will be recorded</strong> and may be shared as a replay for other viewers to watch later.

@@ -319,7 +319,7 @@ function UserTable({ users, isLoading, error, type, onToggleStatus, onViewProfil
   };
   if (error) {
     return (
-      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+      <div className="bg-destructive/10 border border-destructive/20  p-6 text-center">
         <p className="text-destructive font-medium">Failed to load {type}s</p>
         <p className="text-sm text-muted-foreground mt-1">{error.message}</p>
       </div>
@@ -328,7 +328,7 @@ function UserTable({ users, isLoading, error, type, onToggleStatus, onViewProfil
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-border/30 rounded-lg overflow-hidden shadow-sm">
+      <div className="bg-card border border-border/30  overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b border-border/30">
@@ -377,7 +377,7 @@ function UserTable({ users, isLoading, error, type, onToggleStatus, onViewProfil
 
   if (users.length === 0) {
     return (
-      <div className="bg-card border border-border/30 rounded-lg p-12 text-center">
+      <div className="bg-card border border-border/30  p-12 text-center">
         <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
         <p className="text-foreground font-medium">No {type}s found</p>
         <p className="text-sm text-muted-foreground mt-1">There are no {type}s in the system yet</p>
@@ -386,7 +386,7 @@ function UserTable({ users, isLoading, error, type, onToggleStatus, onViewProfil
   }
 
   return (
-    <div className="bg-card border border-border/30 rounded-lg overflow-hidden shadow-sm">
+    <div className="bg-card border border-border/30  overflow-hidden shadow-sm">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-border/30">

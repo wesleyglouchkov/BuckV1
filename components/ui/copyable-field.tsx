@@ -29,7 +29,7 @@ export function CopyableField({
     };
 
     return (
-        <div className={cn("bg-muted/30 border border-border p-3 rounded-lg relative", className)}>
+        <div className={cn("bg-muted/30 border border-border p-3 relative", className)}>
             <div className="flex items-center justify-between">
                 <div className="space-y-1 flex-1 min-w-0">
                     <div className="text-sm text-muted-foreground flex items-center gap-1">

@@ -123,7 +123,7 @@ export function ContentGrid({
                   <p className="text-muted-foreground">{currentVideo.creator.email}</p>
                   {/* Warning count in dialog */}
                   {getWarningColor && (
-                    <div className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center ${getWarningColor(currentVideo.creator.warningCount)}`}>
+                    <div className={`px-3 py-1 text-xs font-bold inline-flex items-center ${getWarningColor(currentVideo.creator.warningCount)}`}>
                       {currentVideo.creator.warningCount} {currentVideo.creator.warningCount === 1 ? "warning" : "warnings"}
                     </div>
                   )}

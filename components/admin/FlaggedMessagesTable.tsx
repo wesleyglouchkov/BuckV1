@@ -42,7 +42,7 @@ export function FlaggedMessagesTable({
   onPageChange?: (page: number) => void;
 }) {
   return (
-    <div className="bg-card rounded-lg border border-border/30 shadow-sm overflow-hidden">
+    <div className="bg-card  border border-border/30 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-border/20">
         <div className="flex items-center justify-between">
           <div className=" text-lg font-semibold text-foreground flex items-center gap-2">

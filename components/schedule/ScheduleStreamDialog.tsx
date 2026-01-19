@@ -235,7 +235,7 @@ export default function ScheduleStreamDialog({
                         </div>
                     </div>
 
-                    <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                    <div className="text-sm text-muted-foreground bg-muted/50 p-3">
                         <strong>Timezone:</strong> {timezone}
                         <p className="mt-1 text-xs">
                             Your subscribers will be notified of this scheduled live stream and will see the time in their local timezone.
