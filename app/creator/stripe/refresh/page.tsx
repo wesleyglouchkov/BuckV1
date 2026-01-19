@@ -92,7 +92,7 @@ export default function StripeRefreshPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6">
-            <div className="max-w-md w-full bg-card border border-border rounded-lg p-8 space-y-6">
+            <div className="max-w-md w-full bg-card border border-border p-8 space-y-6">
                 {/* Warning Icon */}
                 <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
                     <AlertCircle className="w-8 h-8 text-amber-500" />
@@ -107,7 +107,7 @@ export default function StripeRefreshPage() {
                 </div>
 
                 {/* Info Box */}
-                <div className="bg-muted/50 border border-border rounded-lg p-4 text-left">
+                <div className="bg-muted/50 border border-border p-4 text-left">
                     <h3 className="text-sm font-semibold text-foreground mb-2">What you might need:</h3>
                     <ul className="space-y-2 text-sm text-muted-foreground">
                         <li className="flex items-start gap-2">
