@@ -11,7 +11,7 @@ import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
+import { globalRTMSingleton as viewerRtmSingleton, resetRTMInstance } from "@/lib/agora/rtm-singleton";
 import Image from "next/image";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import { TipButton } from "./TipButton";
@@ -199,15 +199,8 @@ function StreamLogic({
 
     // Cleanup RTM singleton
     const cleanupViewerRTM = useCallback(() => {
-        if (viewerRtmSingleton.instance) {
-            console.log("RTM Viewer: Cleaning up singleton");
-            viewerRtmSingleton.instance.logout();
-            viewerRtmSingleton.instance = null;
-            viewerRtmSingleton.channelName = null;
-            viewerRtmSingleton.uid = null;
-            viewerRtmSingleton.currentUidRef.current = null;
-            viewerRtmSingleton.isInitializing = false;
-        }
+        console.log("RTM Viewer: Cleaning up singleton via resetRTMInstance");
+        resetRTMInstance(); // This handles logout and clears all state
     }, []);
 
     // Handle leaving the stream - cleanup and call parent onLeave
@@ -238,28 +231,31 @@ function StreamLogic({
     const handleRTMMessage = useCallback((msg: SignalingMessage) => {
         console.log("RTM: Message received in viewer:", msg);
 
-        const targetUid = msg.payload.userId.toString();
-        // Use the ref to get the CURRENT uid, not a stale closure value
-        const myUid = viewerRtmSingleton.currentUidRef.current?.toString() || '';
+        if (!msg.payload || !('userId' in msg.payload)) return;
 
-        if (msg.type === "MUTE_USER" && targetUid === myUid) {
+        const targetUid = msg.payload.userId.toString().trim();
+        // Use the ref to get the CURRENT RTC numerical UID
+        const myRtcUid = viewerRtmSingleton.currentUidRef.current?.toString().trim() || '';
+        // Use the props UID which is likely the DB String ID (cuid)
+        const myLoginUid = uid.toString().trim();
+
+        const isMe = targetUid === myRtcUid || targetUid === myLoginUid;
+
+        if (msg.type === "MUTE_USER" && isMe) {
             console.log("RTM: Command matched! Applying changes...");
 
             if (msg.payload.mediaType === "audio") {
                 const newState = !msg.payload.mute;
-                console.log("RTM: Setting audio to:", newState);
                 setIsAudioEnabled(newState);
-
                 toast.info(newState ? "The host has unmuted your microphone" : "The host has muted your microphone");
             }
             else if (msg.payload.mediaType === "video") {
                 const newState = !msg.payload.mute;
-                console.log("RTM: Setting video to:", newState);
                 setIsVideoEnabled(newState);
                 toast.info(newState ? "The host has enabled your camera" : "The host has disabled your camera");
             }
         }
-        else if (msg.type === "KICK_USER" && targetUid === myUid) {
+        else if (msg.type === "KICK_USER" && isMe) {
             console.log("RTM: Kick command received!");
             toast.error("You have been removed from the stream by the host.");
             handleLeaveStream();
@@ -347,17 +343,20 @@ function StreamLogic({
 
                 console.log("RTM Viewer: Login successful, signaling ready");
 
-                // Set initial presence if we have a name
-                if (userName) {
-                    await sm.setUserPresence(userName, userAvatar);
-                }
-
+                // CRITICAL: Mark ready IMMEDIATELY after login/subscribe
                 viewerRtmSingleton.instance = sm;
                 viewerRtmSingleton.isInitializing = false;
                 setIsRTMReady(true);
 
                 // Notify all subscribers
                 viewerRtmSingleton.subscribers.forEach(cb => cb(true));
+
+                // Set initial presence in the background
+                if (userName) {
+                    sm.setUserPresence(userName, userAvatar).catch(err => {
+                        console.warn("RTM Viewer: Failed to set initial background presence:", err);
+                    });
+                }
             } catch (err: any) {
                 console.warn("RTM Viewer: Login failed:", err?.message || err);
                 viewerRtmSingleton.isInitializing = false;
@@ -593,11 +592,11 @@ function StreamLogic({
                         <Button
                             variant="secondary"
                             size="icon"
-                            className="w-12 h-12 shadow-lg shadow-green-500/20 bg-linear-to-tr from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-2 border-white/20 hover:scale-110 transition-all duration-300"
+                            className="w-9 h-9 shadow-lg shadow-green-500/20 bg-linear-to-tr from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-2 border-white/20 hover:scale-110 transition-all duration-300"
                             title="Send BUCK"
                             data-tour="tip-button"
                         >
-                            <DollarSign className="w-6 h-6 fill-white" />
+                            <DollarSign className="w-4 h-4 fill-white" />
                         </Button>
                     </TipButton>
                 )}

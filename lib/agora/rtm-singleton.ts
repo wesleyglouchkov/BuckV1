@@ -35,3 +35,24 @@ export function isRTMInitializing(): boolean {
 export function getRTMChannelName(): string | null {
     return globalRTMSingleton.channelName;
 }
+
+/**
+ * Reset the global RTM singleton. Logs out the existing instance if present and clears all stored state.
+ * This helps avoid stale connections when navigating away or restarting streams.
+ */
+export async function resetRTMInstance(): Promise<void> {
+    const instance = globalRTMSingleton.instance;
+    if (instance) {
+        try {
+            await instance.logout();
+        } catch (e) {
+            console.error('RTM: Error during logout in resetRTMInstance', e);
+        }
+    }
+    globalRTMSingleton.instance = null;
+    globalRTMSingleton.isInitializing = false;
+    globalRTMSingleton.channelName = null;
+    globalRTMSingleton.uid = null;
+    globalRTMSingleton.currentUidRef = { current: null };
+    globalRTMSingleton.subscribers.clear();
+}

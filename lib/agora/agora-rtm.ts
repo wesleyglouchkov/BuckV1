@@ -1,6 +1,7 @@
 "use client";
 
 import AgoraRTM from "agora-rtm-sdk";
+import "@/lib/agora/suppress-rtm-errors"; // Suppress transient RTM connection probe errors
 
 export type SignalingMessage =
     | {
@@ -68,7 +69,8 @@ export class SignalingManager {
             // @ts-ignore - Agora RTM SDK types
             this.client = new AgoraRTM.RTM(this.appId, this.userId, {
                 // Enable presence and message channels
-                useStringUserId: true
+                useStringUserId: true,
+                cloudProxy: true,
             });
 
             console.log("RTM: Client created for user:", this.userId);
@@ -78,12 +80,10 @@ export class SignalingManager {
                 console.log("RTM Status Changed:", event);
                 if (event.state === "DISCONNECTED") {
                     this.isJoined = false;
-                    // Notify connection change listeners
                     this.onConnectionChangeCallback?.(false);
                 }
                 if (event.state === "CONNECTED") {
                     this.isJoined = true;
-                    // Notify connection change listeners
                     this.onConnectionChangeCallback?.(true);
                 }
             });

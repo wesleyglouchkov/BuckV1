@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import useSWR, { mutate } from "swr";
+import { toast } from "sonner";
 import { streamService } from "@/services/stream";
 import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
 
@@ -144,7 +145,8 @@ export function useStreamChat({
             // Rate limiting check
             const now = Date.now();
             if (now - lastSentRef.current < RATE_LIMIT_MS) {
-                throw new Error("Please wait a moment before sending another message");
+                toast.warning("Please wait a moment before sending another message");
+                return;
             }
 
             lastSentRef.current = now;

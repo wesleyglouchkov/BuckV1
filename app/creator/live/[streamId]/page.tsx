@@ -45,6 +45,7 @@ export default function CreatorLivePage() {
     const [isRecording, setIsRecording] = useState(false);
     const [isStreamExpired, setIsStreamExpired] = useState(false);
     const [shareUrl, setShareUrl] = useState("");
+    const [isRTMReady, setIsRTMReady] = useState(false); // Track RTM readiness from AgoraLiveStream
 
     // Ref to track live state synchronously for event handlers
     const isLiveRef = useRef(false);
@@ -266,6 +267,12 @@ export default function CreatorLivePage() {
         setHasPermission(hasPermission);
     }, []);
 
+    // Handle RTM readiness change from AgoraLiveStream
+    const handleRTMReady = useCallback((ready: boolean) => {
+        console.log("Page: RTM ready state changed:", ready);
+        setIsRTMReady(ready);
+    }, []);
+
     const handleGrantPermissions = () => {
         // Request permissions again
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -390,8 +397,8 @@ export default function CreatorLivePage() {
                                     isLive={isLive}
                                     onStreamEnd={handleStreamEnd}
                                     onStreamEndLoaderStart={() => setStreamEndLoaderState(true)}
-
                                     onPermissionChange={handlePermissionChange}
+                                    onRTMReady={handleRTMReady}
                                     isChatVisible={isChatVisible}
                                     setIsChatVisible={setIsChatVisible}
                                     streamTitle={streamTitle}
@@ -440,6 +447,7 @@ export default function CreatorLivePage() {
                         <div className="w-full h-full">
                             {isLive ? (
                                 <StreamChat
+                                    key={isRTMReady ? "rtm-ready" : "rtm-connecting"}
                                     streamId={urlStreamId}
                                     streamTitle={streamTitle}
                                     currentUserId={session?.user?.id}
@@ -487,12 +495,6 @@ export default function CreatorLivePage() {
                                 Saving your broadcast and preparing replay...
                             </p>
 
-                            {/* Progress indicator dots */}
-                            <div className="flex items-center gap-1.5 mt-3">
-                                <span className="w-2 h-2 bg-primary animate-bounce [animation-delay:0ms]" />
-                                <span className="w-2 h-2 bg-primary animate-bounce [animation-delay:150ms]" />
-                                <span className="w-2 h-2 bg-primary animate-bounce [animation-delay:300ms]" />
-                            </div>
                         </div>
                     </div>
                 </div>

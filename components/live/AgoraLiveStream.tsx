@@ -17,7 +17,7 @@ import { ParticipantGrid } from "./AgoraComponents";
 import { toast } from "sonner";
 import { SignalingManager } from "@/lib/agora/agora-rtm";
 import { useViewerCount } from "@/hooks/useViewerCount";
-import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
+import { globalRTMSingleton as rtmSingleton, resetRTMInstance } from "@/lib/agora/rtm-singleton";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import {
     AlertDialog,
@@ -46,6 +46,7 @@ interface AgoraLiveStreamProps {
     onStreamEndLoaderStart?: () => void;
     onRecordingReady?: (blob: Blob) => void;
     onPermissionChange?: (hasPermission: boolean) => void;
+    onRTMReady?: (isReady: boolean) => void; // Callback when RTM is ready
     isChatVisible?: boolean;
     setIsChatVisible?: (visible: boolean) => void;
     streamTitle?: string;
@@ -113,6 +114,7 @@ function LiveBroadcast({
     onStreamEnd,
     onStreamEndLoaderStart,
     onRecordingReady,
+    onRTMReady,
     isChatVisible,
     setIsChatVisible,
     streamTitle,
@@ -239,6 +241,12 @@ function LiveBroadcast({
 
     // --- Signaling (RTM) Implementation using Singleton ---
     const [isRTMReady, setIsRTMReady] = useState(false);
+
+    // Notify parent when RTM is ready
+    useEffect(() => {
+        onRTMReady?.(isRTMReady);
+    }, [isRTMReady, onRTMReady]);
+
     // Update RTM presence when recording state changes
     useEffect(() => {
         if (isRTMReady && rtmSingleton.instance && userName) {
@@ -249,7 +257,7 @@ function LiveBroadcast({
     // Viewer count tracking
     const { viewerCount } = useViewerCount({
         streamId,
-        rtmManager: rtmSingleton.instance,
+        rtmManager: isRTMReady ? rtmSingleton.instance : null,
         isHost: true,
         syncIntervalSeconds: 60,
     });
@@ -332,16 +340,21 @@ function LiveBroadcast({
 
                 console.log("RTM: Login successful, signaling ready");
 
-                if (userName) {
-                    await sm.setUserPresence(userName, userAvatar);
-                }
-
+                // CRITICAL: Set instance and mark ready IMMEDIATELY after login/subscribe
+                // Don't wait for presence to sync with the server
                 rtmSingleton.instance = sm;
                 rtmSingleton.isInitializing = false;
                 setIsRTMReady(true);
 
-                // Notify all subscribers
+                // Notify all subscribers immediately
                 rtmSingleton.subscribers.forEach(cb => cb(true));
+
+                // 5. Fire off initial presence in the background (don't await)
+                if (userName) {
+                    sm.setUserPresence(userName, userAvatar).catch(err => {
+                        console.warn("RTM: Failed to set initial background presence:", err);
+                    });
+                }
             } catch (err: any) {
                 console.warn(`RTM: Login failed (attempt ${retryCount + 1}/${maxRetries}):`, err?.message || err);
 
@@ -366,13 +379,8 @@ function LiveBroadcast({
 
     // Cleanup singleton only when stream actually ends
     const cleanupRTM = useCallback(() => {
-        if (rtmSingleton.instance) {
-            console.log("RTM: Cleaning up singleton");
-            rtmSingleton.instance.logout();
-            rtmSingleton.instance = null;
-            rtmSingleton.channelName = null;
-            rtmSingleton.isInitializing = false;
-        }
+        console.log("RTM: Cleaning up singleton via resetRTMInstance");
+        resetRTMInstance(); // This handles logout and clears all state
     }, []);
 
     const handleToggleRemoteMic = async (remoteUid: string | number) => {
@@ -655,7 +663,7 @@ function LiveBroadcast({
                         <AlertDialogContent className="bg-background border-border text-white">
                             <AlertDialogHeader>
                                 <AlertDialogTitle className="text-black dark:text-white">End Stream</AlertDialogTitle>
-                                <AlertDialogDescription className="text-neutral-600">
+                                <AlertDialogDescription className="dark:text-white text-gray-500">
                                     Are you sure you want to end this stream? All participants will be disconnected.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -874,8 +882,7 @@ function PreviewMode({ onPermissionChange }: { onPermissionChange?: (hasPermissi
 
 // Main wrapper - only use AgoraRTCProvider when live
 export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
-    // Memoize the client - CRITICAL: Don't recreate on token changes! 
-    // Recreating the client destroys all internal state and listeners.
+    // Memoize the client - CRITICAL: Don't recreate on token changes ,  Recreating the client destroys all internal state and listeners.
     const client = useMemo(() => {
         if (!props.isLive) return null;
         console.log("Agora: Creating new RTC client");
@@ -911,6 +918,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 onStreamEnd={props.onStreamEnd}
                 onStreamEndLoaderStart={props.onStreamEndLoaderStart}
                 onRecordingReady={props.onRecordingReady}
+                onRTMReady={props.onRTMReady}
                 isChatVisible={props.isChatVisible}
                 setIsChatVisible={props.setIsChatVisible}
                 streamTitle={props.streamTitle}

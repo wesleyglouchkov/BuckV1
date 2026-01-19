@@ -125,7 +125,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
             setNewMessage("");
             setShowEmojiPicker(false);
         } catch (error) {
-            console.error("Failed to send message:", error);
+            // Error is handled inside sendMessage via toast/console.error
         } finally {
             setIsSending(false);
         }
@@ -145,16 +145,20 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                     <MessageCircle className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold text-foreground mt-1">Live Chat</h3>
                     <div className="ml-auto flex items-center gap-2">
-                        {isConnected && (
+                        {isConnected ? (
                             <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                                 <span className="mt-1">Connected</span>
                             </span>
-                        )}
-                        {!isConnected && rtmManager && (
+                        ) : effectiveRTMManager ? (
                             <span className="mt-1 flex items-center gap-1.5 text-xs text-yellow-600">
                                 <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
                                 <span className="mt-1">Connecting...</span>
+                            </span>
+                        ) : (
+                            <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <span className="w-2 h-2 bg-muted rounded-full" />
+                                <span className="mt-1">Initializing...</span>
                             </span>
                         )}
                         <Button
@@ -231,10 +235,10 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                         <Input
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder={!currentUserId ? "Login to chat..." : "Send a message..."}
+                            placeholder={!currentUserId ? "Login to chat..." : !isConnected ? "Chat is connecting..." : "Send a message..."}
                             className="w-full pr-10"
                             maxLength={200}
-                            disabled={isCreator ? false : (currentUserId ? !isConnected : false)}
+                            disabled={!currentUserId || !isConnected || isSending}
                             onFocus={() => {
                                 if (!currentUserId) {
                                     setShowLoginDialog(true);
@@ -251,7 +255,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                                 }
                             }}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                            disabled={isCreator ? false : (currentUserId ? !isConnected : false)}
+                            disabled={!currentUserId || !isConnected || isSending}
                         >
                             <Smile className="w-5 h-5" />
                         </button>
@@ -259,7 +263,7 @@ export default function StreamChat({ streamId, streamTitle, currentUserId, curre
                     <Button
                         type="submit"
                         size="default"
-                        disabled={!newMessage.trim() || isSending || (isCreator ? false : (currentUserId ? !isConnected : true))}
+                        disabled={!currentUserId || !isConnected || isSending || !newMessage.trim()}
                         className="shrink-0"
                     >
                         <Send className="w-4 h-4" />

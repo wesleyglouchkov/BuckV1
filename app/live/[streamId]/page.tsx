@@ -7,8 +7,6 @@ import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Users, MoreVertical } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { UserAvatar } from "@/components/ui/user-avatar";
 import { SharePopover } from "@/components/SharePopover";
 import {
     DropdownMenu,
@@ -482,6 +480,7 @@ export default function LiveStreamPage() {
                             <div className="w-full h-full">
                                 {hasJoined ? (
                                     <StreamChat
+                                        key={rtmReady ? "rtm-ready" : "rtm-connecting"}
                                         streamId={streamId}
                                         streamTitle={streamDetails.title}
                                         currentUserId={session?.user?.id}
