@@ -33,7 +33,8 @@ import {
     Trash2,
     X,
     Loader2,
-    Calendar
+    Calendar,
+    Plus
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { mutate } from "swr";
@@ -56,6 +57,7 @@ import ModerationVideoPlayer from "@/components/admin/ModerationVideoPlayer";
 import { getSignedStreamUrl, deleteS3File, deleteS3FolderAction } from "@/app/actions/s3-actions";
 import { toast } from "sonner";
 import { CATEGORIES } from "@/lib/constants/categories";
+import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
 
 const WORKOUT_TYPES = [
     "All Types",
@@ -83,19 +85,19 @@ const calculateDuration = (stream: { duration?: number | null; startTime?: strin
     if (stream.duration && stream.duration > 0) {
         return formatDuration(stream.duration);
     }
-    
+
     // Calculate from startTime and endTime
     if (stream.startTime && stream.endTime) {
         const start = new Date(stream.startTime).getTime();
         const end = new Date(stream.endTime).getTime();
         const durationMs = end - start;
-        
+
         if (durationMs > 0) {
             const durationSeconds = Math.floor(durationMs / 1000);
             return formatDuration(durationSeconds);
         }
     }
-    
+
     return null;
 };
 
@@ -205,11 +207,21 @@ export default function MyStreamsPage() {
 
     return (
         <div className="p-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground">My Streams</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage and review your recorded stream replays
-                </p>
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-foreground">My Streams</h1>
+                    <p className="text-muted-foreground mt-2">
+                        Manage and review your recorded stream replays
+                    </p>
+                </div>
+                <CreateContentDialog>
+                    <div className="animated-border-btn" data-tour="get-live-btn">
+                        <Button className="flex items-center gap-2">
+                            <Plus className="w-4 h-4" />
+                            Get Live
+                        </Button>
+                    </div>
+                </CreateContentDialog>
             </div>
 
             {/* Filters Bar */}

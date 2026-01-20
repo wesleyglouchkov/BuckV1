@@ -14,7 +14,7 @@ export const streamService = {
         }
     },
 
-    // Get Viewer Token (Auth or Public/Guest)
+    // Get Viewer Token (Auth or Public/Guest) SAME AS getStreamToken
     getViewerToken: async (streamId: string, userId: string, role: 'publisher' | 'subscriber') => {
         try {
             let axios;
