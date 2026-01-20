@@ -7,17 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Video as VideoIcon, Users, Maximize2, ArrowRightFromLine, ArrowLeftToLine, Radio, DollarSign } from "lucide-react";
 import { ParticipantGrid, ParticipantTile } from "./AgoraComponents";
 import { toast } from "sonner";
-import { SignalingManager, SignalingMessage } from "@/lib/agora/agora-rtm";
+import { SignalingMessage } from "@/lib/agora/agora-rtm";
 import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { globalRTMSingleton as viewerRtmSingleton, resetRTMInstance } from "@/lib/agora/rtm-singleton";
-import Image from "next/image";
+import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import { TipButton } from "./TipButton";
 import { LoginRequiredDialog } from "./LoginRequiredDialog";
 import { SubscribeDialog } from "./subscribe/SubscribeDialog";
 import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
+import { useTrackToggle } from "@/hooks/live/use-track-toggle";
+import { useRTMClient } from "@/hooks/live/use-rtm-client";
+import { useParticipants } from "@/hooks/live/use-participants";
 
 
 
@@ -46,102 +48,51 @@ export interface AgoraViewerProps {
     isSubscribed?: boolean;
 }
 
-function StreamLogic({
-    appId,
-    channelName,
-    token,
-    rtmToken,
-    uid,
-    role,
-    hostUid,
-    session,
-    onLeave,
-    onAllowNavigation,
-    onRequestUpgrade,
-    isChatVisible,
-    onToggleChat,
-    userName,
-    userAvatar,
-    hostName,
-    hostAvatar,
-    hostDbId,
-    hostUsername,
-    hostSubscriptionPrice,
-    isSubscribed = false
-}: AgoraViewerProps) {
+function StreamLogic(props: AgoraViewerProps) {
+    const { appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onAllowNavigation, onRequestUpgrade, isChatVisible, onToggleChat, userName, userAvatar, hostName, hostAvatar, hostDbId, hostUsername, hostSubscriptionPrice, isSubscribed = false } = props;
     const router = useRouter();
 
-    // Track state - start enabled so tracks can be published
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-
-    // Track if user has clicked to enter stream (needed for audio autoplay)
+    // ========== STATE ==========
     const [hasEnteredStream, setHasEnteredStream] = useState(false);
+    const [isClientRoleSet, setIsClientRoleSet] = useState(false);
+    const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string; isRecording?: boolean }>>({});
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
+    const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
+    const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
 
-    // Stream controls tour - shows once per user (viewer vs host have separate keys)
-    const isHost = role === "publisher";
-    const { startTour } = useStreamControlsTour({ isHost, hasJoined: hasEnteredStream });
+    // ========== REFS ==========
+    const hostContainerRef = useRef<HTMLDivElement>(null);
 
-    // Trigger tour when user enters stream
-    useEffect(() => {
-        if (hasEnteredStream) {
-            // Small delay to ensure controls are rendered
-            const timer = setTimeout(() => {
-                startTour();
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [hasEnteredStream, startTour]);
-
+    // ========== AGORA HOOKS ==========
     const remoteUsers = useRemoteUsers();
-
-
-
-    // Local tracks - always create if role is publisher
     const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher");
-
     const client = useRTCClient();
-
-    // Track if client role has been set (needed before publishing in ILS mode)
-    const [isClientRoleSet, setIsClientRoleSet] = useState(false);
-
-    // Participant Media State Map - tracks hasVideo/hasAudio reactively via Agora events
     const participantMediaState = useParticipantMediaState(client);
+    const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
 
-    // Handle Agora client errors gracefully
-    useEffect(() => {
-        if (!client) return;
+    // ========== DERIVED VALUES ==========
+    const isHost = role === "publisher";
+    const canPublish = role === "publisher" && isClientRoleSet;
+    const viewerIsLoggedIn = isViewerLoggedIn(session);
+    const hostUser = hostUid ? remoteUsers.find(u => u.uid === hostUid) : remoteUsers[0];
+    const otherRemoteUsers = hostUid ? remoteUsers.filter(u => u.uid !== hostUid) : remoteUsers.slice(1);
 
-        const handleException = (event: { code: string; msg: string; uid?: string | number }) => {
-            // Log in development, suppress in production
-            if (process.env.NODE_ENV === 'development') {
-                console.warn('Agora client exception (handled gracefully):', event);
-            }
+    // ========== TOUR ==========
+    const { startTour } = useStreamControlsTour({ isHost, hasJoined: hasEnteredStream });
 
-            // Handle specific error codes
-            if (event.code === 'INVALID_REMOTE_USER') {
-                // User left the channel while we were trying to subscribe
-                // This is expected during rapid user join/leave scenarios
-                return;
-            }
-        };
+    // ========== AGORA CHANNEL EFFECTS ==========
+    // Join channel
+    useJoin({ appid: appId, channel: channelName, token: token, uid: uid });
 
-        client.on('exception', handleException);
-
-        return () => {
-            client.off('exception', handleException);
-        };
-    }, [client]);
-
-    // Manual subscription listener removed - now handled by useParticipantMediaState hook.
-
+    // Publish tracks if role is publisher AND client role has been set
+    usePublish([localCameraTrack, localMicrophoneTrack], canPublish);
 
     // Handle role switching - MUST complete before publishing in ILS mode
     useEffect(() => {
         if (client) {
             const targetRole = role === "publisher" ? "host" : "audience";
-            setIsClientRoleSet(false); // Reset while changing
+            setIsClientRoleSet(false);
             client.setClientRole(targetRole)
                 .then(() => {
                     console.log("Viewer: Client role set successfully to:", targetRole);
@@ -154,62 +105,46 @@ function StreamLogic({
         }
     }, [client, role]);
 
-    // Join channel
-    useJoin({
-        appid: appId,
-        channel: channelName,
-        token: token,
-        uid: uid,
-    });
-
-    // Sync RTM UID with actual RTC UID (Agora may assign a different UID after joining)
-    // Priority: RTC-assigned UID > prop UID
+    // Sync RTM UID with actual RTC UID
     useEffect(() => {
         if (client && client.uid) {
-            // Use the actual RTC UID that other participants see
             viewerRtmSingleton.currentUidRef.current = client.uid as number;
         } else {
-            // Fallback to prop UID before RTC connection is established
             viewerRtmSingleton.currentUidRef.current = uid;
         }
     }, [client, client?.uid, uid]);
 
-    // Publish tracks if role is publisher AND client role has been set
-    // In ILS mode, you MUST be a "host" before publishing
-    const canPublish = role === "publisher" && isClientRoleSet;
-    usePublish([localCameraTrack, localMicrophoneTrack], canPublish);
-
-    // Effect to enable/disable tracks based on state
+    // Handle Agora client errors gracefully
     useEffect(() => {
-        if (localCameraTrack) {
-            localCameraTrack.setEnabled(isVideoEnabled);
-        }
-    }, [localCameraTrack, isVideoEnabled]);
+        if (!client) return;
+        const handleException = (event: { code: string; msg: string; uid?: string | number }) => {
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('Agora client exception (handled gracefully):', event);
+            }
+            if (event.code === 'INVALID_REMOTE_USER') return;
+        };
+        client.on('exception', handleException);
+        return () => { client.off('exception', handleException); };
+    }, [client]);
 
+    // Trigger tour when user enters stream
     useEffect(() => {
-        if (localMicrophoneTrack) {
-            localMicrophoneTrack.setEnabled(isAudioEnabled);
+        if (hasEnteredStream) {
+            const timer = setTimeout(() => { startTour(); }, 1000);
+            return () => clearTimeout(timer);
         }
-    }, [localMicrophoneTrack, isAudioEnabled]);
+    }, [hasEnteredStream, startTour]);
 
-    // --- Signaling (RTM) Implementation using Singleton ---
-    const [isRTMReady, setIsRTMReady] = useState(false);
-    // Map to store user details: uid -> { name, avatar, isRecording }
-    const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string; isRecording?: boolean }>>({});
+    // Auto-show participants when user becomes a publisher
+    useEffect(() => {
+        if (role === "publisher") {
+            setIsParticipantsVisible(true);
+            setHasEnteredStream(true);
+        }
+    }, [role]);
 
-    // Cleanup RTM singleton
-    const cleanupViewerRTM = useCallback(() => {
-        console.log("RTM Viewer: Cleaning up singleton via resetRTMInstance");
-        resetRTMInstance(); // This handles logout and clears all state
-    }, []);
-
-    // Handle leaving the stream - cleanup and call parent onLeave
+    // Handle leaving the stream - used by RTM kick command
     const handleLeaveStream = useCallback(async () => {
-        console.log("Viewer: Leaving stream...");
-
-        // Cleanup RTM
-        cleanupViewerRTM();
-
         // Close local tracks if publisher
         if (role === "publisher") {
             localCameraTrack?.close();
@@ -225,7 +160,7 @@ function StreamLogic({
         }
 
         router.push('/explore');
-    }, [cleanupViewerRTM, client, localCameraTrack, localMicrophoneTrack, role, onLeave]);
+    }, [client, localCameraTrack, localMicrophoneTrack, role, router]);
 
     // Message handler for RTM commands from host - uses ref to avoid stale closure
     const handleRTMMessage = useCallback((msg: SignalingMessage) => {
@@ -283,108 +218,24 @@ function StreamLogic({
         }
     }, []);
 
-    useEffect(() => {
-        if (!appId || !uid || !channelName || !rtmToken) {
-            console.log("RTM Viewer: Missing required params");
-            return;
-        }
+    // --- Signaling (RTM) Implementation using Hook ---
+    const { isRTMReady, cleanupRTM } = useRTMClient({
+        appId,
+        channelName,
+        uid,
+        rtmToken,
+        userName,
+        userAvatar,
+        role: role === 'publisher' ? 'host' : 'viewer',
+        onMessage: handleRTMMessage,
+        onPresence: handleRTMPresence
+    });
 
-        // If singleton already exists for this channel and user, reuse it
-        if (viewerRtmSingleton.instance && viewerRtmSingleton.channelName === channelName && viewerRtmSingleton.uid === uid) {
-            console.log("RTM Viewer: Reusing existing singleton instance");
-            // Re-attach callbacks to current instance (important for React state closures)
-            viewerRtmSingleton.instance.onMessage(handleRTMMessage);
-            viewerRtmSingleton.instance.onPresence(handleRTMPresence);
+    // Store cleanupRTM in ref for stable access in finalHandleLeaveStream
+    const cleanupRTMRef = useRef(cleanupRTM);
+    useEffect(() => { cleanupRTMRef.current = cleanupRTM; }, [cleanupRTM]);
 
-            // Announce self again to be sure
-            if (userName) {
-                viewerRtmSingleton.instance.setUserPresence(userName, userAvatar);
-            }
-
-            setIsRTMReady(true);
-            return;
-        }
-
-        // If already initializing, just subscribe to updates
-        if (viewerRtmSingleton.isInitializing) {
-            console.log("RTM Viewer: Already initializing, subscribing to updates");
-            const callback = (ready: boolean) => setIsRTMReady(ready);
-            viewerRtmSingleton.subscribers.add(callback);
-            return () => {
-                viewerRtmSingleton.subscribers.delete(callback);
-            };
-        }
-
-        // Start initialization
-        viewerRtmSingleton.isInitializing = true;
-        viewerRtmSingleton.channelName = channelName;
-        viewerRtmSingleton.uid = uid;
-
-        const initRTM = async () => {
-            try {
-                // Double-check no instance was created while we were waiting
-                if (viewerRtmSingleton.instance) {
-                    console.log("RTM Viewer: Instance already exists, skipping");
-                    viewerRtmSingleton.instance.onMessage(handleRTMMessage);
-                    viewerRtmSingleton.instance.onPresence(handleRTMPresence);
-                    setIsRTMReady(true);
-                    viewerRtmSingleton.isInitializing = false;
-                    return;
-                }
-
-                console.log("RTM Viewer Init:", { channelName, uid, role });
-                const sm = new SignalingManager(appId, uid, channelName);
-
-                // Setup message listener FIRST
-                sm.onMessage(handleRTMMessage);
-                sm.onPresence(handleRTMPresence);
-
-                await sm.login(rtmToken);
-
-                console.log("RTM Viewer: Login successful, signaling ready");
-
-                // CRITICAL: Mark ready IMMEDIATELY after login/subscribe
-                viewerRtmSingleton.instance = sm;
-                viewerRtmSingleton.isInitializing = false;
-                setIsRTMReady(true);
-
-                // Notify all subscribers
-                viewerRtmSingleton.subscribers.forEach(cb => cb(true));
-
-                // Set initial presence in the background
-                if (userName) {
-                    sm.setUserPresence(userName, userAvatar).catch(err => {
-                        console.warn("RTM Viewer: Failed to set initial background presence:", err);
-                    });
-                }
-            } catch (err: any) {
-                console.warn("RTM Viewer: Login failed:", err?.message || err);
-                viewerRtmSingleton.isInitializing = false;
-                viewerRtmSingleton.subscribers.forEach(cb => cb(false));
-            }
-        };
-
-        initRTM();
-
-        // Don't cleanup on Strict Mode unmount - singleton persists
-    }, [appId, uid, channelName, rtmToken, role, handleRTMMessage, handleRTMPresence, userName, userAvatar]);
-
-    // Identify Host and other participants
-    // If hostUid is provided, use it. Otherwise, assume the first remote user is the host.
-    const hostUser = hostUid
-        ? remoteUsers.find(u => u.uid === hostUid)
-        : remoteUsers[0];
-
-    const otherRemoteUsers = hostUid
-        ? remoteUsers.filter(u => u.uid !== hostUid)
-        : remoteUsers.slice(1);
-
-    // Check if viewer is logged in
-    const viewerIsLoggedIn = isViewerLoggedIn(session);
-    // Ref for host video container for browser fullscreen
-    const hostContainerRef = useRef<HTMLDivElement>(null);
-
-    // Handle browser fullscreen for host
+    // Handle browser fullscreen for host video
     const handleHostFullscreen = () => {
         if (hostContainerRef.current) {
             if (document.fullscreenElement) {
@@ -395,46 +246,45 @@ function StreamLogic({
         }
     };
 
-    // Prepare participants list for the grid
-    // Only show other participants (non-host users) if the viewer is logged in
-    const participants = [
-        ...(role === "publisher" ? [{
-            uid,
-            name: userName || "You",
-            videoTrack: localCameraTrack || undefined,
-            audioTrack: localMicrophoneTrack || undefined,
-            isLocal: true,
-            cameraOn: isVideoEnabled,
-            micOn: isAudioEnabled,
-            agoraUser: undefined
-        }] : []),
+    // Final leave handler with RTM cleanup (used by UI Leave button)
+    const finalHandleLeaveStream = useCallback(async () => {
+        cleanupRTMRef.current(); // Use ref to avoid circular dependency or ordering issues
 
+        // Close local tracks if publisher
+        if (role === "publisher") {
+            localCameraTrack?.close();
+            localMicrophoneTrack?.close();
+        }
 
-        ...(viewerIsLoggedIn ? otherRemoteUsers.map(user => {
-            // Look up name in RTM map
-            const odor = user.uid.toString();
-            const rtmUser = userNames[odor];
-            // Priority: RTM Name -> "User [ID]"
-            const displayName = rtmUser?.name && rtmUser.name !== "undefined" ? rtmUser.name : `User ${user.uid}`;
-            // Use reactive state from event listeners, falling back to SDK properties
-            const mediaState = participantMediaState[odor];
+        // Leave Agora channel
+        try {
+            await client.leave();
+            console.log("Viewer: Left Agora channel");
+        } catch (err) {
+            console.warn("Viewer: Error leaving channel:", err);
+        }
 
-            return {
-                uid: user.uid,
-                name: displayName,
-                videoTrack: user.videoTrack,
-                audioTrack: user.audioTrack,
-                isLocal: false,
-                cameraOn: mediaState?.hasVideo ?? user.hasVideo,
-                micOn: mediaState?.hasAudio ?? user.hasAudio,
-                agoraUser: user
-            };
-        }) : [])
-    ];
+        router.push('/explore');
+    }, [client, localCameraTrack, localMicrophoneTrack, role, router]);
 
-    // --- Join / Login Logic ---
-    const [showLoginDialog, setShowLoginDialog] = useState(false);
-    const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
+    // ========== PARTICIPANTS ==========
+
+    const allParticipants = useParticipants({
+        uid,
+        userName,
+        localCameraTrack,
+        localMicrophoneTrack,
+        isVideoEnabled,
+        isAudioEnabled,
+        remoteUsers: otherRemoteUsers,
+        userNames,
+        participantMediaState,
+        includeLocal: role === 'publisher'
+    });
+
+    // Filter participants for visibility based on login status
+    const participants = viewerIsLoggedIn ? allParticipants : allParticipants.filter(p => p.isLocal);
+
 
     const handleJoinRequest = () => {
         if (viewerIsLoggedIn) {
@@ -447,8 +297,6 @@ function StreamLogic({
             setShowLoginDialog(true);
         }
     };
-
-
 
     // Handle entering stream - this provides user interaction for audio
     const handleEnterStream = async () => {
@@ -467,16 +315,6 @@ function StreamLogic({
             }
         }
     };
-
-    const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
-
-    // Auto-show participants when user becomes a publisher (joins stream)
-    useEffect(() => {
-        if (role === "publisher") {
-            setIsParticipantsVisible(true);
-            setHasEnteredStream(true); // Publishers have already interacted
-        }
-    }, [role]);
 
 
     return (
@@ -688,7 +526,7 @@ function StreamLogic({
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleLeaveStream} className="bg-destructive hover:bg-destructive/90">
+                            <AlertDialogAction onClick={finalHandleLeaveStream} className="bg-destructive hover:bg-destructive/90">
                                 Leave
                             </AlertDialogAction>
                         </AlertDialogFooter>
