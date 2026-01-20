@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Video, Calendar, Radio } from "lucide-react";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Video, Calendar, Radio, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import cuid from "cuid";
@@ -34,6 +34,10 @@ export function CreateContentDialog({ children }: { children: React.ReactNode })
             >
                 <DialogHeader>
                     <DialogTitle className="text-xl text-center">Create New Content</DialogTitle>
+                    {/* CLOSE ICON */}
+                    <DialogClose className="absolute right-4 top-4 cursor-pointer font-bold hover:scale-120 transition-all" onClick={() => setOpen(false)}>
+                        <X className="w-4 h-4" />
+                    </DialogClose>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4 py-4">
                     <Button
