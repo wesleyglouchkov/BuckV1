@@ -266,7 +266,7 @@ export function StreamScheduled({ startTime }: { startTime: string }) {
                 </div>
 
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold">Upcoming Stream</h2>
+                    <h2 className="text-2xl font-bold dark:text-white">Upcoming Stream</h2>
                     <p className="text-muted-foreground">
                         This stream is scheduled to start on
                     </p>
