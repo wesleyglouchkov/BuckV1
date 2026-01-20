@@ -353,7 +353,7 @@ export default function ModerationPage() {
                                             </div>
 
                                             {/* Reporter Comment */}
-                                            <div className="p-5 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-xl border border-amber-300/50 dark:border-amber-700/50 shadow-sm">
+                                            <div className="p-5 bg-linear-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-xl border border-amber-300/50 dark:border-amber-700/50 shadow-sm">
                                                 <h3 className="text-xs font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100 mb-3">Reporter Comment</h3>
                                                 <p className="text-amber-900 dark:text-amber-200 leading-relaxed text-base">{selectedMessage.reporterComment}</p>
                                             </div>
