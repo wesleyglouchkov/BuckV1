@@ -28,6 +28,10 @@ export default function CreatorLivePage() {
     const params = useParams();
     const router = useRouter();
     const urlStreamId = params.streamId as string;
+
+    // Validate CUID format (starts with 'c' and is 25 chars)
+    const isValidCuid = (id: string) => /^c[a-z0-9]{24}$/.test(id);
+
     const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
 
     // ========== REFS ==========
@@ -50,11 +54,23 @@ export default function CreatorLivePage() {
     const [isStreamExpired, setIsStreamExpired] = useState(false);
     const [shareUrl, setShareUrl] = useState("");
     const [isRTMReady, setIsRTMReady] = useState(false);
+    const [streamError, setStreamError] = useState<string | null>(null);
 
     // ========== DERIVED VALUES ==========
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
 
     // ========== EFFECTS ==========
+
+    // Validate stream ID format
+    useEffect(() => {
+        if (urlStreamId && !isValidCuid(urlStreamId)) {
+            setStreamError("Invalid stream ID format");
+            toast.error("Invalid stream ID format");
+            setTimeout(() => {
+                router.push("/creator/dashboard");
+            }, 2000);
+        }
+    }, [urlStreamId, router]);
 
     // Sync ref with state
     useEffect(() => {
@@ -103,7 +119,17 @@ export default function CreatorLivePage() {
     useEffect(() => {
         if (!streamResponse) return;
 
-        if (streamResponse.success && streamResponse.stream) {
+        // Handle stream not found or error response
+        if (!streamResponse.success) {
+            setStreamError(streamResponse.message || "Stream not found");
+            toast.error(streamResponse.message || "Stream not found");
+            setTimeout(() => {
+                router.push("/creator/dashboard");
+            }, 2000);
+            return;
+        }
+
+        if (streamResponse.stream) {
             setStreamTitle(streamResponse.stream.title || "");
             setStreamType(streamResponse.stream.workoutType || "");
 
@@ -142,7 +168,7 @@ export default function CreatorLivePage() {
                 setIsRecording(true);
             }
         }
-    }, [streamResponse]);
+    }, [streamResponse, router]);
 
     // ========== HANDLERS ==========
 
@@ -248,13 +274,20 @@ export default function CreatorLivePage() {
                     if (tokenResponse.rtmToken) {
                         setRtmToken(tokenResponse.rtmToken);
                     }
+                    setIsLive(true);
+                    toast.success("You're live! 🎬");
+                } else {
+                    // Token request failed (stream not found or other error)
+                    toast.error(tokenResponse.message || "Stream not found");
+                    setTimeout(() => {
+                        router.push("/creator/dashboard");
+                    }, 2000);
                 }
-                setIsLive(true);
-                toast.success("You're live! 🎬");
             } else {
                 toast.error("Something went wrong. Please try again.")
             }
-        } catch (error: unknown) {
+        }
+        catch (error: unknown) {
             toast.error("Failed to start stream. Please try again.");
             console.error("Go Live Error:", error);
         } finally {
@@ -316,13 +349,25 @@ export default function CreatorLivePage() {
         return <StreamExpiredCard />;
     }
 
-    // Show loading while fetching stream data
-    if (!streamResponse) {
+    // Show loading while fetching stream data (but not if there's an error)
+    if (!streamResponse && !streamError) {
         return (
             <div className="fixed inset-0 z-100 bg-background flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader />
                     <p className="text-lg font-medium animate-pulse dark:text-white">Loading stream...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state while redirecting
+    if (streamError) {
+        return (
+            <div className="fixed inset-0 z-100 bg-background flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <p className="text-lg font-medium text-destructive">{streamError}</p>
+                    <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
                 </div>
             </div>
         );

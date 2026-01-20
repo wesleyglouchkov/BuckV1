@@ -165,8 +165,12 @@ export const creatorService = {
       });
       return response.data;
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      throw new Error(err.response?.data?.message || 'Failed to get stream token');
+      const err = error as { response?: { data?: { message?: string; success?: boolean } } };
+      // Return error response instead of throwing so caller can handle gracefully
+      if (err.response?.data) {
+        return err.response.data;
+      }
+      return { success: false, message: 'Failed to get stream token' };
     }
   },
 
