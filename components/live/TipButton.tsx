@@ -17,6 +17,8 @@ import { LoginRequiredDialog } from "./LoginRequiredDialog";
 import { Theme, getTheme } from "@/lib/theme";
 import { useEffect } from "react";
 import { mutate } from "swr";
+import { getRTMInstance } from "@/lib/agora/rtm-singleton";
+import { SignalingMessage } from "@/lib/agora/agora-rtm";
 
 // Initialize Stripe outside component to avoid recreation
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -192,12 +194,29 @@ export function TipButton({
     const handleSuccess = async () => {
         setPaymentStep('success');
 
-        // Send chat message
+        // Send chat message and broadcast via RTM for real-time delivery
         if (livestreamId && session?.user?.name) {
             const message = `💰 Tipped $${amount}! 🚀`;
+            const timestamp = Date.now();
             try {
-                // We use the direct service, but in a real app this might trigger from webhook to backend to socket
-                // For immediate feedback we send it here
+                // 1. Broadcast via RTM for instant delivery to all participants (including host)
+                const rtmManager = getRTMInstance();
+                if (rtmManager && rtmManager.isConnected()) {
+                    const rtmMessage: SignalingMessage = {
+                        type: "CHAT_MESSAGE",
+                        payload: {
+                            userId: session.user.id || "anonymous",
+                            username: session.user.name,
+                            message: message,
+                            timestamp,
+                            isCreator: false, // Tippers are always viewers/members
+                        },
+                    };
+                    await rtmManager.sendMessage(rtmMessage);
+                    console.log("Tip message broadcast via RTM");
+                }
+
+                // 2. Persist to database for history
                 await streamService.sendChatMessage(livestreamId, message);
 
                 // Revalidate chat history so it shows up for the sender
