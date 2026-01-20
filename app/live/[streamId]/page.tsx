@@ -81,11 +81,17 @@ function CreatorStreamsSection({
 }
 
 export default function LiveStreamPage() {
+    // ========== HOOKS ==========
     const { data: session, status } = useSession();
     const params = useParams();
     const router = useRouter();
     const streamId = params.streamId as string;
 
+    // ========== REFS ==========
+    const isNavigatingAway = useRef(false);
+    const hasPushedState = useRef(false);
+
+    // ========== STATE ==========
     const [streamDetails, setStreamDetails] = useState<StreamDetails | null>(null);
     const [tokenData, setTokenData] = useState<TokenData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -96,6 +102,8 @@ export default function LiveStreamPage() {
     const [reportDialogOpen, setReportDialogOpen] = useState(false);
     const [rtmReady, setRtmReady] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
+
+    // ========== EFFECTS ==========
 
     // Initial chat state based on screen size
     useEffect(() => {
@@ -199,8 +207,7 @@ export default function LiveStreamPage() {
         fetchStreamDetails();
     }, [streamId, session?.user?.id, router, status]);
 
-    const isNavigatingAway = useRef(false);
-    const hasPushedState = useRef(false);
+
 
     // Warn user before leaving/refreshing when watching live stream
     useEffect(() => {
@@ -241,6 +248,8 @@ export default function LiveStreamPage() {
             window.removeEventListener("popstate", handlePopState);
         };
     }, [hasJoined, streamDetails?.isLive, router]);
+
+    // ========== HANDLERS ==========
 
     // Handle consent to upgrade to publisher (camera & mic)
     const handleConsent = async (participateWithVideo: boolean) => {
@@ -294,7 +303,7 @@ export default function LiveStreamPage() {
         isNavigatingAway.current = true;
     };
 
-
+    // ========== RENDER ==========
 
     if (status === "loading" || isLoading) {
         return (

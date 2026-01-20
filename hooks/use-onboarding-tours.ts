@@ -9,6 +9,7 @@ type TourGuideClientType = any;
 const STRIPE_CONNECT_TOUR_KEY = "buck-stripe-connect-tour-completed";
 const HOST_STREAM_CONTROLS_TOUR_KEY = "buck-host-stream-controls-tour-completed";
 const VIEWER_STREAM_CONTROLS_TOUR_KEY = "buck-viewer-stream-controls-tour-completed";
+const GET_LIVE_TOUR_KEY = "buck-get-live-tour-completed";
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -36,6 +37,7 @@ export const resetBuckTours = (): void => {
         localStorage.removeItem(STRIPE_CONNECT_TOUR_KEY);
         localStorage.removeItem(HOST_STREAM_CONTROLS_TOUR_KEY);
         localStorage.removeItem(VIEWER_STREAM_CONTROLS_TOUR_KEY);
+        localStorage.removeItem(GET_LIVE_TOUR_KEY);
         localStorage.removeItem("tg_tours_complete");
     } catch {
         // Ignore localStorage errors
@@ -550,6 +552,163 @@ function buildStreamControlsSteps(state: StreamControlsTourState) {
             order: 4,
         });
     }
+
+    return steps;
+}
+
+// ============================================================================
+// GET LIVE TOUR (For Creator Dashboard)
+// ============================================================================
+
+export const useGetLiveTour = () => {
+    const tourRef = useRef<TourGuideClientType | null>(null);
+    const isStartingRef = useRef(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Inject styles and cleanup on unmount
+    useEffect(() => {
+        injectTourStyles();
+        // Dynamically import CSS on client side
+        import("@sjmc11/tourguidejs/dist/css/tour.min.css");
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+            if (tourRef.current) {
+                tourRef.current.exit();
+                tourRef.current = null;
+            }
+            cleanupTourDOM();
+        };
+    }, []);
+
+    const startTour = useCallback(async () => {
+        if (isStartingRef.current || hasTourBeenCompleted(GET_LIVE_TOUR_KEY)) {
+            return;
+        }
+
+        const steps = buildGetLiveSteps();
+        if (steps.length === 0) return;
+
+        isStartingRef.current = true;
+        cleanupTourDOM();
+
+        // Dynamic import of TourGuideClient
+        const { TourGuideClient } = await import("@sjmc11/tourguidejs");
+
+        const tour = new TourGuideClient({
+            backdropColor: "rgba(0, 0, 0, 0.75)",
+            targetPadding: 12,
+            dialogWidth: 380,
+            dialogMaxWidth: 450,
+            nextLabel: "Next →",
+            prevLabel: "← Back",
+            finishLabel: "Got it!",
+            showStepDots: true,
+            showStepProgress: true,
+            progressBar: "hsl(var(--primary))",
+            exitOnClickOutside: false,
+            exitOnEscape: true,
+            keyboardControls: true,
+            autoScroll: true,
+            autoScrollSmooth: true,
+            dialogAnimate: true,
+            backdropAnimate: true,
+            completeOnFinish: false,
+            dialogClass: "buck-tour-dialog",
+            steps,
+        });
+
+        tourRef.current = tour;
+
+        // When moving from step 0 (Get Live button) to step 1 (Go Live option),
+        // we need to click the button to open the dialog first
+        tour.onBeforeStepChange(async () => {
+            const currentStep = tour.activeStep;
+            const nextStep = currentStep + 1;
+
+            // Moving from step 0 to step 1: open the dialog
+            if (currentStep === 0 && nextStep === 1) {
+                const getLiveBtn = document.querySelector("[data-tour='get-live-btn']") as HTMLElement;
+                if (getLiveBtn) {
+                    getLiveBtn.click();
+                    // Wait for dialog to open and render
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+        });
+
+        tour.onFinish(() => {
+            markTourCompleted(GET_LIVE_TOUR_KEY);
+            isStartingRef.current = false;
+            cleanupTourDOM();
+        });
+
+        tour.onAfterExit(() => {
+            isStartingRef.current = false;
+            cleanupTourDOM();
+        });
+
+        timeoutRef.current = setTimeout(() => {
+            if (tourRef.current === tour) {
+                tour.start();
+            }
+        }, 500);
+    }, []);
+
+    return {
+        startTour,
+        resetTour: () => {
+            try {
+                localStorage.removeItem(GET_LIVE_TOUR_KEY);
+            } catch { }
+        },
+        isCompleted: hasTourBeenCompleted(GET_LIVE_TOUR_KEY),
+    };
+};
+
+function buildGetLiveSteps() {
+    const contentStyle = "color: inherit; font-size: 15px; line-height: 1.6;";
+
+    const steps = [];
+
+    steps.push({
+        title: "Ready to Go Live? 🎬",
+        content: `
+            <div style="${contentStyle}">
+                <p>Click the <strong>Get Live</strong> button to start creating content!</p>
+                <p style="margin-top: 8px; color: #6b7280;">You can go live immediately or schedule for later.</p>
+            </div>
+        `,
+        target: "[data-tour='get-live-btn']",
+        order: 0,
+    });
+
+    steps.push({
+        title: "Go Live Instantly 🔴",
+        content: `
+            <div style="${contentStyle}">
+                <p>Choose <strong>Go Live</strong> to start streaming immediately.</p>
+                <p style="margin-top: 8px; color: #6b7280;">You'll be taken to the preview screen to set up your stream.</p>
+            </div>
+        `,
+        target: "[data-tour='go-live-now-btn']",
+        order: 1,
+    });
+
+    steps.push({
+        title: "Schedule for Later 📅",
+        content: `
+            <div style="${contentStyle}">
+                <p>Choose <strong>Schedule</strong> to plan your stream in advance.</p>
+                <p style="margin-top: 8px; color: #6b7280;">Let your followers know when to tune in!</p>
+            </div>
+        `,
+        target: "[data-tour='schedule-stream-btn']",
+        order: 2,
+    });
 
     return steps;
 }

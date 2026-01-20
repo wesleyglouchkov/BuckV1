@@ -28,7 +28,10 @@ export function CreateContentDialog({ children }: { children: React.ReactNode })
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-card border-border border text-card-foreground">
+            <DialogContent
+                className="sm:max-w-md bg-card border-border border text-card-foreground"
+                onInteractOutside={(e) => e.preventDefault()}
+            >
                 <DialogHeader>
                     <DialogTitle className="text-xl text-center">Create New Content</DialogTitle>
                 </DialogHeader>
@@ -37,6 +40,7 @@ export function CreateContentDialog({ children }: { children: React.ReactNode })
                         variant="outline"
                         className="h-32 flex flex-col items-center justify-center gap-3 hover:bg-accent/50 border-input transition-all"
                         onClick={handleGoLiveNow}
+                        data-tour="go-live-now-btn"
                     >
                         <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/20 text-red-500">
                             <Radio className="w-6 h-6" />
@@ -48,6 +52,7 @@ export function CreateContentDialog({ children }: { children: React.ReactNode })
                         variant="outline"
                         className="h-32 flex flex-col items-center justify-center gap-3 hover:bg-accent/50 border-input transition-all"
                         onClick={handleSchedule}
+                        data-tour="schedule-stream-btn"
                     >
                         <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-500">
                             <Calendar className="w-6 h-6" />

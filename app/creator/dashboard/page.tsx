@@ -19,6 +19,7 @@ import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
 import { Loader2 } from "lucide-react";
+import { useGetLiveTour } from "@/hooks/use-onboarding-tours";
 
 export default function CreatorDashboard() {
   const { data: session } = useSession();
@@ -26,6 +27,9 @@ export default function CreatorDashboard() {
   const [selectedReplay, setSelectedReplay] = useState<any>(null);
   const [signedReplayUrl, setSignedReplayUrl] = useState<string>("");
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+
+  // Get Live Tour
+  const { startTour: startGetLiveTour } = useGetLiveTour();
 
   const handleReplayClick = async (stream: any) => {
     setSelectedReplay(stream);
@@ -83,6 +87,17 @@ export default function CreatorDashboard() {
     return () => observer.disconnect();
   }, []);
 
+  // Start Get Live tour after dashboard loads
+  useEffect(() => {
+    if (!dashboardLoading && dashboardData) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        startGetLiveTour();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [dashboardLoading, dashboardData, startGetLiveTour]);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -110,7 +125,7 @@ export default function CreatorDashboard() {
           <p className="text-muted-foreground">Creator overview</p>
         </div>
         <CreateContentDialog>
-          <div className="animated-border-btn">
+          <div className="animated-border-btn" data-tour="get-live-btn">
             <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Get Live

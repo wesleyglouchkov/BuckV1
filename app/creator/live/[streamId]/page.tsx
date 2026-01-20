@@ -23,40 +23,45 @@ import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
 
 export default function CreatorLivePage() {
+    // ========== HOOKS ==========
     const { data: session, status } = useSession();
     const params = useParams();
     const router = useRouter();
     const urlStreamId = params.streamId as string;
     const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
 
-    // Stream state
+    // ========== REFS ==========
+    const isLiveRef = useRef(false);
+
+    // ========== STATE ==========
     const [streamTitle, setStreamTitle] = useState("");
     const [streamType, setStreamType] = useState("");
     const [isLive, setIsLive] = useState(false);
     const [isGoingLive, setIsGoingLive] = useState(false);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-    const [agoraToken, setAgoraToken] = useState<string>(""); // Token from backend for Agora RTC
-    const [rtmToken, setRtmToken] = useState<string>(""); // Separate token for RTM signaling
+    const [agoraToken, setAgoraToken] = useState<string>("");
+    const [rtmToken, setRtmToken] = useState<string>("");
     const [uid, setUid] = useState<number>(0);
-    const [isStopped, setIsStopped] = useState(false); // Stop camera/stream before navigation
+    const [isStopped, setIsStopped] = useState(false);
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [streamEndLoaderState, setStreamEndLoaderState] = useState(false);
     const [recordingDetails, setRecordingDetails] = useState<{ resourceId: string; sid: string; uid: string } | null>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isStreamExpired, setIsStreamExpired] = useState(false);
     const [shareUrl, setShareUrl] = useState("");
-    const [isRTMReady, setIsRTMReady] = useState(false); // Track RTM readiness from AgoraLiveStream
+    const [isRTMReady, setIsRTMReady] = useState(false);
 
-    // Ref to track live state synchronously for event handlers
-    const isLiveRef = useRef(false);
+    // ========== DERIVED VALUES ==========
+    const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
+
+    // ========== EFFECTS ==========
 
     // Sync ref with state
     useEffect(() => {
         isLiveRef.current = isLive;
     }, [isLive]);
 
-
-
+    // Initial chat visibility and share URL
     useEffect(() => {
         if (typeof window !== 'undefined' && window.innerWidth < 1024) {
             setIsChatVisible(false);
@@ -77,7 +82,6 @@ export default function CreatorLivePage() {
             // ignore storage errors
         }
     }, [urlStreamId]);
-    const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
 
     // Data fetching with SWR
     const fetcher = useCallback(async ([, id, userId]: [string, string, string]) => {
@@ -140,6 +144,8 @@ export default function CreatorLivePage() {
         }
     }, [streamResponse]);
 
+    // ========== HANDLERS ==========
+
     // Handle stream end
     const handleStreamEnd = useCallback(async () => {
         // Only run stream end logic if they were actually live
@@ -179,10 +185,6 @@ export default function CreatorLivePage() {
     }, [isLive, urlStreamId, router]);
 
 
-
-    // Warn user before leaving/refreshing when live OR handle browser back button
-    // NOTE: We no longer use sendBeacon for cleanup. The backend's heartbeat monitor
-    // will automatically detect when the host stops sending heartbeats and end the stream.
     useEffect(() => {
         // Handle page reload/close - show warning to user
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -280,10 +282,8 @@ export default function CreatorLivePage() {
             .catch(() => setHasPermission(false));
     };
 
+    // ========== RENDER ==========
 
-
-
-    // Show loading only for auth
     if (status === "loading") {
         return (
             <div className="bg-background p-6">
