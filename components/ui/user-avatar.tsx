@@ -78,7 +78,6 @@ export function UserAvatar({
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100px, 200px"
-                    unoptimized
                     onError={() => setHasError(true)}
                 />
             </div>
