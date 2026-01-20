@@ -263,3 +263,62 @@ export function useCreatorStreams(params: {
         mutate,
     };
 }
+
+// Scheduled Stream Type for public view
+export interface ScheduledStream {
+    id: string;
+    title: string;
+    thumbnail: string | null;
+    workoutType?: string;
+    startTime: string;
+    createdAt: string;
+    creator: {
+        id: string;
+        name: string;
+        username: string;
+        avatar: string | null;
+    };
+}
+
+interface ScheduledStreamsResponse {
+    success: boolean;
+    streams: ScheduledStream[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+}
+
+// Hook: Fetch Creator's Scheduled Streams (Public - Future Only)
+export function useCreatorScheduledStreams(params: {
+    creatorId: string | null;
+    page?: number;
+    limit?: number;
+}) {
+    const { creatorId, page = 1, limit = 10 } = params;
+
+    const { data, error, isLoading, isValidating, mutate } = useSWR<ScheduledStreamsResponse>(
+        creatorId ? [`/streams/creator/${creatorId}/scheduled-streams`, creatorId, page, limit] : null,
+        () => streamService.getCreatorScheduledStreams({
+            creatorId: creatorId!,
+            page,
+            limit
+        }),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 30000,
+        }
+    );
+
+    return {
+        streams: data?.streams || [],
+        pagination: data?.pagination || null,
+        isLoading,
+        isValidating,
+        isError: !!error,
+        error,
+        mutate,
+    };
+}

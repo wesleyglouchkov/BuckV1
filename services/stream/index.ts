@@ -154,5 +154,23 @@ export const streamService = {
             const err = error as { response?: { data?: { message?: string } } };
             throw new Error(err.response?.data?.message || 'Failed to get creator streams');
         }
+    },
+
+    // Get Creator Scheduled Streams (Public)
+    getCreatorScheduledStreams: async (params: {
+        creatorId: string;
+        page?: number;
+        limit?: number;
+    }) => {
+        try {
+            const { creatorId, ...queryParams } = params;
+            const response = await axiosInstance.get(`/streams/creator/${creatorId}/scheduled-streams`, {
+                params: queryParams
+            });
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            throw new Error(err.response?.data?.message || 'Failed to get scheduled streams');
+        }
     }
 };

@@ -257,14 +257,14 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
 
             <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
 
-            {/* Bio Section - Inside ChannelInfo */}
+            {/* Bio Section - Inside ChannelInfo
             {creator.bio && (
                 <div className="mt-4 pt-4 border-t border-border/50">
                     <p className="text-sm text-muted-foreground">
                         {creator.bio}
                     </p>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }
