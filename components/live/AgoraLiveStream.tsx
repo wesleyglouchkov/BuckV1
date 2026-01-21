@@ -42,15 +42,17 @@ interface AgoraLiveStreamProps {
     setIsRecording: (isRecording: boolean) => void;
     recordingDetails: { resourceId: string; sid: string; uid: string } | null;
     setRecordingDetails: (details: { resourceId: string; sid: string; uid: string } | null) => void;
+    startTime?: string | null; // ISO string of when stream started
 }
 
 
 
 // Component that joins and publishes when live
-function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onStreamEnd, onStreamEndLoaderStart, onRecordingReady, onRTMReady, isChatVisible, setIsChatVisible, streamTitle, streamType, userName, userAvatar, isRecording, setIsRecording, recordingDetails, setRecordingDetails }: Omit<AgoraLiveStreamProps, "isLive">) {
+function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onStreamEnd, onStreamEndLoaderStart, onRecordingReady, onRTMReady, isChatVisible, setIsChatVisible, streamTitle, streamType, userName, userAvatar, isRecording, setIsRecording, recordingDetails, setRecordingDetails, startTime }: Omit<AgoraLiveStreamProps, "isLive">) {
     // ========== STATE ==========
     const [userNames, setUserNames] = useState<Record<string, { name: string; avatar?: string }>>({});
     const [isHostJoined, setIsHostJoined] = useState(false);
+    const [elapsedTime, setElapsedTime] = useState<string>("00:00");
 
     // ========== REFS ==========
     const isStreamEndingRef = useRef(false);
@@ -76,6 +78,35 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
             return () => clearTimeout(timer);
         }
     }, [isHostJoined, startTour]);
+
+    // Stream timer - calculate and update elapsed time every second
+    useEffect(() => {
+        if (!startTime) return;
+
+        const calculateElapsed = () => {
+            const start = new Date(startTime).getTime();
+            const now = Date.now();
+            const diffMs = Math.max(0, now - start);
+
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            if (hours > 0) {
+                setElapsedTime(`${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+            } else {
+                setElapsedTime(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+            }
+        };
+
+        // Calculate immediately
+        calculateElapsed();
+
+        // Update every second
+        const interval = setInterval(calculateElapsed, 1000);
+        return () => clearInterval(interval);
+    }, [startTime]);
 
     // 2. Ensure client role is set to host for the creator BEFORE joining
     useEffect(() => {
@@ -142,8 +173,28 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
         }
     }, []);
 
+    // RTM Message Handler - listen for USER_ANNOUNCE messages from viewers
+    const handleRTMMessage = useCallback((msg: { type: string; payload: any }) => {
+        if (msg.type === "USER_ANNOUNCE" && msg.payload) {
+            const { userId, name, avatar } = msg.payload;
+            if (userId && name) {
+                setUserNames(prev => {
+                    const existing = prev[userId.toString()];
+                    return {
+                        ...prev,
+                        [userId.toString()]: {
+                            ...existing,
+                            name,
+                            avatar
+                        }
+                    };
+                });
+            }
+        }
+    }, []);
+
     // --- Signaling (RTM) Implementation using Hook ---
-    const { isRTMReady, cleanupRTM } = useRTMClient({
+    const { isRTMReady, cleanupRTM, fetchUsersFromChannelMetadata } = useRTMClient({
         appId,
         channelName,
         uid,
@@ -151,6 +202,7 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
         userName,
         userAvatar,
         role: 'host',
+        onMessage: handleRTMMessage,
         onPresence: handleRTMPresence
     });
 
@@ -158,6 +210,36 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
     useEffect(() => {
         onRTMReady?.(isRTMReady);
     }, [isRTMReady, onRTMReady]);
+
+    // Fetch user names from channel metadata when RTM is ready (handles host refresh)
+    useEffect(() => {
+        if (isRTMReady && rtmSingleton.instance) {
+            // Fetch persisted user names from channel metadata
+            fetchUsersFromChannelMetadata().then(usersMap => {
+                if (usersMap.size > 0) {
+                    setUserNames(prev => {
+                        const updated = { ...prev };
+                        usersMap.forEach((userData, odUserId) => {
+                            if (!updated[odUserId]?.name || updated[odUserId]?.name?.startsWith("User ")) {
+                                updated[odUserId] = {
+                                    ...updated[odUserId],
+                                    name: userData.name,
+                                    avatar: userData.avatar
+                                };
+                            }
+                        });
+                        return updated;
+                    });
+                }
+            }).catch(() => { });
+
+            // Also request viewers to announce themselves (fallback)
+            rtmSingleton.instance.sendMessage({
+                type: "HOST_REQUEST_ANNOUNCE",
+                payload: { hostId: uid }
+            }).catch(() => { });
+        }
+    }, [isRTMReady, fetchUsersFromChannelMetadata, uid]);
 
     // Update RTM presence when recording state changes
     useEffect(() => {
@@ -244,10 +326,11 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
             {/* Top Bar with Status - Premium Visuals */}
             <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-30 pointer-events-none">
                 <div className="flex items-center gap-3 pointer-events-auto">
-                    {/* Live Badge */}
+                    {/* Live Badge with Timer */}
                     <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
                         <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                         <span className="mt-1 font-bold text-xs tracking-wider">Live</span>
+                        <span className="text-xs font-mono opacity-90">{elapsedTime}</span>
                     </div>
 
                     {/* Viewer Count */}
@@ -397,6 +480,7 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
                 setRecordingDetails={props.setRecordingDetails}
                 isRecording={props.isRecording}
                 setIsRecording={props.setIsRecording}
+                startTime={props.startTime}
             />
         </AgoraRTCProvider>
     );

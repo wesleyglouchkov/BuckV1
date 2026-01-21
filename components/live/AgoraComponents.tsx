@@ -371,9 +371,17 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
             {/* Name Overlay (Bottom Left) */}
             <div className="absolute bottom-8 left-3 z-10">
                 <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 border border-white/10 flex items-center gap-2 rounded-full">
-                    <span className="text-sm font-medium text-white truncate max-w-[120px]">
-                        {participant.name || (participant.isLocal ? "You" : `User ${participant.uid}`)}
-                    </span>
+                    {/* Show shimmer for remote users with placeholder name (starts with "User ") */}
+                    {!participant.isLocal && (!participant.name || participant.name.startsWith("User ")) ? (
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-16 h-4 bg-linear-to-r from-neutral-600 via-neutral-400 to-neutral-600 bg-size-[200%_100%] animate-shimmer rounded" />
+                            <div className="w-1.5 h-1.5 bg-neutral-500 rounded-full animate-pulse" />
+                        </div>
+                    ) : (
+                        <span className="text-sm font-medium text-white truncate max-w-[120px] animate-in fade-in slide-in-from-left-2 duration-300">
+                            {participant.isLocal ? "You (Host)" : participant.name}
+                        </span>
+                    )}
                     {isMicOn && <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
                 </div>
             </div>

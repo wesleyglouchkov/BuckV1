@@ -46,10 +46,12 @@ export interface AgoraViewerProps {
     hostUsername?: string;
     hostSubscriptionPrice?: number | null;
     isSubscribed?: boolean;
+    leaveDialogOpen?: boolean; // Controlled state for leave dialog
+    onLeaveDialogChange?: (open: boolean) => void; // Callback when dialog state changes
 }
 
 function StreamLogic(props: AgoraViewerProps) {
-    const { appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onAllowNavigation, onRequestUpgrade, isChatVisible, onToggleChat, userName, userAvatar, hostName, hostAvatar, hostDbId, hostUsername, hostSubscriptionPrice, isSubscribed = false } = props;
+    const { appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onAllowNavigation, onRequestUpgrade, isChatVisible, onToggleChat, userName, userAvatar, hostName, hostAvatar, hostDbId, hostUsername, hostSubscriptionPrice, isSubscribed = false, leaveDialogOpen, onLeaveDialogChange } = props;
     const router = useRouter();
 
     // ========== STATE ==========
@@ -59,6 +61,17 @@ function StreamLogic(props: AgoraViewerProps) {
     const [showLoginDialog, setShowLoginDialog] = useState(false);
     const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
     const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
+    const [internalLeaveDialogOpen, setInternalLeaveDialogOpen] = useState(false);
+
+    // Use controlled state if provided, otherwise use internal state
+    const showLeaveDialog = leaveDialogOpen !== undefined ? leaveDialogOpen : internalLeaveDialogOpen;
+    const setShowLeaveDialog = (open: boolean) => {
+        if (onLeaveDialogChange) {
+            onLeaveDialogChange(open);
+        } else {
+            setInternalLeaveDialogOpen(open);
+        }
+    };
 
     // ========== REFS ==========
     const hostContainerRef = useRef<HTMLDivElement>(null);
@@ -162,23 +175,56 @@ function StreamLogic(props: AgoraViewerProps) {
         router.push('/explore');
     }, [client, localCameraTrack, localMicrophoneTrack, role, router]);
 
-    // Message handler for RTM commands from host - uses ref to avoid stale closure
+    // Helper function to send USER_ANNOUNCE - used on RTM ready and when host requests
+    const sendUserAnnounce = useCallback(() => {
+        if (viewerRtmSingleton.instance && userName) {
+            viewerRtmSingleton.instance.sendMessage({
+                type: "USER_ANNOUNCE",
+                payload: {
+                    userId: uid,
+                    name: userName,
+                    avatar: userAvatar
+                }
+            }).catch(() => { });
+        }
+    }, [uid, userName, userAvatar]);
+
+    // Message handler for RTM commands from host and announcements from other viewers
     const handleRTMMessage = useCallback((msg: SignalingMessage) => {
-        console.log("RTM: Message received in viewer:", msg);
+        // Handle HOST_REQUEST_ANNOUNCE - host is asking all viewers to announce themselves
+        if (msg.type === "HOST_REQUEST_ANNOUNCE") {
+            sendUserAnnounce();
+            return;
+        }
+
+        // Handle USER_ANNOUNCE - another viewer announcing their name
+        if (msg.type === "USER_ANNOUNCE" && msg.payload) {
+            const { userId, name, avatar } = msg.payload;
+            if (userId && name) {
+                setUserNames(prev => {
+                    const existing = prev[userId.toString()];
+                    return {
+                        ...prev,
+                        [userId.toString()]: {
+                            ...existing,
+                            name,
+                            avatar
+                        }
+                    };
+                });
+            }
+            return;
+        }
 
         if (!msg.payload || !('userId' in msg.payload)) return;
 
         const targetUid = msg.payload.userId.toString().trim();
-        // Use the ref to get the CURRENT RTC numerical UID
         const myRtcUid = viewerRtmSingleton.currentUidRef.current?.toString().trim() || '';
-        // Use the props UID which is likely the DB String ID (cuid)
         const myLoginUid = uid.toString().trim();
 
         const isMe = targetUid === myRtcUid || targetUid === myLoginUid;
 
         if (msg.type === "MUTE_USER" && isMe) {
-            console.log("RTM: Command matched! Applying changes...");
-
             if (msg.payload.mediaType === "audio") {
                 const newState = !msg.payload.mute;
                 setIsAudioEnabled(newState);
@@ -191,11 +237,10 @@ function StreamLogic(props: AgoraViewerProps) {
             }
         }
         else if (msg.type === "KICK_USER" && isMe) {
-            console.log("RTM: Kick command received!");
             toast.error("You have been removed from the stream by the host.");
             handleLeaveStream();
         }
-    }, [uid, handleLeaveStream]);
+    }, [uid, handleLeaveStream, sendUserAnnounce]);
 
     // Handle Presence Updates
     const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean, isRecording?: boolean }) => {
@@ -219,7 +264,7 @@ function StreamLogic(props: AgoraViewerProps) {
     }, []);
 
     // --- Signaling (RTM) Implementation using Hook ---
-    const { isRTMReady, cleanupRTM } = useRTMClient({
+    const { isRTMReady, cleanupRTM, fetchUsersFromChannelMetadata } = useRTMClient({
         appId,
         channelName,
         uid,
@@ -230,6 +275,37 @@ function StreamLogic(props: AgoraViewerProps) {
         onMessage: handleRTMMessage,
         onPresence: handleRTMPresence
     });
+
+    // Send USER_ANNOUNCE and fetch other participants when RTM is ready
+    useEffect(() => {
+        if (isRTMReady && userName) {
+            // Send our name announcement
+            const timer = setTimeout(() => {
+                sendUserAnnounce();
+            }, 500);
+
+            // Fetch other participants from channel metadata
+            fetchUsersFromChannelMetadata().then(usersMap => {
+                if (usersMap.size > 0) {
+                    setUserNames(prev => {
+                        const updated = { ...prev };
+                        usersMap.forEach((userData, odUserId) => {
+                            if (!updated[odUserId]?.name || updated[odUserId]?.name?.startsWith("User ")) {
+                                updated[odUserId] = {
+                                    ...updated[odUserId],
+                                    name: userData.name,
+                                    avatar: userData.avatar
+                                };
+                            }
+                        });
+                        return updated;
+                    });
+                }
+            }).catch(() => { });
+
+            return () => clearTimeout(timer);
+        }
+    }, [isRTMReady, userName, sendUserAnnounce, fetchUsersFromChannelMetadata]);
 
     // Store cleanupRTM in ref for stable access in finalHandleLeaveStream
     const cleanupRTMRef = useRef(cleanupRTM);
@@ -506,17 +582,17 @@ function StreamLogic(props: AgoraViewerProps) {
                     </SubscribeDialog>
                 )}
 
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button
-                            variant="destructive"
-                            size="icon"
-                            className="w-10 h-10 shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
-                            data-tour="end-stream-btn"
-                        >
-                            <PhoneOff className="w-4 h-4" />
-                        </Button>
-                    </AlertDialogTrigger>
+                <Button
+                    variant="destructive"
+                    size="icon"
+                    className="w-10 h-10 shadow-lg hover:bg-destructive/80 transition-all shadow-destructive/20"
+                    data-tour="end-stream-btn"
+                    onClick={() => setShowLeaveDialog(true)}
+                >
+                    <PhoneOff className="w-4 h-4" />
+                </Button>
+
+                <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Leave Stream</AlertDialogTitle>

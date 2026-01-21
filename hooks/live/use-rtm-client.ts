@@ -50,9 +50,11 @@ export function useRTMClient({
             if (onMessageRef.current) rtmSingleton.instance.onMessage(onMessageRef.current);
             if (onPresenceRef.current) rtmSingleton.instance.onPresence(onPresenceRef.current);
 
-            // Announce self
+            // Announce self (both presence and channel metadata for persistence)
             if (userName) {
                 rtmSingleton.instance.setUserPresence(userName, userAvatar);
+                // Also store in channel metadata for persistence across host refreshes
+                rtmSingleton.instance.setUserInChannelMetadata(userName, userAvatar);
             }
 
             setIsRTMReady(true);
@@ -107,8 +109,13 @@ export function useRTMClient({
                 rtmSingleton.subscribers.forEach(cb => cb(true));
 
                 if (userName) {
+                    // Set presence
                     sm.setUserPresence(userName, userAvatar).catch(err => {
                         console.warn(`RTM ${role}: Failed to set initial background presence:`, err);
+                    });
+                    // Also store in channel metadata for persistence
+                    sm.setUserInChannelMetadata(userName, userAvatar).catch(err => {
+                        console.warn(`RTM ${role}: Failed to set channel metadata:`, err);
                     });
                 }
             } catch (err: any) {
@@ -134,5 +141,17 @@ export function useRTMClient({
         resetRTMInstance();
     }, [role]);
 
-    return { isRTMReady, cleanupRTM };
+    /**
+     * Fetch all users from channel metadata.
+     * Useful for host to restore participant names after refreshing.
+     */
+    const fetchUsersFromChannelMetadata = useCallback(async (): Promise<Map<string, { name: string; avatar?: string }>> => {
+        if (!rtmSingleton.instance) {
+            console.warn(`RTM ${role}: Cannot fetch channel metadata - no instance`);
+            return new Map();
+        }
+        return rtmSingleton.instance.getAllUsersFromChannelMetadata();
+    }, [role]);
+
+    return { isRTMReady, cleanupRTM, fetchUsersFromChannelMetadata };
 }

@@ -29,6 +29,20 @@ export type SignalingMessage =
             timestamp: number;
             isCreator?: boolean;
         };
+    }
+    | {
+        type: "USER_ANNOUNCE";
+        payload: {
+            userId: string | number;
+            name: string;
+            avatar?: string;
+        };
+    }
+    | {
+        type: "HOST_REQUEST_ANNOUNCE";
+        payload: {
+            hostId: string | number;
+        };
     };
 
 export interface UserPresence {
@@ -363,5 +377,90 @@ export class SignalingManager {
     // Get all online users
     getOnlineUsers(): UserPresence[] {
         return Array.from(this.onlineUsers.values());
+    }
+
+    /**
+     * Set this user's name/avatar in channel metadata for persistence.
+     * This allows the host to retrieve user info even after refreshing.
+     * Key format: "user_{userId}" -> JSON string with name and avatar
+     */
+    async setUserInChannelMetadata(name: string, avatar?: string): Promise<void> {
+        if (!this.client || !this.isJoined) return;
+
+        try {
+            const key = `user_${this.userId}`;
+            const value = JSON.stringify({ name, avatar, timestamp: Date.now() });
+            const data = [{ key, value }];
+            const options = { addTimeStamp: true, addUserId: true };
+
+            await this.client.storage.setChannelMetadata(
+                this.channelName,
+                "MESSAGE",
+                data,
+                options
+            );
+        } catch (error: any) {
+            console.warn("RTM: Failed to set channel metadata:", error?.code || error?.message);
+        }
+    }
+
+    /**
+     * Get all users' names/avatars from channel metadata.
+     * Called by host on refresh to restore participant names.
+     * Returns a map of userId -> { name, avatar }
+     */
+    async getAllUsersFromChannelMetadata(): Promise<Map<string, { name: string; avatar?: string }>> {
+        const usersMap = new Map<string, { name: string; avatar?: string }>();
+
+        if (!this.client || !this.isJoined) return usersMap;
+
+        try {
+            const result = await this.client.storage.getChannelMetadata(this.channelName, "MESSAGE");
+
+            if (result?.metadata && typeof result.metadata === 'object') {
+                for (const [metaKey, metaValue] of Object.entries(result.metadata)) {
+                    if (metaKey.startsWith("user_")) {
+                        const odUserId = metaKey.replace("user_", "");
+                        try {
+                            const valueStr = (metaValue as any).value;
+                            if (valueStr) {
+                                const userData = JSON.parse(valueStr);
+                                if (userData.name) {
+                                    usersMap.set(odUserId, { name: userData.name, avatar: userData.avatar });
+                                }
+                            }
+                        } catch {
+                            // Skip invalid entries
+                        }
+                    }
+                }
+            }
+
+            return usersMap;
+        } catch (error: any) {
+            console.warn("RTM: Failed to get channel metadata:", error?.code || error?.message);
+            return usersMap;
+        }
+    }
+
+    /**
+     * Remove this user's entry from channel metadata (called on leave/logout).
+     */
+    async removeUserFromChannelMetadata(): Promise<void> {
+        if (!this.client || !this.isJoined) return;
+
+        try {
+            const key = `user_${this.userId}`;
+            const data = [{ key }];
+            const options = { data };
+
+            await this.client.storage.removeChannelMetadata(
+                this.channelName,
+                "MESSAGE",
+                options
+            );
+        } catch (error: any) {
+            console.warn("RTM: Failed to remove channel metadata:", error?.code || error?.message);
+        }
     }
 }

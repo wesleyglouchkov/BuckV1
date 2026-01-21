@@ -55,6 +55,7 @@ export default function CreatorLivePage() {
     const [shareUrl, setShareUrl] = useState("");
     const [isRTMReady, setIsRTMReady] = useState(false);
     const [streamError, setStreamError] = useState<string | null>(null);
+    const [streamStartTime, setStreamStartTime] = useState<string | null>(null);
 
     // ========== DERIVED VALUES ==========
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
@@ -132,6 +133,10 @@ export default function CreatorLivePage() {
         if (streamResponse.stream) {
             setStreamTitle(streamResponse.stream.title || "");
             setStreamType(streamResponse.stream.workoutType || "");
+            // Set stream start time for timer display
+            if (streamResponse.stream.startTime) {
+                setStreamStartTime(streamResponse.stream.startTime);
+            }
 
             if (streamResponse.stream.endTime) {
                 const endTime = new Date(streamResponse.stream.endTime);
@@ -454,6 +459,7 @@ export default function CreatorLivePage() {
                                     setRecordingDetails={setRecordingDetails}
                                     isRecording={isRecording}
                                     setIsRecording={setIsRecording}
+                                    startTime={streamStartTime}
                                 />
                             ) : (
                                 <div className="w-full h-[85vh] bg-card border border-border" />

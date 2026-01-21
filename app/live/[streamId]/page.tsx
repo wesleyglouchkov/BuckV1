@@ -102,6 +102,7 @@ export default function LiveStreamPage() {
     const [reportDialogOpen, setReportDialogOpen] = useState(false);
     const [rtmReady, setRtmReady] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
     // ========== EFFECTS ==========
 
@@ -352,7 +353,13 @@ export default function LiveStreamPage() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => router.back()}
+                            onClick={() => {
+                                if (streamDetails.isLive) {
+                                    setLeaveDialogOpen(true);
+                                } else {
+                                    router.back();
+                                }
+                            }}
                             className="shrink-0"
                         >
                             <ArrowLeft className="w-5 h-5 dark:text-white" />
@@ -448,6 +455,8 @@ export default function LiveStreamPage() {
                                         hostUsername={streamDetails.creator.username}
                                         hostSubscriptionPrice={streamDetails.creator.subscriptionPrice}
                                         isSubscribed={isSubscribed}
+                                        leaveDialogOpen={leaveDialogOpen}
+                                        onLeaveDialogChange={setLeaveDialogOpen}
                                     />
                                 ) : (
                                     <StreamConnecting creatorName={streamDetails.creator.name} />
