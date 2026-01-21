@@ -195,11 +195,13 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
         <div
             ref={tileRef}
             className={cn(
-                "relative  aspect-video bg-neutral-800 overflow-hidden group transition-all duration-300 hover:border-white/20 shadow-lg",
-                isPinned && "z-30 scale-105 ring-2 ring-primary shadow-xl shadow-primary/20 ",
+                "relative aspect-video bg-neutral-800 overflow-hidden group transition-all duration-300 hover:border-white/20 shadow-lg",
+                isPinned && "z-30 scale-105 ring-2 ring-primary shadow-xl shadow-primary/20",
+                isMicOn && !isPinned && "ring-4 ring-green-500 shadow-lg shadow-green-500/30",
                 className
             )}
         >
+
             {/* Video Rendering */}
             <div className="absolute inset-0 w-full h-full">
                 {participant.isLocal ? (
@@ -382,7 +384,6 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
                             {participant.isLocal ? "You (Host)" : participant.name}
                         </span>
                     )}
-                    {isMicOn && <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
                 </div>
             </div>
         </div>
