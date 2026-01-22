@@ -270,7 +270,8 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
     const { kickedUsers, handleToggleRemoteMic, handleToggleRemoteCamera, handleRemoveRemoteUser } = useRemoteControls({
         isRTMReady,
         rtmInstance: rtmSingleton.instance,
-        getMediaState
+        getMediaState,
+        streamId,
     });
 
     // Single participants list with kicked users filtered

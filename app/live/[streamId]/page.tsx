@@ -253,7 +253,7 @@ export default function LiveStreamPage() {
     // ========== HANDLERS ==========
 
     // Handle consent to upgrade to publisher (camera & mic)
-    const handleConsent = async (participateWithVideo: boolean) => {
+    const handleConsentUpgradeToPublisher = async (participateWithVideo: boolean) => {
         console.log("handleConsent called with:", participateWithVideo);
         if (!streamDetails) {
             console.error("streamDetails is missing");
@@ -266,6 +266,9 @@ export default function LiveStreamPage() {
         const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
 
         try {
+            // Join participation 
+            await streamService.joinParticipation(streamId);
+            
             // Get publisher token from backend
             const tokenResponse = await streamService.getViewerToken(
                 streamId,
@@ -288,6 +291,24 @@ export default function LiveStreamPage() {
         }
     };
 
+    // Handle consent downgrade to subscriber 
+    const handleConsentDowngradeToSubscriber = async () => {
+        console.log("handleConsentDowngradeToSubscriber called");
+        if (!streamDetails) {
+            console.error("streamDetails is missing");
+            return;
+        }
+
+        try {
+            await streamService.leaveParticipation(streamId);
+            setViewerRole("subscriber");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Failed to join as subscriber";
+            toast.error(message);
+        }
+    };
+
+    // Handle leave stream
     const handleLeave = () => {
         isNavigatingAway.current = true;
         // Navigate back to where the user came from
@@ -340,7 +361,7 @@ export default function LiveStreamPage() {
             {streamDetails.isLive && (
                 <RecordingConsentDialog
                     open={showConsentDialog}
-                    onConsent={handleConsent}
+                    onConsent={handleConsentUpgradeToPublisher}
                     creatorName={streamDetails.creator.name}
                     streamTitle={streamDetails.title}
                 />
@@ -443,6 +464,7 @@ export default function LiveStreamPage() {
                                         role={viewerRole}
                                         session={session}
                                         onLeave={handleLeave}
+                                        onDowngrade={handleConsentDowngradeToSubscriber}
                                         onAllowNavigation={handleAllowNavigation}
                                         onRequestUpgrade={() => setShowConsentDialog(true)}
                                         isChatVisible={isChatVisible}

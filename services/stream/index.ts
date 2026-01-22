@@ -172,5 +172,41 @@ export const streamService = {
             const err = error as { response?: { data?: { message?: string } } };
             throw new Error(err.response?.data?.message || 'Failed to get scheduled streams');
         }
+    },
+
+    // Join Participation
+    joinParticipation: async (streamId: string) => {
+        try {
+            const axios = await createClientAuthInstance('MEMBER');
+            const response = await axios.post(`/streams/${streamId}/participation/join`);
+            return response.data;
+        } catch (error: unknown) {
+            console.log(error);
+            const err = error as { response?: { data?: { error?: string } } };
+            throw new Error(err.response?.data?.error || 'Failed to join participation');
+        }
+    },
+
+    // Leave Participation
+    leaveParticipation: async (streamId: string) => {
+        try {
+            const axios = await createClientAuthInstance('MEMBER');
+            const response = await axios.post(`/streams/${streamId}/participation/leave`);
+            return response.data;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            throw new Error(err.response?.data?.message || 'Failed to leave participation');
+        }
+    },
+
+    // Get Participant Count (Public)
+    getParticipantCount: async (streamId: string) => {
+        try {
+            const response = await axiosInstance.get(`/streams/${streamId}/participant-count`);
+            return response.data;
+        } catch (error: unknown) {
+            console.error("Failed to get participant count", error);
+            return { success: false, participantCount: 0 };
+        }
     }
 };
