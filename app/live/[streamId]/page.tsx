@@ -103,6 +103,7 @@ export default function LiveStreamPage() {
     const [rtmReady, setRtmReady] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+    const [isJoiningPublisher, setIsJoiningPublisher] = useState(false);
 
     // ========== EFFECTS ==========
 
@@ -260,15 +261,19 @@ export default function LiveStreamPage() {
             return;
         }
 
-        setShowConsentDialog(false);
-        if (!participateWithVideo) return;
+        if (!participateWithVideo) {
+            setShowConsentDialog(false);
+            return;
+        }
+
+        setIsJoiningPublisher(true);
 
         const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
 
         try {
             // Join participation 
             await streamService.joinParticipation(streamId);
-            
+
             // Get publisher token from backend
             const tokenResponse = await streamService.getViewerToken(
                 streamId,
@@ -284,10 +289,13 @@ export default function LiveStreamPage() {
                     appId: tokenResponse.appId,
                 });
                 setViewerRole("publisher");
+                setShowConsentDialog(false);
             }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to join with camera";
             toast.error(message);
+        } finally {
+            setIsJoiningPublisher(false);
         }
     };
 
@@ -300,7 +308,6 @@ export default function LiveStreamPage() {
         }
 
         try {
-            await streamService.leaveParticipation(streamId);
             setViewerRole("subscriber");
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to join as subscriber";
@@ -364,6 +371,7 @@ export default function LiveStreamPage() {
                     onConsent={handleConsentUpgradeToPublisher}
                     creatorName={streamDetails.creator.name}
                     streamTitle={streamDetails.title}
+                    isJoining={isJoiningPublisher}
                 />
             )}
 
