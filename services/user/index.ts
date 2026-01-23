@@ -7,6 +7,7 @@ export const userService = {
         phoneNumber?: string;
         country?: string;
         issue: string;
+        imageUrl?: string;
     }) => {
         try {
             const response = await axiosInstance.post('/users/help-request', data);
