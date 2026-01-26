@@ -18,6 +18,7 @@ export interface SidebarStream {
         name: string;
         username: string;
         avatar: string | null;
+        bio?: string | null;
     };
 }
 
