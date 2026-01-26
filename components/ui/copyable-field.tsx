@@ -42,7 +42,7 @@ export function CopyableField({
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2 h-7 w-7"
+                    className="absolute top-2 right-2 h-7 w-7 rounded-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
                     onClick={handleCopy}
                 >
                     {copied ? (

@@ -98,11 +98,11 @@ export default function StreamDetailsDialog({
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="sm:max-w-3xl rounded-none">
                     {/* Close Button */}
                     <button
                         onClick={() => onOpenChange(false)}
-                        className="absolute cursor-pointer right-4 top-4 p-1 opacity-70 hover:opacity-100 transition-opacity text-foreground"
+                        className="absolute cursor-pointer right-4 top-4 p-1 opacity-70 hover:opacity-100 transition-opacity text-foreground focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 rounded-none"
                     >
                         <X className="h-4 w-4" />
                         <span className="sr-only">Close</span>
@@ -212,7 +212,7 @@ export default function StreamDetailsDialog({
                                     variant="destructive"
                                     size="sm"
                                     onClick={() => setShowConfirmCancel(true)}
-                                    className="whitespace-nowrap text-sm"
+                                    className="whitespace-nowrap text-sm rounded-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
                                     disabled={isPast}
                                 >
                                     <Trash2 className="w-3 h-3 mr-1" />
@@ -223,7 +223,7 @@ export default function StreamDetailsDialog({
                                     size="sm"
                                     onClick={handleReschedule}
                                     disabled={isLive || !!stream.resource?.replayUrl}
-                                    className="whitespace-nowrap text-sm"
+                                    className="whitespace-nowrap text-sm rounded-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
                                 >
                                     <Edit className="w-3 h-3 mr-1" />
                                     Reschedule
@@ -235,7 +235,7 @@ export default function StreamDetailsDialog({
                             onClick={handleStartStream}
                             disabled={(isPast && !!stream.resource?.replayUrl) || (!isPast && !isLive && !isToday)}
                             variant={(!isPast && !isLive && !isToday) || (isPast && !!stream.resource?.replayUrl) ? "secondary" : "default"}
-                            className="whitespace-nowrap text-sm"
+                            className="whitespace-nowrap text-sm rounded-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
                         >
                             <Radio className="w-3 h-3 mr-1" />
                             {isLive ? "View Stream" : isPast && stream.resource?.replayUrl ? "Stream Ended" : isPast ? "Start Stream (Late)" : "Start Stream"}
@@ -246,7 +246,7 @@ export default function StreamDetailsDialog({
 
             {/* Cancel Confirmation Dialog */}
             <AlertDialog open={showConfirmCancel} onOpenChange={setShowConfirmCancel}>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-none">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Cancel Stream?</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -254,13 +254,13 @@ export default function StreamDetailsDialog({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isCancelling}>
+                        <AlertDialogCancel disabled={isCancelling} className="rounded-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2">
                             Keep Stream
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleConfirmCancel}
                             disabled={isCancelling}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
                         >
                             {isCancelling ? "Cancelling..." : "Yes, Cancel Stream"}
                         </AlertDialogAction>

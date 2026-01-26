@@ -50,36 +50,53 @@ const ChannelItem = memo(function ChannelItem({
 }) {
     return (
         <li>
-            <Link
-                href={`/live/${channel.id}`}
-                onClick={isMobile ? onMobileClose : undefined}
+            <div
                 className={cn(
-                    "flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
-                    !isMobile && sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
+                    "flex items-center gap-2 py-2 text-muted-foreground transition-colors",
+                    !isMobile && sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5 hover:bg-accent/50 group"
                 )}
             >
-                <div className="w-8 h-8 shrink-0">
+                <Link
+                    href={`/live/${channel.id}`}
+                    onClick={isMobile ? onMobileClose : undefined}
+                    className="w-8 h-8 shrink-0 hover:opacity-80 transition-opacity"
+                >
                     <UserAvatar
                         src={channel.creator.avatar}
                         name={channel.creator.name}
                         size="sm"
                         className="w-8 h-8"
                     />
-                </div>
+                </Link>
                 {(!sidebarCollapsed || isMobile) && (
                     <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min-w-0">
                         <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-foreground truncate">{channel.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">{channel.creator.name}</p>
+                            <Link
+                                href={`/live/${channel.id}`}
+                                onClick={isMobile ? onMobileClose : undefined}
+                                className="text-sm font-medium text-foreground truncate block hover:text-primary transition-colors"
+                            >
+                                {channel.title}
+                            </Link>
+                            <Link
+                                href={`/explore/creator/${channel.creator.username}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isMobile && onMobileClose) onMobileClose();
+                                }}
+                                className="text-xs text-muted-foreground truncate block hover:text-primary transition-colors"
+                            >
+                                {channel.creator.name}
+                            </Link>
                         </div>
 
                         <div className="flex items-center font-medium gap-1 shrink-0">
                             <div className="w-2 h-2 rounded-full bg-red-500" />
-                            <p className="text-xs">{formatViewerCount(channel.viewerCount)}</p>
+                            <p className="text-xs text-foreground/80">{formatViewerCount(channel.viewerCount)}</p>
                         </div>
                     </div>
                 )}
-            </Link>
+            </div>
         </li>
     );
 });
