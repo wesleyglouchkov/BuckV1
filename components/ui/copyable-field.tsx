@@ -31,11 +31,11 @@ export function CopyableField({
     return (
         <div className={cn("bg-muted/30 border border-border p-3 relative", className)}>
             <div className="flex items-center justify-between">
-                <div className="space-y-1 flex-1 min-w-0">
+                <div className="space-y-1 flex-1 min-w-0 overflow-hidden">
                     <div className="text-sm text-muted-foreground flex items-center gap-1">
                         {label}
                     </div>
-                    <p className="text-xs text-foreground truncate pr-8">
+                    <p className="text-xs text-foreground break-all pr-8">
                         {value}
                     </p>
                 </div>
@@ -48,7 +48,7 @@ export function CopyableField({
                     {copied ? (
                         <Check className="w-3 h-3 text-green-500" />
                     ) : (
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3 h-3 dark:text-white" />
                     )}
                 </Button>
             </div>

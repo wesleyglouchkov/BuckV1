@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, isSameDay } from "date-fns";
 import {
     Dialog,
@@ -25,6 +25,7 @@ import { Calendar, Clock, Dumbbell, Radio, Trash2, Edit, X, Play } from "lucide-
 import { StreamEvent } from "./StreamCalendar";
 import { toast } from "sonner";
 import { CopyableField } from "@/components/ui/copyable-field";
+import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 
 interface StreamDetailsDialogProps {
     open: boolean;
@@ -45,6 +46,27 @@ export default function StreamDetailsDialog({
 }: StreamDetailsDialogProps) {
     const [isCancelling, setIsCancelling] = useState(false);
     const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+    const [signedReplayUrl, setSignedReplayUrl] = useState<string>("");
+
+    const isLive = stream?.resource?.isLive;
+    const isPast = stream ? stream.start < new Date() : false;
+
+    useEffect(() => {
+        const fetchSignedUrl = async () => {
+            if (isPast && stream?.resource?.replayUrl) {
+                try {
+                    const url = await getSignedStreamUrl(stream.resource.replayUrl);
+                    setSignedReplayUrl(url || "");
+                } catch (error) {
+                    console.error("Failed to sign replay URL:", error);
+                }
+            } else {
+                setSignedReplayUrl("");
+            }
+        };
+
+        fetchSignedUrl();
+    }, [stream, isPast]);
 
     if (!stream) return null;
 
@@ -71,18 +93,16 @@ export default function StreamDetailsDialog({
         onOpenChange(false);
     };
 
-    const isLive = stream.resource?.isLive;
-    const isPast = stream.start < new Date();
     const isToday = isSameDay(stream.start, new Date());
 
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-3xl">
                     {/* Close Button */}
                     <button
                         onClick={() => onOpenChange(false)}
-                        className="absolute cursor-pointer right-4 top-4 p-1 rounded-sm opacity-70 hover:opacity-100 transition-opacity text-foreground"
+                        className="absolute cursor-pointer right-4 top-4 p-1 opacity-70 hover:opacity-100 transition-opacity text-foreground"
                     >
                         <X className="h-4 w-4" />
                         <span className="sr-only">Close</span>
@@ -91,13 +111,13 @@ export default function StreamDetailsDialog({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             {isLive ? (
-                                <span className="flex items-center gap-2">
-                                    <span className="relative flex h-3 w-3">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
-                                    </span>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex h-3 w-3">
+                                        <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></div>
+                                        <div className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></div>
+                                    </div>
                                     Live Now
-                                </span>
+                                </div>
                             ) : (
                                 <>
                                     <Calendar className="w-5 h-5 text-primary" />
@@ -158,16 +178,16 @@ export default function StreamDetailsDialog({
 
                         {/* Status */}
                         <div className="bg-muted/50 p-3">
-                            <p className="text-sm">
-                                <span className="font-medium dark:text-white">Status: </span>
+                            <div className="text-sm flex items-center gap-1">
+                                <div className="font-medium dark:text-white whitespace-nowrap">Status: </div>
                                 {isLive ? (
-                                    <span className="text-destructive font-medium">🔴 Live</span>
+                                    <div className="text-destructive font-medium">🔴 Live</div>
                                 ) : isPast ? (
-                                    <span className="text-muted-foreground">Ended</span>
+                                    <div className="text-muted-foreground italic">Ended</div>
                                 ) : (
-                                    <span className="text-primary font-medium">Scheduled</span>
+                                    <div className="text-primary font-medium">Scheduled</div>
                                 )}
-                            </p>
+                            </div>
                         </div>
 
                         {/* Replay URL for past streams */}
@@ -179,7 +199,7 @@ export default function StreamDetailsDialog({
                                         Replay URL
                                     </>
                                 }
-                                value={stream.resource.replayUrl}
+                                value={signedReplayUrl}
                                 toastMessage="Replay URL copied!"
                             />
                         )}
@@ -193,33 +213,32 @@ export default function StreamDetailsDialog({
                                     size="sm"
                                     onClick={() => setShowConfirmCancel(true)}
                                     className="whitespace-nowrap text-sm"
+                                    disabled={isPast}
                                 >
                                     <Trash2 className="w-3 h-3 mr-1" />
-                                    <span className="mt-1">Cancel</span>
+                                    Cancel
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={handleReschedule}
-                                    disabled={!isPast}
+                                    disabled={isLive || !!stream.resource?.replayUrl}
                                     className="whitespace-nowrap text-sm"
                                 >
                                     <Edit className="w-3 h-3 mr-1" />
-                                    <span className="mt-1">Reschedule</span>
+                                    Reschedule
                                 </Button>
                             </>
                         )}
                         <Button
                             size="sm"
                             onClick={handleStartStream}
-                            disabled={!isPast && !isLive && !isToday}
-                            variant={!isPast && !isLive && !isToday ? "secondary" : "default"}
+                            disabled={(isPast && !!stream.resource?.replayUrl) || (!isPast && !isLive && !isToday)}
+                            variant={(!isPast && !isLive && !isToday) || (isPast && !!stream.resource?.replayUrl) ? "secondary" : "default"}
                             className="whitespace-nowrap text-sm"
                         >
                             <Radio className="w-3 h-3 mr-1" />
-                            <span className="mt-1">
-                                {isLive ? "View Stream" : isPast ? "Start Stream (Late)" : "Start Stream"}
-                            </span>
+                            {isLive ? "View Stream" : isPast && stream.resource?.replayUrl ? "Stream Ended" : isPast ? "Start Stream (Late)" : "Start Stream"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -236,14 +255,14 @@ export default function StreamDetailsDialog({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isCancelling}>
-                            <span className="mt-1">Keep Stream</span>
+                            Keep Stream
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleConfirmCancel}
                             disabled={isCancelling}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            <span className="mt-1">{isCancelling ? "Cancelling..." : "Yes, Cancel Stream"}</span>
+                            {isCancelling ? "Cancelling..." : "Yes, Cancel Stream"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
