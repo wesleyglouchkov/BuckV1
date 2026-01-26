@@ -29,12 +29,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                const theme = localStorage.getItem('buck-theme') || 
-                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                const theme = localStorage.getItem('buck-theme') || 'light';
                 if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                 }
               })();
+
             `,
           }}
         />
