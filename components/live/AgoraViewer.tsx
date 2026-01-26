@@ -20,6 +20,7 @@ import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 import { useTrackToggle } from "@/hooks/live/use-track-toggle";
 import { useRTMClient } from "@/hooks/live/use-rtm-client";
 import { useParticipants } from "@/hooks/live/use-participants";
+import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 
 
 
@@ -517,23 +518,17 @@ function StreamLogic(props: AgoraViewerProps) {
 
                 {role === "publisher" && (
                     <div className="flex items-center gap-2" data-tour="media-controls">
-                        <Button
-                            onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                            variant={isVideoEnabled ? "secondary" : "destructive"}
-                            size="icon"
-                            className="w-10 h-10 shadow-lg ring-1 ring-white/10"
-                        >
-                            {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-                        </Button>
+                        <VideoDeviceControl
+                            isVideoEnabled={isVideoEnabled}
+                            onToggle={() => setIsVideoEnabled(!isVideoEnabled)}
+                            currentCameraTrack={localCameraTrack}
+                        />
 
-                        <Button
-                            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                            variant={isAudioEnabled ? "secondary" : "destructive"}
-                            size="icon"
-                            className="w-10 h-10 shadow-lg ring-1 ring-white/10"
-                        >
-                            {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-                        </Button>
+                        <AudioDeviceControl
+                            isAudioEnabled={isAudioEnabled}
+                            onToggle={() => setIsAudioEnabled(!isAudioEnabled)}
+                            currentMicTrack={localMicrophoneTrack}
+                        />
                         <div className="w-px h-6 bg-white/20 mx-2" />
                     </div>
                 )}
