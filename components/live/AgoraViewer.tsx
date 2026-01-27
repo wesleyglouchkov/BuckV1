@@ -12,6 +12,7 @@ import { Session } from "next-auth";
 import { isViewerLoggedIn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { globalRTMSingleton as viewerRtmSingleton } from "@/lib/agora/rtm-singleton";
+import { participantVideoConfig } from "@/lib/agora/video-config";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import { TipButton } from "./TipButton";
 import { LoginRequiredDialog } from "./LoginRequiredDialog";
@@ -82,7 +83,7 @@ function StreamLogic(props: AgoraViewerProps) {
 
     // ========== AGORA HOOKS ==========
     const remoteUsers = useRemoteUsers();
-    const { localCameraTrack } = useLocalCameraTrack(role === "publisher");
+    const { localCameraTrack } = useLocalCameraTrack(role === "publisher", { encoderConfig: participantVideoConfig });
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(role === "publisher");
     const client = useRTCClient();
     const participantMediaState = useParticipantMediaState(client);

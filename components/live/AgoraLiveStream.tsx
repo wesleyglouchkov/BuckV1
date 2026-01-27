@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Radio, Users, ArrowRightFromLine, ArrowLeftToLine } from "lucide-react";
 import { ParticipantGrid } from "./AgoraComponents";
 import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
+import { hostVideoConfig } from "@/lib/agora/video-config";
 import { useViewerCount } from "@/hooks/useViewerCount";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -62,7 +63,7 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
     // ========== AGORA HOOKS ==========
     const client = useRTCClient();
     const remoteUsers = useRemoteUsers();
-    const { localCameraTrack } = useLocalCameraTrack(true);
+    const { localCameraTrack } = useLocalCameraTrack(true, { encoderConfig: hostVideoConfig });
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
     const participantMediaState = useParticipantMediaState(client);
     const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
