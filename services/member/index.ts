@@ -17,6 +17,17 @@ export const memberService = {
     }
   },
 
+  // Switch back to member role
+  backToMember: async (userId: string, userRole?: string) => {
+    try {
+      const authInstance = await createClientAuthInstance(userRole);
+      const response = await authInstance.post('/users/change-role', { userId });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to switch back to member');
+    }
+  },
+
   //==================================== My Creators APIs ====================================
 
   // Get Following List with pagination and search

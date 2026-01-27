@@ -76,19 +76,36 @@ export default function MobileNavigationDrawer({
                     <ul className="space-y-1">
                         {LIVE_CHANNELS.map((channel) => (
                             <li key={channel.id}>
-                                <Link
-                                    href={`/explore/live/${channel.id}`}
-                                    onClick={onClose}
-                                    className="flex items-center gap-2 px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                                >
-                                    <div className="w-8 h-8 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                        {channel.creator.substring(0, 2).toUpperCase()}
-                                    </div>
+                                <div className="flex items-center gap-2 px-2.5 py-2 text-muted-foreground transition-colors hover:bg-accent/50 group">
+                                    <Link
+                                        href={`/explore/live/${channel.id}`}
+                                        onClick={onClose}
+                                        className="w-8 h-8 shrink-0 hover:opacity-80 transition-opacity"
+                                    >
+                                        <div className="w-8 h-8 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            {channel.creator.substring(0, 2).toUpperCase()}
+                                        </div>
+                                    </Link>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-foreground truncate">{channel.name}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{channel.creator} • {channel.viewers}</p>
+                                        <Link
+                                            href={`/explore/live/${channel.id}`}
+                                            onClick={onClose}
+                                            className="text-sm font-medium text-foreground truncate block hover:text-primary transition-colors"
+                                        >
+                                            {channel.name}
+                                        </Link>
+                                        <Link
+                                            href={`/explore/creator/${channel.creator}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onClose();
+                                            }}
+                                            className="text-xs text-muted-foreground truncate block hover:text-primary transition-colors"
+                                        >
+                                            {channel.creator} • {channel.viewers}
+                                        </Link>
                                     </div>
-                                </Link>
+                                </div>
                             </li>
                         ))}
                     </ul>

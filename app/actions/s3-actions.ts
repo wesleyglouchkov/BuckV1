@@ -159,3 +159,45 @@ export async function deleteOldProfileImage(oldKey: string | null): Promise<{ su
         return { success: false, error: "Failed to delete old profile image" };
     }
 }
+
+/**
+ * Get a presigned URL for uploading a support request image
+ * Path format: support/email/image_{timestamp}.{ext}
+ */
+export async function getSupportImageUploadUrl(
+    fileName: string,
+    contentType: string,
+    fileSize: number
+): Promise<{ success: boolean; uploadUrl?: string; key?: string; error?: string }> {
+    try {
+        // Validate file type
+        if (!ALLOWED_FILE_TYPES.IMAGE.includes(contentType as typeof ALLOWED_FILE_TYPES.IMAGE[number])) {
+            return {
+                success: false,
+                error: `Invalid file type. Allowed: ${ALLOWED_FILE_TYPES.IMAGE.join(', ')}`
+            };
+        }
+
+        // Validate file size
+        if (fileSize > FILE_SIZE_LIMITS.SUPPORT_IMAGE) {
+            return {
+                success: false,
+                error: `File too large. Maximum size: ${FILE_SIZE_LIMITS.SUPPORT_IMAGE / (1024 * 1024)}MB`
+            };
+        }
+
+        const ext = fileName.split('.').pop() || 'jpg';
+        const timestamp = Date.now();
+        const cleanFileName = `image_${timestamp}.${ext}`;
+
+        // Path format: support/email/image_{timestamp}.{ext}
+        const key = `${S3_PATHS.SUPPORT}/${cleanFileName}`;
+
+        const uploadUrl = await getUploadUrl(key, contentType);
+
+        return { success: true, uploadUrl, key };
+    } catch (error) {
+        console.error("Error getting support image upload URL:", error);
+        return { success: false, error: "Failed to generate upload URL" };
+    }
+}

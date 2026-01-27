@@ -58,6 +58,7 @@ import { getSignedStreamUrl, deleteS3File, deleteS3FolderAction } from "@/app/ac
 import { toast } from "sonner";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const WORKOUT_TYPES = [
     "All Types",
@@ -110,6 +111,9 @@ export default function MyStreamsPage() {
     const [timeframe, setTimeframe] = useState("all");
     const [page, setPage] = useState(1);
     const limit = 10;
+
+    // Automatically scroll to top when page changes
+    useScrollToTop(page);
 
     // Handle debouncing
     useEffect(() => {

@@ -39,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatDate } from "@/utils/dateTimeUtils";
 import { UserDetailDialog } from "@/components/creator/user-detail-dialog";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -48,6 +49,9 @@ export default function CreatorSubscribersPage() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [page, setPage] = useState(1);
+
+    // Automatically scroll to top when page changes
+    useScrollToTop(page);
 
     // Price management state
     const [isEditingPrice, setIsEditingPrice] = useState(false);

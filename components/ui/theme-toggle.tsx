@@ -12,8 +12,7 @@ export function ThemeToggle() {
     useEffect(() => {
         setMounted(true);
         const theme = localStorage.getItem("buck-theme");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        setIsDark(theme === "dark" || (!theme && prefersDark));
+        setIsDark(theme === "dark");
     }, []);
 
     const toggleTheme = () => {

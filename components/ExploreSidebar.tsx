@@ -16,6 +16,13 @@ import { cn } from "@/lib/utils";
 import { useExploreData, SidebarCategory, SidebarStream } from "@/hooks/explore";
 import { SkeletonSidebarItem } from "@/components/ui/skeleton-variants";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useRouter } from "next/navigation";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const formatViewerCount = (count: number) => {
     if (count >= 1000) {
@@ -48,38 +55,99 @@ const ChannelItem = memo(function ChannelItem({
     isMobile: boolean;
     onMobileClose?: () => void;
 }) {
+    const router = useRouter();
+
+    const handleRowClick = () => {
+        if (isMobile && onMobileClose) onMobileClose();
+        router.push(`/live/${channel.id}`);
+    };
+
+    const handleCreatorClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isMobile && onMobileClose) onMobileClose();
+        router.push(`/explore/creator/${channel.creator.username}`);
+    };
+
     return (
         <li>
-            <Link
-                href={`/live/${channel.id}`}
-                onClick={isMobile ? onMobileClose : undefined}
-                className={cn(
-                    "flex items-center gap-2 py-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
-                    !isMobile && sidebarCollapsed ? "justify-center px-0 rounded-md" : "px-2.5"
-                )}
-            >
-                <div className="w-8 h-8 shrink-0">
-                    <UserAvatar
-                        src={channel.creator.avatar}
-                        name={channel.creator.name}
-                        size="sm"
-                        className="w-8 h-8"
-                    />
-                </div>
-                {(!sidebarCollapsed || isMobile) && (
-                    <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min-w-0">
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-foreground truncate">{channel.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">{channel.creator.name}</p>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div
+                        onClick={handleRowClick}
+                        className={cn(
+                            "flex items-center gap-2 py-2 text-muted-foreground transition-colors cursor-pointer group",
+                            !isMobile && sidebarCollapsed ? "justify-center px-0 rounded-none border-b border-border/5" : "px-2.5 hover:bg-accent/50"
+                        )}
+                    >
+                        <div className="w-8 h-8 shrink-0 transition-transform active:scale-95">
+                            <UserAvatar
+                                src={channel.creator.avatar}
+                                name={channel.creator.name}
+                                size="sm"
+                                className="w-8 h-8 rounded-none"
+                            />
                         </div>
+                        {(!sidebarCollapsed || isMobile) && (
+                            <div className="flex-1 flex items-center justify-between gap-1.5 overflow-hidden min-w-0">
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium text-foreground truncate block hover:text-primary transition-colors">
+                                        {channel.title}
+                                    </p>
+                                    <button
+                                        onClick={handleCreatorClick}
+                                        className="text-xs text-muted-foreground truncate block hover:text-primary transition-colors text-left w-full focus:outline-none focus:ring-0"
+                                    >
+                                        {channel.creator.name}
+                                    </button>
+                                </div>
 
-                        <div className="flex items-center font-medium gap-1 shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-red-500" />
-                            <p className="text-xs">{formatViewerCount(channel.viewerCount)}</p>
+                                <div className="flex items-center font-medium gap-1 shrink-0">
+                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                    <p className="text-xs text-foreground/80">{formatViewerCount(channel.viewerCount)}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent
+                    side="right"
+                    sideOffset={15}
+                    className="flex flex-col gap-1 p-3 min-w-[220px] max-w-[280px] border border-border bg-card shadow-2xl rounded-none animate-in slide-in-from-left-2 duration-200"
+                >
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="relative">
+                            <UserAvatar src={channel.creator.avatar} name={channel.creator.name} size="md" className="rounded-none w-10 h-10" />
+                            {channel.isLive && (
+                                <div className="absolute -bottom-1 -right-1 bg-red-500 text-[8px] px-1 text-white font-bold rounded-none border border-card">
+                                    LIVE
+                                </div>
+                            )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-foreground truncate">@{channel.creator.username}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{channel.creator.name}</p>
                         </div>
                     </div>
-                )}
-            </Link>
+                    {channel.creator.bio ? (
+                        <p className="text-xs text-muted-foreground line-clamp-4 italic border-l-2 border-primary/20 pl-2 py-1 bg-accent/10">
+                            {channel.creator.bio}
+                        </p>
+                    ) : (
+                        <p className="text-xs text-muted-foreground/60 italic">No bio available</p>
+                    )}
+                    <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                            <div className={cn("w-2 h-2 rounded-full", channel.isLive ? "bg-red-500" : "bg-muted-foreground/30")} />
+                            <p className="text-[10px] mt-1 text-muted-foreground dark:text-white font-bold uppercase tracking-wider">
+                                {channel.isLive ? 'Currently Live' : 'Offline'}
+                            </p>
+                        </div>
+                        <p className="text-[10px] font-medium text-muted-foreground">
+                            {formatViewerCount(channel.viewerCount)} viewers
+                        </p>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
         </li>
     );
 });
@@ -108,25 +176,27 @@ const LiveChannelsSection = memo(function LiveChannelsSection({
                     </h3>
                 )}
             </div>
-            <ul className="space-y-1">
-                {isLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                        <li key={i}>
-                            <SkeletonSidebarItem collapsed={!isMobile && sidebarCollapsed} />
-                        </li>
-                    ))
-                ) : (
-                    streams.map((channel) => (
-                        <ChannelItem
-                            key={channel.id}
-                            channel={channel}
-                            sidebarCollapsed={sidebarCollapsed}
-                            isMobile={isMobile}
-                            onMobileClose={onMobileClose}
-                        />
-                    ))
-                )}
-            </ul>
+            <TooltipProvider delayDuration={300}>
+                <ul className="space-y-1">
+                    {isLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                            <li key={i}>
+                                <SkeletonSidebarItem collapsed={!isMobile && sidebarCollapsed} />
+                            </li>
+                        ))
+                    ) : (
+                        streams.map((channel) => (
+                            <ChannelItem
+                                key={channel.id}
+                                channel={channel}
+                                sidebarCollapsed={sidebarCollapsed}
+                                isMobile={isMobile}
+                                onMobileClose={onMobileClose}
+                            />
+                        ))
+                    )}
+                </ul>
+            </TooltipProvider>
         </div>
     );
 });

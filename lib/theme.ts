@@ -6,23 +6,19 @@ const THEME_STORAGE_KEY = "buck-theme";
 
 export const getTheme = (): Theme => {
   if (typeof window === "undefined") return "light";
-  
+
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === "dark" || stored === "light") return stored;
-  
-  // Check system preference
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-  
+
+  // Default to light if no preference stored
   return "light";
 };
 
 export const setTheme = (theme: Theme): void => {
   if (typeof window === "undefined") return;
-  
+
   localStorage.setItem(THEME_STORAGE_KEY, theme);
-  
+
   if (theme === "dark") {
     document.documentElement.classList.add("dark");
   } else {

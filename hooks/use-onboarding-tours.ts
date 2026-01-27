@@ -519,7 +519,7 @@ function buildStreamControlsSteps(state: StreamControlsTourState) {
         });
 
         steps.push({
-            title: "Send a Tip 💵",
+            title: "Send BUCK (Tip) 💵",
             content: `
                 <div style="${contentStyle}">
                     <p>Support the creator by sending a tip during the stream!</p>

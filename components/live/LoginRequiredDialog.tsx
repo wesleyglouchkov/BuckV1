@@ -16,9 +16,10 @@ import {
 interface LoginRequiredDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    description?: string;
 }
 
-export function LoginRequiredDialog({ open, onOpenChange }: LoginRequiredDialogProps) {
+export function LoginRequiredDialog({ open, onOpenChange, description = "Create an account or log in to join the stream with video and audio!" }: LoginRequiredDialogProps) {
     const router = useRouter();
 
     const handleLoginRedirect = () => {
@@ -43,7 +44,7 @@ export function LoginRequiredDialog({ open, onOpenChange }: LoginRequiredDialogP
                         Join Buck Today
                     </AlertDialogTitle>
                     <AlertDialogDescription className="text-neutral-400">
-                        Create an account or log in to join the stream with video and audio!
+                        {description}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="flex-col gap-2 sm:flex-row">

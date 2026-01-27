@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 interface PaginationProps {
     currentPage: number;
@@ -17,6 +18,9 @@ export default function Pagination({
     onPageChange
 }: PaginationProps) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    // Automatically scroll to top when page changes
+    useScrollToTop(currentPage);
 
     if (totalPages <= 1) return null;
 

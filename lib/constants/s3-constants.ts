@@ -6,6 +6,7 @@ export const S3_PATHS = {
     STREAMS: 'streams',
     CREATORS: 'creators',
     USERS: 'users',
+    SUPPORT: 'support/email',
 } as const;
 
 export type S3Path = typeof S3_PATHS[keyof typeof S3_PATHS];
@@ -16,6 +17,7 @@ export const FILE_SIZE_LIMITS = {
     THUMBNAIL: 10 * 1024 * 1024, // 10MB
     VIDEO: 500 * 1024 * 1024, // 500MB
     DOCUMENT: 50 * 1024 * 1024, // 50MB
+    SUPPORT_IMAGE: 5 * 1024 * 1024, // 5MB
 } as const;
 
 // Allowed file types for different upload categories

@@ -15,6 +15,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Check, Loader2, X } from "lucide-react";
 import ProfileImageUpload from "@/components/profile-image-upload";
+import { memberService } from "@/services/member";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ChangePasswordFormData {
   oldPassword: string;
@@ -298,6 +310,28 @@ export default function UserProfile() {
         username: profile.username || "",
         bio: profile.bio || "",
       });
+    }
+  };
+
+  const handleSwitchRole = async () => {
+    try {
+      if (!session?.user?.id) return;
+
+      await memberService.backToMember(session.user.id, session.user.role);
+
+      toast.success("Switched to member account successfully");
+
+      // Update session
+      await updateSession({
+        user: {
+          role: 'MEMBER'
+        }
+      });
+
+      // Refresh page to update UI routes
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to switch role");
     }
   };
 
@@ -661,6 +695,46 @@ export default function UserProfile() {
           )}
         </div>
       </div>
+
+      {/* Switch to Member Account Section (Creator Only) */}
+      {isCreator && (
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 px-6 pb-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                Switch to Member Account
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                You can always switch back to a creator account later if you change your mind.
+              </p>
+            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900">
+                  Switch to Member
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Switch to Member Account?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You are about to switch your account to a Member role. You will temporarily lose access to your Creator Dashboard until you switch back.
+                    <br /><br />
+                    Rest assured, your data is safe and you can always switch back to a creator account instantly.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleSwitchRole} className="bg-red-600 hover:bg-red-700 text-white">
+                    Yes, Switch to Member
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      )}
 
     </div>
   );

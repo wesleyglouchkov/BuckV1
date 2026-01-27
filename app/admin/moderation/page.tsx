@@ -12,6 +12,7 @@ import { adminService, type FlaggedMessage, type FlaggedContent } from "@/servic
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
 import { getSignedStreamUrl } from "@/app/actions/s3-actions";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const badWordsFilters = [
     "fuck", "fucking", "motherfucker", "shit", "bitch", "asshole",
@@ -45,6 +46,10 @@ export default function ModerationPage() {
     const [contentPage, setContentPage] = useState(1);
     const [messagePagination, setMessagePagination] = useState({ total: 0, totalPages: 0 });
     const [contentPagination, setContentPagination] = useState({ total: 0, totalPages: 0 });
+
+    // Automatically scroll to top when pages change
+    useScrollToTop(messagePage);
+    useScrollToTop(contentPage);
 
     // Tabs state
     const [activeTab, setActiveTab] = useState<string>("messages");

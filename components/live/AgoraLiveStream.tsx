@@ -17,6 +17,7 @@ import { useRTMClient } from "@/hooks/live/use-rtm-client";
 import { useParticipants } from "@/hooks/live/use-participants";
 import { useRemoteControls } from "@/hooks/live/use-remote-controls";
 import { streamService } from "@/services/stream";
+import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 
 
 
@@ -371,23 +372,17 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
 
                 {/* Center: Main Controls */}
                 <div className="flex items-center gap-1" data-tour="media-controls">
-                    <Button
-                        onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                        variant={isVideoEnabled ? "secondary" : "destructive"}
-                        size="icon"
-                        className="w-9 h-9 shadow-lg ring-1 ring-white/10"
-                    >
-                        {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-                    </Button>
+                    <VideoDeviceControl
+                        isVideoEnabled={isVideoEnabled}
+                        onToggle={() => setIsVideoEnabled(!isVideoEnabled)}
+                        currentCameraTrack={localCameraTrack}
+                    />
 
-                    <Button
-                        onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                        variant={isAudioEnabled ? "secondary" : "destructive"}
-                        size="icon"
-                        className="w-9 h-9 shadow-lg ring-1 ring-white/10"
-                    >
-                        {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-                    </Button>
+                    <AudioDeviceControl
+                        isAudioEnabled={isAudioEnabled}
+                        onToggle={() => setIsAudioEnabled(!isAudioEnabled)}
+                        currentMicTrack={localMicrophoneTrack}
+                    />
 
                     <div className="w-px h-6 bg-white/10 mx-1" />
 
