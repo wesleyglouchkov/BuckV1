@@ -44,8 +44,8 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
     // Check follow and subscription status on mount
     useEffect(() => {
         const checkStatus = async () => {
-            // Only check if user is logged in as a member
-            if (status !== "authenticated" || session?.user?.role?.toUpperCase() !== "MEMBER") {
+            // Only check if user is logged in as a member or creator
+            if (status !== "authenticated" || (session?.user?.role?.toUpperCase() !== "MEMBER" && session?.user?.role?.toUpperCase() !== "CREATOR")) {
                 setIsCheckingStatus(false);
                 return;
             }
@@ -76,8 +76,8 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
             return;
         }
 
-        if (session?.user?.role?.toUpperCase() !== "MEMBER") {
-            toast.error("Only members can follow creators");
+        if (session?.user?.role?.toUpperCase() !== "MEMBER" && session?.user?.role?.toUpperCase() !== "CREATOR") {
+            toast.error("Only members and creators can follow creators");
             return;
         }
 
@@ -137,8 +137,8 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
 
     // Check if current user is the creator (can't follow yourself)
     const isOwnProfile = session?.user?.id === creator.id;
-    const isMember = session?.user?.role?.toUpperCase() === "MEMBER";
-    const showFollowButton = !isOwnProfile && (isMember || status !== "authenticated");
+    const canFollow = session?.user?.role?.toUpperCase() === "MEMBER" || session?.user?.role?.toUpperCase() === "CREATOR";
+    const showFollowButton = !isOwnProfile && (canFollow || status !== "authenticated");
 
     return (
         <div className="w-full bg-card border-b border-border p-6 mb-6">
@@ -256,7 +256,7 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
             </div>
 
             <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}
-            description="Create an account or log in to subscribe or follow this creator"
+                description="Create an account or log in to subscribe or follow this creator"
             />
 
             {/* Bio Section - Inside ChannelInfo
