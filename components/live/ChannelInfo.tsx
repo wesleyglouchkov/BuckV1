@@ -255,7 +255,9 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
                 </div>
             </div>
 
-            <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
+            <LoginRequiredDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}
+            description="Create an account or log in to subscribe or follow this creator"
+            />
 
             {/* Bio Section - Inside ChannelInfo
             {creator.bio && (
