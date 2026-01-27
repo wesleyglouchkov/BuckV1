@@ -41,7 +41,10 @@ export default function CreatorLivePreviewPage() {
     const [isGoingLive, setIsGoingLive] = useState(false);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [showPriceAlert, setShowPriceAlert] = useState(false);
-    const [showStripeAlert, setShowStripeAlert] = useState(false);
+    const [showStripeAlert, setShowStripeAlert] = useState({
+        open: false,
+        route: "",
+    });
 
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
 
@@ -57,8 +60,11 @@ export default function CreatorLivePreviewPage() {
             const userProfile = profileResponse.data;
 
             // 1. Check Stripe Connection first
-            if (userProfile && !userProfile.stripe_connected) {
-                setShowStripeAlert(true);
+            if (userProfile && (!userProfile.stripe_connected || !userProfile.stripe_onboarding_completed)) {
+                setShowStripeAlert({
+                    open: true,
+                    route: !userProfile.stripe_connected ? "/creator/profile" : "/creator/stripe/refresh",
+                });
                 return;
             }
 
@@ -218,7 +224,7 @@ export default function CreatorLivePreviewPage() {
                 </div>
             </div>
 
-            <AlertDialog open={showStripeAlert} onOpenChange={setShowStripeAlert}>
+            <AlertDialog open={showStripeAlert.open} onOpenChange={() => setShowStripeAlert({ open: false, route: "" })}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Connect Stripe Account</AlertDialogTitle>
@@ -228,7 +234,9 @@ export default function CreatorLivePreviewPage() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => router.push("/creator/profile")}>
+                        <AlertDialogAction onClick={() => {
+                            router.push(showStripeAlert.route);
+                        }}>
                             Connect Stripe
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -246,7 +254,7 @@ export default function CreatorLivePreviewPage() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={() => router.push("/creator/community")}>
-                            Set Price
+                            Set Monthly Subscription Price
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
