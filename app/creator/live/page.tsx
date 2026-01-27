@@ -57,7 +57,7 @@ export default function CreatorLivePreviewPage() {
             const userProfile = profileResponse.data;
 
             // 1. Check Stripe Connection first
-            if (userProfile && userProfile.stripe_connected === false) {
+            if (userProfile && !userProfile.stripe_connected) {
                 setShowStripeAlert(true);
                 return;
             }
