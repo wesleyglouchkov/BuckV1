@@ -19,7 +19,9 @@ import { SubscribeDialog } from "./subscribe/SubscribeDialog";
 import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 import { useTrackToggle } from "@/hooks/live/use-track-toggle";
 import { useRTMClient } from "@/hooks/live/use-rtm-client";
+
 import { useParticipants } from "@/hooks/live/use-participants";
+import { useParticipantCount } from "@/hooks/useParticipantCount";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 
 
@@ -34,6 +36,7 @@ export interface AgoraViewerProps {
     hostUid?: number; // Optional: Explicit host UID
     session: Session | null; // User session for checking login status
     onLeave: () => void;
+    onDowngrade?: () => void;
     onAllowNavigation?: () => void;
     onRequestUpgrade: () => void;
     isChatVisible?: boolean;
@@ -52,7 +55,7 @@ export interface AgoraViewerProps {
 }
 
 function StreamLogic(props: AgoraViewerProps) {
-    const { appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onAllowNavigation, onRequestUpgrade, isChatVisible, onToggleChat, userName, userAvatar, hostName, hostAvatar, hostDbId, hostUsername, hostSubscriptionPrice, isSubscribed = false, leaveDialogOpen, onLeaveDialogChange } = props;
+    const { appId, channelName, token, rtmToken, uid, role, hostUid, session, onLeave, onAllowNavigation, onRequestUpgrade, isChatVisible, onToggleChat, userName, userAvatar, hostName, hostAvatar, hostDbId, hostUsername, hostSubscriptionPrice, isSubscribed = false, leaveDialogOpen, onLeaveDialogChange, onDowngrade } = props;
     const router = useRouter();
 
     // ========== STATE ==========
@@ -84,6 +87,7 @@ function StreamLogic(props: AgoraViewerProps) {
     const client = useRTCClient();
     const participantMediaState = useParticipantMediaState(client);
     const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
+    const { participantCount, isFull } = useParticipantCount(channelName);
 
     // ========== DERIVED VALUES ==========
     const isHost = role === "publisher";
@@ -107,15 +111,25 @@ function StreamLogic(props: AgoraViewerProps) {
         if (client) {
             const targetRole = role === "publisher" ? "host" : "audience";
             setIsClientRoleSet(false);
-            client.setClientRole(targetRole)
-                .then(() => {
+
+            const changeRole = async () => {
+                try {
+                    // If switching to audience and currently publishing, unpublish first
+                    if (targetRole === "audience" && client.localTracks.length > 0) {
+                        console.log("Unpublishing tracks before switching to audience...");
+                        await client.unpublish(client.localTracks);
+                    }
+
+                    await client.setClientRole(targetRole);
                     console.log("Viewer: Client role set successfully to:", targetRole);
                     setIsClientRoleSet(true);
-                })
-                .catch(err => {
+                } catch (err) {
                     console.error("Failed to set client role:", err);
                     setIsClientRoleSet(false);
-                });
+                }
+            };
+
+            changeRole();
         }
     }, [client, role]);
 
@@ -365,11 +379,7 @@ function StreamLogic(props: AgoraViewerProps) {
 
     const handleJoinRequest = () => {
         if (viewerIsLoggedIn) {
-            if (isSubscribed) {
-                onRequestUpgrade();
-            } else {
-                setShowSubscribeDialog(true);
-            }
+            onRequestUpgrade();
         } else {
             setShowLoginDialog(true);
         }
@@ -493,6 +503,15 @@ function StreamLogic(props: AgoraViewerProps) {
                         <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
                         <span className="font-semibold text-[10px] md:text-xs tracking-wide mt-1">{remoteUsers.length + 1} online</span>
                     </div>
+
+                    {/* Participant Count (Stage) */}
+                    <div className={`backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10 transition-colors duration-300 ${isFull ? "bg-red-500/90 shadow-red-500/20 animate-pulse" : "bg-black/50"}`}>
+                        <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
+                        <span className="font-semibold text-[10px] md:text-xs tracking-wide mt-1">
+                            {participantCount}/10
+                            {isFull && <span className="ml-1 font-bold text-white uppercase text-[9px] md:text-[10px]">FULL</span>}
+                        </span>
+                    </div>
                 </div>
 
                 {/* Background Texture */}
@@ -533,7 +552,7 @@ function StreamLogic(props: AgoraViewerProps) {
                     </div>
                 )}
 
-                {role === "subscriber" && (
+                {role === "subscriber" ? (
                     <Button
                         onClick={handleJoinRequest}
                         variant="default"
@@ -543,7 +562,19 @@ function StreamLogic(props: AgoraViewerProps) {
                         <VideoIcon className="w-4 h-4" />
                         Join Stream
                     </Button>
-                )}
+                ) :
+                    <Button
+                        onClick={onDowngrade}
+                        variant="default"
+                        className="h-9 px-4 bg-primary hover:bg-primary/90 text-white font-bold gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-xs md:text-sm"
+                        data-tour="join-stream-btn"
+                    >
+                        <VideoIcon className="w-4 h-4" />
+                        Leave Participation
+                    </Button>
+
+
+                }
 
                 <Button
                     onClick={() => setIsParticipantsVisible(!isParticipantsVisible)}

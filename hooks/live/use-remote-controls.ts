@@ -3,6 +3,7 @@
 import { toast } from "sonner";
 import { type SignalingManager } from "@/lib/agora/agora-rtm";
 import { useState, useCallback } from "react";
+import { streamService } from "@/services/stream";
 
 // Lookup function type for getting participant media state
 export type MediaStateLookup = (uid: string | number) => { micOn?: boolean; cameraOn?: boolean } | undefined;
@@ -11,9 +12,10 @@ interface UseRemoteControlsProps {
     isRTMReady: boolean;
     rtmInstance: SignalingManager | null;
     getMediaState: MediaStateLookup;
+    streamId: string;
 }
 
-export function useRemoteControls({ isRTMReady, rtmInstance, getMediaState }: UseRemoteControlsProps) {
+export function useRemoteControls({ isRTMReady, rtmInstance, getMediaState, streamId }: UseRemoteControlsProps) {
     const [kickedUsers, setKickedUsers] = useState<Set<string>>(new Set());
 
     const handleToggleRemoteMic = useCallback(async (remoteUid: string | number) => {
@@ -99,6 +101,7 @@ export function useRemoteControls({ isRTMReady, rtmInstance, getMediaState }: Us
                         mute: true
                     }
                 });
+                await streamService.leaveParticipation(streamId)
             } catch (err) {
                 console.warn("RTM: Failed to send kick command:", err);
             }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -15,6 +16,7 @@ interface RecordingConsentDialogProps {
     onConsent: (participateWithVideo: boolean) => void;
     creatorName: string;
     streamTitle: string;
+    isJoining?: boolean;
 }
 
 export default function RecordingConsentDialog({
@@ -22,9 +24,10 @@ export default function RecordingConsentDialog({
     onConsent,
     creatorName,
     streamTitle,
+    isJoining = false,
 }: RecordingConsentDialogProps) {
     return (
-        <Dialog open={open} onOpenChange={(val) => !val && onConsent(false)}>
+        <Dialog open={open} onOpenChange={(val) => !val && !isJoining && onConsent(false)}>
             <DialogContent className="sm:max-w-lg" onPointerDownOutside={(e) => e.preventDefault()}>
                 <DialogHeader className="text-center sm:text-center">
                     <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -57,15 +60,21 @@ export default function RecordingConsentDialog({
                 <div className="flex flex-col gap-3">
                     <Button
                         onClick={() => onConsent(true)}
+                        disabled={isJoining}
                         className="w-full h-12 text-base gap-2"
                     >
-                        <Video className="w-5 h-5" />
-                        <p className="mt-1">Join with Camera & Mic</p>
+                        {isJoining ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Video className="w-5 h-5" />
+                        )}
+                        <p className="mt-1">{isJoining ? "Joining..." : "Join with Camera & Mic"}</p>
                     </Button>
 
                     <Button
                         onClick={() => onConsent(false)}
                         variant="outline"
+                        disabled={isJoining}
                         className="w-full h-12 text-base gap-2"
                     >
                         <X className="w-5 h-5" />

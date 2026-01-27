@@ -16,6 +16,7 @@ import { useTrackToggle } from "@/hooks/live/use-track-toggle";
 import { useRTMClient } from "@/hooks/live/use-rtm-client";
 import { useParticipants } from "@/hooks/live/use-participants";
 import { useRemoteControls } from "@/hooks/live/use-remote-controls";
+import { streamService } from "@/services/stream";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 
 
@@ -145,12 +146,24 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
             }
         };
 
+        const handleUserLeft = async (user: { uid: string | number }, reason: string) => {
+            console.log("Agora: User left", user.uid, "Reason:", reason);
+            try {
+                // Detect when any user leaves and ensure broadcaster slots are freed
+                await streamService.leaveParticipation(streamId);
+            } catch (error) {
+                console.error("Failed to handle user-left event:", error);
+            }
+        };
+
         client.on('exception', handleException);
+        client.on('user-left', handleUserLeft);
 
         return () => {
             client.off('exception', handleException);
+            client.off('user-left', handleUserLeft);
         };
-    }, [client]);
+    }, [client, streamId]);
 
     // RTM Presence Handler
     const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean }) => {
@@ -271,7 +284,8 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
     const { kickedUsers, handleToggleRemoteMic, handleToggleRemoteCamera, handleRemoveRemoteUser } = useRemoteControls({
         isRTMReady,
         rtmInstance: rtmSingleton.instance,
-        getMediaState
+        getMediaState,
+        streamId,
     });
 
     // Single participants list with kicked users filtered
