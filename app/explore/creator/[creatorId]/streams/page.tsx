@@ -22,6 +22,7 @@ import ExploreSidebar from "@/components/ExploreSidebar";
 import { ChannelInfo } from "@/components/live/ChannelInfo";
 import { useCreatorStreams, useCreatorProfile } from "@/hooks/explore";
 import Link from "next/link";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -40,6 +41,9 @@ export default function CreatorStreamsPage({ params }: { params: Promise<{ creat
     const initialIsLive = searchParams.get('isLive');
     const [isLiveFilter, setIsLiveFilter] = useState<string | null>(initialIsLive);
     const [page, setPage] = useState(1);
+
+    // Automatically scroll to top when page changes
+    useScrollToTop(page);
 
     // Fetch creator profile using the creatorId (which is actually username from the URL)
     const {

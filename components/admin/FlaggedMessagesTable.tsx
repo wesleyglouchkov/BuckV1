@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Shield, Eye, Ban } from "lucide-react";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 export type Message = {
   id: string;
@@ -41,6 +42,9 @@ export function FlaggedMessagesTable({
   currentPage?: number;
   onPageChange?: (page: number) => void;
 }) {
+  // Automatically scroll to top when page changes
+  useScrollToTop(currentPage);
+
   return (
     <div className="bg-card  border border-border/30 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-border/20">

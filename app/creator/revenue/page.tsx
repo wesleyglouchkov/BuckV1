@@ -35,6 +35,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/utils/dateTimeUtils";
 import { UserDetailDialog } from "@/components/creator/user-detail-dialog";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -44,6 +45,10 @@ export default function CreatorRevenuePage() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [page, setPage] = useState(1);
+
+    // Automatically scroll to top when page changes
+    useScrollToTop(page);
+
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [detailsType, setDetailsType] = useState<"subscriber" | "follower">("subscriber");

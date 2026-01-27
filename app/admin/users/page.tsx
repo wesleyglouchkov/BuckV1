@@ -36,6 +36,7 @@ import { ChevronLeft, ChevronRight, Users, Filter, Eye } from "lucide-react";
 import { SkeletonBox } from "@/components/ui/skeleton-variants";
 import { UserInfoDialog } from "@/components/admin/UserInfoDialog";
 import { TopCreator } from "@/services/admin";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -46,6 +47,9 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedCreator, setSelectedCreator] = useState<TopCreator | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Automatically scroll to top when page changes
+  useScrollToTop(currentPage);
 
   // SWR fetcher
   const fetcher = () => {

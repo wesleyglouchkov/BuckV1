@@ -41,6 +41,7 @@ import { useMyFollowing, useMySubscriptions } from "@/hooks/member";
 import { memberService } from "@/services/member";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -61,6 +62,10 @@ export default function MyCreatorsPage() {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [followingPage, setFollowingPage] = useState(1);
     const [subscriptionsPage, setSubscriptionsPage] = useState(1);
+
+    // Automatically scroll to top when pages change
+    useScrollToTop(followingPage);
+    useScrollToTop(subscriptionsPage);
 
     // Handle debouncing
     useEffect(() => {
