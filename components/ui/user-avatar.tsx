@@ -10,6 +10,7 @@ interface UserAvatarProps {
     size?: "sm" | "md" | "lg" | "xl";
     rounded?: boolean;
     className?: string;
+    priority?: boolean;
 }
 
 const sizeClasses = {
@@ -24,7 +25,8 @@ export function UserAvatar({
     name,
     size = "md",
     rounded = false,
-    className = ""
+    className = "",
+    priority = false
 }: UserAvatarProps) {
     const [signedSrc, setSignedSrc] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
@@ -76,6 +78,7 @@ export function UserAvatar({
                     src={signedSrc}
                     alt={name}
                     fill
+                    priority={priority}
                     className="object-cover"
                     sizes="(max-width: 768px) 100px, 200px"
                     onError={() => setHasError(true)}

@@ -138,6 +138,7 @@ export default function UserMenu({ session, roleLabel, menuItems, signOutCallbac
                     src={(session?.user as any)?.avatar}
                     name={session?.user?.name || "User"}
                     size="sm"
+                    priority
                 />
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
