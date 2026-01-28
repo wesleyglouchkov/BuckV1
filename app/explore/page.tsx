@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { useExploreData, SidebarCategory } from "@/hooks/explore";
+import { getMenuItemsBasedOnRole } from "@/utils/menuItemsBasedOnRole";
 
 export default function ExplorePage() {
   const router = useRouter();
@@ -95,23 +96,7 @@ export default function ExplorePage() {
     }
   }, [showSearchResults, urlSearch]);
 
-  const getMenuItems = () => {
-    const role = session?.user?.role?.toLowerCase();
-
-    if (role === "admin") {
-      return [{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }];
-    }
-    if (role === "creator") {
-      return [{ label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard }];
-    }
-    if (role === "member") {
-      return [
-        { label: "View Profile", href: "/profile", icon: User },
-        { label: "My Creators", href: "/my-creators", icon: Users }
-      ];
-    }
-    return [];
-  };
+  const menuItems = getMenuItemsBasedOnRole(session?.user?.role);
 
   const getRoleLabel = () => {
     const role = session?.user?.role?.toLowerCase();
@@ -129,7 +114,7 @@ export default function ExplorePage() {
         session={session}
         status={status}
         roleLabel={getRoleLabel()}
-        menuItems={getMenuItems()}
+        menuItems={menuItems}
         showSearchPopup={!showSearchResults}
         hideSearchBar={!!showSearchResults}
       />

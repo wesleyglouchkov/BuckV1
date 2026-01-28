@@ -42,6 +42,7 @@ import { memberService } from "@/services/member";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
+import { getMenuItemsBasedOnRole } from "@/utils/menuItemsBasedOnRole";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -103,23 +104,7 @@ export default function MyCreatorsPage() {
         search: debouncedSearch
     });
 
-    const getMenuItems = () => {
-        const role = session?.user?.role?.toLowerCase();
-
-        if (role === "admin") {
-            return [{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }];
-        }
-        if (role === "creator") {
-            return [{ label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard }];
-        }
-        if (role === "member") {
-            return [
-                { label: "View Profile", href: "/profile", icon: User },
-                { label: "My Creators", href: "/my-creators", icon: Users }
-            ];
-        }
-        return [];
-    };
+    const menuItems = getMenuItemsBasedOnRole(session?.user?.role);
 
     const getRoleLabel = () => {
         const role = session?.user?.role?.toLowerCase();
@@ -165,7 +150,7 @@ export default function MyCreatorsPage() {
                 session={session}
                 status={status}
                 roleLabel={getRoleLabel()}
-                menuItems={getMenuItems()}
+                menuItems={menuItems}
             />
 
             <ExploreSidebar
@@ -194,16 +179,16 @@ export default function MyCreatorsPage() {
                     }}>
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                             <TabsList className="bg-muted/50 p-1 h-12 rounded-none border border-border/20">
-                                <TabsTrigger
-                                    value="subscribed"
-                                    className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
-                                >
-                                    <Star className="w-4 h-4" />
-                                    Subscribed
-                                    {subscriptionsPagination && (
-                                        <span className="text-xs text-muted-foreground">({subscriptionsPagination.total})</span>
-                                    )}
-                                </TabsTrigger>
+                                    <TabsTrigger
+                                        value="subscribed"
+                                        className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"
+                                    >
+                                        <Star className="w-4 h-4" />
+                                        Subscribed
+                                        {subscriptionsPagination && (
+                                            <span className="text-xs text-muted-foreground">({subscriptionsPagination.total})</span>
+                                        )}
+                                    </TabsTrigger>
                                 <TabsTrigger
                                     value="following"
                                     className="rounded-none data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 h-full flex gap-2 cursor-pointer"

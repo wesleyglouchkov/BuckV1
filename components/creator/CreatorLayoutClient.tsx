@@ -13,7 +13,7 @@ function CreatorLayoutContent({ children, session }: { children: React.ReactNode
   return (
     <div className="min-h-screen bg-background">
       <CreatorNavbar session={session} isLivePage={isLivePage} />
-      <div className={`transition-all duration-300 ${isLivePage ? '' : (collapsed ? 'sm:ml-16' : 'sm:ml-64')}`}>
+      <div className={`transition-all duration-300 ${isLivePage ? '' : (collapsed ? 'md:ml-16' : 'md:ml-64')}`}>
         <main className={isLivePage ? '' : 'pt-16'}>{children}</main>
       </div>
     </div>

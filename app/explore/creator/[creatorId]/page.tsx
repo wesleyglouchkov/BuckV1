@@ -11,6 +11,7 @@ import { useCreatorProfile, useCreatorScheduledStreams, ScheduledStream } from "
 import { cn } from "@/lib/utils";
 import PublicStreamDetailsDialog from "@/components/schedule/PublicStreamDetailsDialog";
 import { format } from "date-fns";
+import { getMenuItemsBasedOnRole } from "@/utils/menuItemsBasedOnRole";
 
 type TabType = "about" | "schedule" | "past";
 
@@ -54,23 +55,7 @@ export default function CreatorPage({ params }: { params: Promise<{ creatorId: s
         }
     }, [creator?.username]);
 
-    const getMenuItems = () => {
-        const role = session?.user?.role?.toLowerCase();
-
-        if (role === "admin") {
-            return [{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }];
-        }
-        if (role === "creator") {
-            return [{ label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard }];
-        }
-        if (role === "member") {
-            return [
-                { label: "View Profile", href: "/profile", icon: User },
-                { label: "My Creators", href: "/my-creators", icon: Users }
-            ];
-        }
-        return [];
-    };
+    const menuItems = getMenuItemsBasedOnRole(session?.user?.role);
 
     const getRoleLabel = () => {
         const role = session?.user?.role?.toLowerCase();
@@ -97,7 +82,7 @@ export default function CreatorPage({ params }: { params: Promise<{ creatorId: s
                 session={session}
                 status={status}
                 roleLabel={getRoleLabel()}
-                menuItems={getMenuItems()}
+                menuItems={menuItems}
             />
 
             <ExploreSidebar

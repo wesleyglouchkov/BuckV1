@@ -23,6 +23,7 @@ import { ChannelInfo } from "@/components/live/ChannelInfo";
 import { useCreatorStreams, useCreatorProfile } from "@/hooks/explore";
 import Link from "next/link";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
+import { getMenuItemsBasedOnRole } from "@/utils/menuItemsBasedOnRole";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -80,16 +81,7 @@ export default function CreatorStreamsPage({ params }: { params: Promise<{ creat
         }
     }, [creator?.username]);
 
-    const getMenuItems = () => {
-        const role = session?.user?.role?.toLowerCase();
-        if (role === "admin") return [{ label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }];
-        if (role === "creator") return [{ label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard }];
-        if (role === "member") return [
-            { label: "View Profile", href: "/profile", icon: User },
-            { label: "My Creators", href: "/my-creators", icon: Users }
-        ];
-        return [];
-    };
+    const menuItems = getMenuItemsBasedOnRole(session?.user?.role);
 
     const getRoleLabel = () => {
         const role = session?.user?.role?.toLowerCase();
@@ -110,7 +102,7 @@ export default function CreatorStreamsPage({ params }: { params: Promise<{ creat
                 session={session}
                 status={status}
                 roleLabel={getRoleLabel()}
-                menuItems={getMenuItems()}
+                menuItems={menuItems}
             />
 
             <ExploreSidebar

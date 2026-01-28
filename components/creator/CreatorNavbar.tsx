@@ -35,7 +35,7 @@ export default function CreatorNavbar({ session, isLivePage = false }: CreatorNa
             {/* Mobile hamburger button */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden dark:text-white flex items-center justify-center w-9 h-9 hover:bg-accent transition-colors"
+              className="md:hidden cursor-pointer dark:text-white flex items-center justify-center w-9 h-9 hover:bg-accent transition-colors"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
