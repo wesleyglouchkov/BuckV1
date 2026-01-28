@@ -95,7 +95,7 @@ const ChannelItem = memo(function ChannelItem({
                                     </p>
                                     <button
                                         onClick={handleCreatorClick}
-                                        className="text-xs text-muted-foreground truncate block hover:text-primary transition-colors text-left w-full focus:outline-none focus:ring-0"
+                                        className="text-xs text-muted-foreground truncate block hover:text-primary cursor-pointer transition-colors text-left w-full focus:outline-none focus:ring-0"
                                     >
                                         {channel.creator.name}
                                     </button>
