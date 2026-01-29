@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Calendar, Star, Check, Crown, ShieldCheck, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import VideoPlayer from "@/components/live/VideoPlayer";
 import { getSignedStreamUrl } from "@/app/actions/s3-actions";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,16 +57,21 @@ interface StreamReplayProps {
 }
 
 export function StreamReplay({ replayUrl, streamTitle, creator }: StreamReplayProps) {
+    const router = useRouter();
+    const pathname = usePathname();
     const { data: session, status: authStatus } = useSession();
+
     const [signedUrl, setSignedUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [subscribeStep, setSubscribeStep] = useState<"details" | "payment">("details");
     const [showOverlayDelayed, setShowOverlayDelayed] = useState(false);
 
-    // Check subscription status using SWR - only for authenticated members
+    // Check subscription status using SWR - for any authenticated non-owner
+    const isOwner = session?.user?.id === creator.id;
     const isMember = session?.user?.role?.toUpperCase() === "MEMBER";
-    const shouldCheckSubscription = authStatus === "authenticated" && isMember && creator.id;
+    const isCreator = session?.user?.role?.toUpperCase() === "CREATOR";
+    const shouldCheckSubscription = authStatus === "authenticated" && !isOwner && creator.id;
 
     const { data: relationshipData, isLoading: isCheckingRelationship } = useSWR(
         shouldCheckSubscription ? `/member/relationship/${creator.id}` : null,
@@ -83,15 +88,15 @@ export function StreamReplay({ replayUrl, streamTitle, creator }: StreamReplayPr
     const isSubscribed = relationshipData?.isSubscribed ?? false;
 
     // Determine if we should show the subscribe overlay
-    // Show if: authenticated + member + creator has stripe setup + not subscribed
+    // Show if: (unauthenticated OR (authenticated + not owner)) + creator has stripe setup + not subscribed
     const showSubscribeOverlay =
-        authStatus === "authenticated" &&
-        isMember &&
+        !isOwner &&
         !isCheckingRelationship &&
         !isSubscribed &&
         creator.stripe_account_id &&
         creator.stripe_connected &&
-        creator.stripe_onboarding_completed;
+        creator.stripe_onboarding_completed &&
+        (authStatus === "unauthenticated" || isMember || isCreator);
 
     // Delay showing the overlay by 0.5 seconds
     useEffect(() => {
@@ -214,11 +219,17 @@ export function StreamReplay({ replayUrl, streamTitle, creator }: StreamReplayPr
 
                                     {/* Action Button */}
                                     <Button
-                                        onClick={() => setSubscribeStep("payment")}
+                                        onClick={() => {
+                                            if (authStatus === "unauthenticated") {
+                                                router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+                                            } else {
+                                                setSubscribeStep("payment");
+                                            }
+                                        }}
                                         className="w-full h-12 text-base font-semibold bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] rounded-none"
                                     >
                                         <Sparkles className="w-4 h-4 mr-2" />
-                                        Subscribe Now
+                                        {authStatus === "unauthenticated" ? "Sign In to Subscribe" : "Subscribe Now"}
                                     </Button>
                                 </div>
                             </div>
