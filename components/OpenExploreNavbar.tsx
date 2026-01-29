@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserMenu from "@/components/UserMenu";
 import SearchPopup from "@/components/explore/SearchPopup";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface OpenExploreNavbarProps {
     mobileMenuOpen: boolean;
@@ -192,6 +193,7 @@ export default function OpenExploreNavbar({
 
                 {/* Right Side - Auth Buttons or Profile */}
                 <div className="flex items-center gap-3">
+                    <ThemeToggle />
                     {status === "loading" ? (
                         <div className="w-8 h-8 border-2 border-primary border-t-transparent animate-spin" />
                     ) : session ? (

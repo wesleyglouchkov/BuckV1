@@ -1,54 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { getTheme, setTheme } from "@/lib/theme";
 
 export function ThemeToggle() {
-    const [isDark, setIsDark] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isDark, setIsDark] = useState(false);
 
-    // Only run on client
     useEffect(() => {
         setMounted(true);
-        const theme = localStorage.getItem("buck-theme");
-        setIsDark(theme === "dark");
+        setIsDark(getTheme() === "dark");
     }, []);
 
-    const toggleTheme = () => {
-        const newTheme = isDark ? "light" : "dark";
-        setIsDark(!isDark);
-        localStorage.setItem("buck-theme", newTheme);
-
-        if (newTheme === "dark") {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
+    const handleToggle = (checked: boolean) => {
+        const theme = checked ? "dark" : "light";
+        setIsDark(checked);
+        setTheme(theme);
     };
 
-    // Avoid hydration mismatch
     if (!mounted) {
-        return (
-            <Button variant="ghost" size="icon" className="w-9 h-9">
-                <Sun className="w-4 h-4" />
-            </Button>
-        );
+        return <div className="h-6 w-11 bg-muted/20" />;
     }
 
     return (
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="w-9 h-9"
-            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-        >
-            {isDark ? (
-                <Sun className="w-4 h-4 text-yellow-500" />
-            ) : (
-                <Moon className="w-4 h-4" />
-            )}
-        </Button>
+        <div className="flex items-center">
+            <Switch
+                id="theme-toggle"
+                checked={isDark}
+                onCheckedChange={handleToggle}
+                aria-label="Toggle theme"
+            />
+        </div>
     );
 }
