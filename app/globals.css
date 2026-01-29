@@ -354,12 +354,13 @@ input[type="time"]:focus {
 .animated-border-btn::before {
   content: '';
   position: absolute;
-  inset: -50%;
-  background: conic-gradient(from 0deg, transparent 0deg, #fff 60deg, var(--primary) 120deg, #fff 180deg, var(--primary) 240deg, #fff 300deg, transparent 360deg);
+  /* Increased inset to ensure coverage on skewed/rectangular buttons during rotation */
+  inset: -150%;
+  background: conic-gradient(from 0deg, transparent 0deg, #fff 60deg, var(--primary) 120deg, #fff 180deg, var(--primary) 240deg, var(--primary) 300deg, transparent 360deg);
   animation: spin-border 3s linear infinite;
 }
 
-.animated-border-btn>button {
+.animated-border-btn>* {
   position: relative;
   z-index: 1;
 }

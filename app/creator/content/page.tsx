@@ -59,6 +59,7 @@ import { toast } from "sonner";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { CreateContentDialog } from "@/components/creator/CreateContentDialog";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
+import { useIsSafari } from "@/hooks/use-is-safari";
 
 const WORKOUT_TYPES = [
     "All Types",
@@ -130,6 +131,7 @@ export default function MyStreamsPage() {
     const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
     const [streamIdToDelete, setStreamIdToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const isSafari = useIsSafari();
 
     // Fetch streams with filters
     const { data: response, isLoading } = useSWR(
@@ -219,7 +221,7 @@ export default function MyStreamsPage() {
                     </p>
                 </div>
                 <CreateContentDialog>
-                    <div className="animated-border-btn" data-tour="get-live-btn">
+                    <div className={!isSafari ? "animated-border-btn" : ""} data-tour="get-live-btn">
                         <Button className="flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Get Live

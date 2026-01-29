@@ -20,6 +20,7 @@ import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { useSignedThumbnails } from "@/hooks/use-signed-thumbnails";
 import { Loader2 } from "lucide-react";
 import { useGetLiveTour } from "@/hooks/use-onboarding-tours";
+import { useIsSafari } from "@/hooks/use-is-safari";
 
 export default function CreatorDashboard() {
   const { data: session } = useSession();
@@ -27,6 +28,7 @@ export default function CreatorDashboard() {
   const [selectedReplay, setSelectedReplay] = useState<any>(null);
   const [signedReplayUrl, setSignedReplayUrl] = useState<string>("");
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+  const isSafari = useIsSafari();
 
   // Get Live Tour
   const { startTour: startGetLiveTour } = useGetLiveTour();
@@ -125,7 +127,7 @@ export default function CreatorDashboard() {
           <p className="text-muted-foreground">Creator overview</p>
         </div>
         <CreateContentDialog>
-          <div className="animated-border-btn" data-tour="get-live-btn">
+          <div className={!isSafari ? "animated-border-btn" : ""} data-tour="get-live-btn">
             <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Get Live
