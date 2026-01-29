@@ -14,7 +14,7 @@ import {
     HelpCircle
 } from "lucide-react";
 import { Session } from "next-auth";
-import { Switch } from "@/components/ui";
+import { Switch } from "@/components/ui/switch";
 import { getTheme, setTheme, initTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { memberService } from "@/services";
