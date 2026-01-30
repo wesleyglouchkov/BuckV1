@@ -24,6 +24,8 @@ import { useRTMClient } from "@/hooks/live/use-rtm-client";
 import { useParticipants } from "@/hooks/live/use-participants";
 import { useParticipantCount } from "@/hooks/useParticipantCount";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
+import { StreamStatsDisplay } from "./StreamStatsDisplay";
+
 
 
 
@@ -491,28 +493,12 @@ function StreamLogic(props: AgoraViewerProps) {
 
                 {/* Viewer Count & Live Badge Overlay */}
                 <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 pointer-events-none flex items-center gap-3">
-                    {/* Host Live Badge */}
-                    <div className="bg-destructive/90 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                        <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse" />
-                        <span className="font-bold text-[10px] md:text-xs tracking-wider uppercase mt-1">Live</span>
-                    </div>
-
-
-
-                    {/* Online User Count */}
-                    <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                        <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
-                        <span className="font-semibold text-[10px] md:text-xs tracking-wide mt-1">{remoteUsers.length + 1} online</span>
-                    </div>
-
-                    {/* Participant Count (Stage) */}
-                    <div className={`backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10 transition-colors duration-300 ${isFull ? "bg-red-500/90 shadow-red-500/20 animate-pulse" : "bg-black/50"}`}>
-                        <Users className="w-3 h-3 md:w-4 md:h-4 text-white/90" />
-                        <span className="font-semibold text-[10px] md:text-xs tracking-wide mt-1">
-                            {participantCount}/10
-                            {isFull && <span className="ml-1 font-bold text-white uppercase text-[9px] md:text-[10px]">FULL</span>}
-                        </span>
-                    </div>
+                    <StreamStatsDisplay
+                        isLive={true}
+                        viewerCount={remoteUsers.length + 1}
+                        participantCount={participantCount}
+                        className="pointer-events-auto"
+                    />
                 </div>
 
                 {/* Background Texture */}

@@ -19,6 +19,8 @@ import { useParticipants } from "@/hooks/live/use-participants";
 import { useRemoteControls } from "@/hooks/live/use-remote-controls";
 import { streamService } from "@/services/stream";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
+import { StreamStatsDisplay } from "./StreamStatsDisplay";
+
 
 
 
@@ -342,21 +344,13 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
             {/* Top Bar with Status - Premium Visuals */}
             <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-30 pointer-events-none">
                 <div className="flex items-center gap-3 pointer-events-auto">
-                    {/* Live Badge with Timer */}
-                    <div className="bg-destructive/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-white/10">
-                        <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                        <span className="mt-1 font-bold text-xs tracking-wider">Live</span>
-                        <span className="text-xs font-mono opacity-90">{elapsedTime}</span>
-                    </div>
-
-                    {/* Viewer Count */}
-                    <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                        <Users className="w-3.5 h-3.5 text-white" />
-                        <span className="mt-1 text-white text-xs font-semibold">{viewerCount} online</span>
-                    </div>
+                    <StreamStatsDisplay
+                        isLive={true}
+                        elapsedTime={elapsedTime}
+                        viewerCount={viewerCount}
+                        participantCount={participants.length}
+                    />
                 </div>
-
-
             </div>
 
             {/* Bottom Bar - Unified Controls */}
