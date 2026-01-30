@@ -3,6 +3,7 @@
 import { deleteS3Object, getS3Url, deleteS3Folder, getUploadUrl, uploadToS3 } from "@/lib/s3/s3";
 import { S3_PATHS, FILE_SIZE_LIMITS, ALLOWED_FILE_TYPES } from "@/lib/constants/s3-constants";
 import { auth } from "@/auth";
+import { sign } from "jsonwebtoken";
 
 export async function getSignedStreamUrl(path: string | null) {
     if (!path) return null;
@@ -199,5 +200,32 @@ export async function getSupportImageUploadUrl(
     } catch (error) {
         console.error("Error getting support image upload URL:", error);
         return { success: false, error: "Failed to generate upload URL" };
+    }
+}
+
+/**
+ * Generate a secure, short-lived token for accessing a video thumbnail.
+ * This hides the actual S3 path from the client and pins it to the user's browser.
+ */
+export async function generateSecureThumbnailToken(path: string, userAgent?: string): Promise<string | null> {
+    try {
+        if (!path) return null;
+
+        const secret = process.env.THUMBNAIL_SECRET;
+        if (!secret) {
+            throw new Error("THUMBNAIL_SECRET is not defined");
+        }
+
+        // Create a token that expires in 5 minutes
+        // We include a snippet of the userAgent to "pin" the token to this browser
+        const token = sign({
+            path,
+            ua: userAgent ? userAgent.substring(0, 50) : 'unknown'
+        }, secret, { expiresIn: '5m' });
+
+        return token;
+    } catch (error) {
+        console.error("Error generating secure thumbnail token:", error);
+        return null;
     }
 }

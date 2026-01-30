@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSignedStreamUrl } from '@/app/actions/s3-actions';
+import { generateSecureThumbnailToken } from '@/app/actions/s3-actions';
 
 /**
  * Custom hook to batch sign S3 URLs for video thumbnails.
@@ -12,6 +12,7 @@ export function useSignedThumbnails(items: any[]) {
         if (!items || items.length === 0) return;
 
         const signThumbnails = async () => {
+            // Only process items that have a video URL but NO thumbnail image
             const signNeeded = items.filter((item: any) =>
                 (item.replayUrl || item.streamUrl) && !item.thumbnail && !signedThumbnails[item.id]
             );
@@ -23,7 +24,9 @@ export function useSignedThumbnails(items: any[]) {
                     signNeeded.map(async (item: any) => {
                         const urlToSign = item.replayUrl || item.streamUrl;
                         try {
-                            const url = await getSignedStreamUrl(urlToSign);
+                            // Use secure token generation instead of direct S3 signing
+                            const token = await generateSecureThumbnailToken(urlToSign, navigator.userAgent);
+                            const url = token ? `/api/secure-thumbnail?token=${encodeURIComponent(token)}` : null;
                             return { id: item.id, url };
                         } catch (e) {
                             return { id: item.id, url: null };

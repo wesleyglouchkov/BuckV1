@@ -12,14 +12,14 @@ const s3Client = new S3Client({
 });
 
 // Get S3 presigned URL to get file from S3
-export async function getS3Url(subpath: string) {
+export async function getS3Url(subpath: string, expiresIn: number = 7200) {
     const key = `${subpath}`;
     const command = new GetObjectCommand({
         Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
         Key: key,
     });
 
-    return await getSignedUrl(s3Client, command, { expiresIn: 7200 }); // 2 hours
+    return await getSignedUrl(s3Client, command, { expiresIn });
 }
 
 // Get S3 presigned upload URL

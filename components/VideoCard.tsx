@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { getSignedStreamUrl } from "@/app/actions/s3-actions";
+import { getSignedStreamUrl, generateSecureThumbnailToken } from "@/app/actions/s3-actions";
 import { VideoSnapshot } from "@/lib/s3/video-thumbnail";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,7 +41,7 @@ interface VideoCardProps {
 export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardProps) {
     // Determine initial snapshot mode: if thumbnail is missing, we'll likely need a snapshot
     const initialIsSnapshot = !stream.thumbnail && !stream.isLive;
-    const { status } = useSession();
+    const { data: session, status } = useSession();
     const [showLoginDialog, setShowLoginDialog] = useState(false);
 
     const handleVideoClick = (e: React.MouseEvent) => {
@@ -95,22 +95,26 @@ export function VideoCard({ stream, signedThumbnailUrl, className }: VideoCardPr
                 }
             }
 
-            // Priority 3: Use video replay/stream URL for snapshot (frame from video)
-            // We only do this for recorded streams (isLive is false)
-            const videoUrl = !stream.isLive ? (stream.replayUrl || stream.streamUrl) : null;
-            if (videoUrl) {
-                try {
-                    const url = await getSignedStreamUrl(videoUrl);
-                    if (isMounted && url) {
-                        setThumbnailState({
-                            displayUrl: url,
-                            useVideoSnapshot: true,
-                            isLoading: false
-                        });
-                        return; // Done
+            // Priority 3: Video Snapshot - SECURE PROXY (Tokenized)
+            // Use a server-side signed token to hide the S3 path from the client.
+            if (!stream.isLive) {
+                const videoSource = stream.replayUrl || stream.streamUrl;
+                if (videoSource) {
+                    try {
+                        const token = await generateSecureThumbnailToken(videoSource, navigator.userAgent);
+
+                        if (isMounted && token) {
+                            const secureUrl = `/api/secure-thumbnail?token=${encodeURIComponent(token)}`;
+                            setThumbnailState({
+                                displayUrl: secureUrl,
+                                useVideoSnapshot: true,
+                                isLoading: false
+                            });
+                            return; // Done
+                        }
+                    } catch (e) {
+                        // Fail silently to fall back
                     }
-                } catch (e) {
-                    // Fail silently to fall back
                 }
             }
 
