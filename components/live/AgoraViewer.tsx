@@ -406,7 +406,7 @@ function StreamLogic(props: AgoraViewerProps) {
 
 
     return (
-        <div className="relative w-full h-[calc(100dvh-70px)] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
+        <div className="relative w-full h-[75vh] flex flex-col md:flex-row bg-background overflow-hidden shadow-2xl group/main">
             {/* Enter Stream Overlay - Captures user interaction for audio */}
             {!hasEnteredStream && role === "subscriber" && (
                 <div className="absolute inset-0 z-50 bg-black/30 backdrop-blur-xl flex items-center justify-center">

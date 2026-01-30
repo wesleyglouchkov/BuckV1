@@ -155,7 +155,7 @@ export function StreamReplay({ replayUrl, streamTitle, creator }: StreamReplayPr
 
     return (
         <div className="w-full relative">
-            <div className="h-[calc(100dvh-70px)]">
+            <div className="h-[75vh]">
                 <VideoPlayer
                     src={signedUrl}
                     title={streamTitle}
