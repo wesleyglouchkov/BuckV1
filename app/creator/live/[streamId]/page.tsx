@@ -18,6 +18,16 @@ import Loader from "@/components/Loader";
 import StreamExpiredCard from "@/components/live/StreamExpiredCard";
 import { SharePopover } from "@/components/SharePopover";
 import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Dynamic import to avoid SSR issues with Agora (uses window)
 const AgoraLiveStream = dynamic(() => import("@/components/live/AgoraLiveStream"), { ssr: false })
@@ -56,6 +66,11 @@ export default function CreatorLivePage() {
     const [isRTMReady, setIsRTMReady] = useState(false);
     const [streamError, setStreamError] = useState<string | null>(null);
     const [streamStartTime, setStreamStartTime] = useState<string | null>(null);
+    const [showPriceAlert, setShowPriceAlert] = useState(false);
+    const [showStripeAlert, setShowStripeAlert] = useState({
+        open: false,
+        route: "",
+    });
 
     // ========== DERIVED VALUES ==========
     const canGoLive = streamTitle.trim() !== "" && streamType.trim() !== "" && hasPermission !== false;
@@ -259,6 +274,36 @@ export default function CreatorLivePage() {
     const handleGoLive = async () => {
         if (!session?.user?.id) return;
         setIsGoingLive(true);
+
+        // Fetch latest profile to check stripe connection and subscription price
+        try {
+            const profileResponse = await creatorService.getUserProfile("CREATOR");
+            const userProfile = profileResponse.data;
+
+            // 1. Check Stripe Connection first
+            if (userProfile && (!userProfile.stripe_connected || !userProfile.stripe_onboarding_completed)) {
+                setShowStripeAlert({
+                    open: true,
+                    route: !userProfile.stripe_connected ? "/creator/profile" : "/creator/stripe/refresh",
+                });
+                setIsGoingLive(false);
+                return;
+            }
+
+            // 2. Check Subscription Price
+            const price = userProfile?.subscriptionPrice ? Number(userProfile.subscriptionPrice) : 0;
+
+            if (price === 0) {
+                setShowPriceAlert(true);
+                setIsGoingLive(false);
+                return;
+            }
+        } catch (error) {
+            console.error("Failed to fetch profile for price check", error);
+            toast.error("Could not verify subscription status. Please try again.");
+            setIsGoingLive(false);
+            return;
+        }
 
         try {
             // For scheduled streams, update the status to live
@@ -550,6 +595,42 @@ export default function CreatorLivePage() {
                     </div>
                 </div>
             )}
+
+            <AlertDialog open={showStripeAlert.open} onOpenChange={() => setShowStripeAlert({ open: false, route: "" })}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Connect Stripe Account</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            To ensure you can receive payments and access all creator features, please connect your Stripe account before going live.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            router.push(showStripeAlert.route);
+                        }}>
+                            Connect Stripe
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={showPriceAlert} onOpenChange={setShowPriceAlert}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Set Monthly Subscription Plan</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You need to set a subscription price for your community before you can go live.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => router.push("/creator/community")}>
+                            Set Monthly Subscription Price
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
