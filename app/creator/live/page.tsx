@@ -110,12 +110,6 @@ export default function CreatorLivePreviewPage() {
             console.error("Go Live Error:", error);
             setIsGoingLive(false); // Ensure reset on error
         }
-        // No finally block needed here because successful redirect means we unmount/navigate away,
-        // but for errors we handle resetting isGoingLive in the catch/else blocks.
-        // Actually, 'finally' is safer for the generic catch, but the original code had it.
-        // Let's stick to the pattern but be careful about the router.replace.
-        // If router.replace happens, the component might unmount.
-        // The original code had a finally block.
     };
 
     // Handle permission change
