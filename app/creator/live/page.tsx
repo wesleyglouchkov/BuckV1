@@ -53,6 +53,7 @@ export default function CreatorLivePreviewPage() {
     // Handle going live - create stream and redirect to live page
     const handleGoLive = async () => {
         if (!session?.user?.id) return;
+        setIsGoingLive(true);
 
         // Fetch latest profile to check stripe connection and subscription price
         try {
@@ -65,6 +66,7 @@ export default function CreatorLivePreviewPage() {
                     open: true,
                     route: !userProfile.stripe_connected ? "/creator/profile" : "/creator/stripe/refresh",
                 });
+                setIsGoingLive(false);
                 return;
             }
 
@@ -73,15 +75,15 @@ export default function CreatorLivePreviewPage() {
 
             if (price === 0) {
                 setShowPriceAlert(true);
+                setIsGoingLive(false);
                 return;
             }
         } catch (error) {
             console.error("Failed to fetch profile for price check", error);
             toast.error("Could not verify subscription status. Please try again.");
+            setIsGoingLive(false);
             return;
         }
-
-        setIsGoingLive(true);
 
         try {
             // Create stream in backend and get Agora token
@@ -101,13 +103,19 @@ export default function CreatorLivePreviewPage() {
             } else {
                 toast.error("Something went wrong. Please try again.")
                 console.warn("Backend API not configured.");
+                setIsGoingLive(false); // Reset if API call fails but doesn't throw
             }
         } catch (error: unknown) {
             toast.error("Failed to start stream. Please try again.");
             console.error("Go Live Error:", error);
-        } finally {
-            setIsGoingLive(false);
+            setIsGoingLive(false); // Ensure reset on error
         }
+        // No finally block needed here because successful redirect means we unmount/navigate away,
+        // but for errors we handle resetting isGoingLive in the catch/else blocks.
+        // Actually, 'finally' is safer for the generic catch, but the original code had it.
+        // Let's stick to the pattern but be careful about the router.replace.
+        // If router.replace happens, the component might unmount.
+        // The original code had a finally block.
     };
 
     // Handle permission change

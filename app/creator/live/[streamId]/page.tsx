@@ -273,6 +273,7 @@ export default function CreatorLivePage() {
     // Handle going live for a SCHEDULED STREAM (stream already exists in DB)
     const handleGoLive = async () => {
         if (!session?.user?.id) return;
+        setIsGoingLive(true);
 
         // Fetch latest profile to check stripe connection and subscription price
         try {
@@ -285,6 +286,7 @@ export default function CreatorLivePage() {
                     open: true,
                     route: !userProfile.stripe_connected ? "/creator/profile" : "/creator/stripe/refresh",
                 });
+                setIsGoingLive(false);
                 return;
             }
 
@@ -293,15 +295,15 @@ export default function CreatorLivePage() {
 
             if (price === 0) {
                 setShowPriceAlert(true);
+                setIsGoingLive(false);
                 return;
             }
         } catch (error) {
             console.error("Failed to fetch profile for price check", error);
             toast.error("Could not verify subscription status. Please try again.");
+            setIsGoingLive(false);
             return;
         }
-
-        setIsGoingLive(true);
 
         try {
             // For scheduled streams, update the status to live
