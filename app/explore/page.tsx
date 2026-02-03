@@ -22,6 +22,9 @@ import { CATEGORIES } from "@/lib/constants/categories";
 import { useExploreData, SidebarCategory } from "@/hooks/explore";
 import { getMenuItemsBasedOnRole } from "@/utils/menuItemsBasedOnRole";
 
+// Icon size for category cards
+const CATEGORY_ICON_SIZE = 140;
+
 export default function ExplorePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -175,7 +178,7 @@ export default function ExplorePage() {
               {/* Categories Section */}
               <section className="max-md:mt-14 mt-8 mb-12">
                 <h2 className="text-2xl font-bold text-foreground mb-6">Browse Categories</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {isLoadingCategories ? (
                     <>
                       {Array.from({ length: 6 }).map((_, i) => (
@@ -239,7 +242,7 @@ export default function ExplorePage() {
                                 <div className="relative">
                                   {/* Glow effect */}
                                   <div className="absolute inset-0 bg-primary/20 blur-2xl scale-75 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                  <IconComponent className="text-primary/40 group-hover:text-primary/50 transition-colors duration-500 relative z-10" size={140} />
+                                  <IconComponent className="text-primary/40 group-hover:text-primary/50 transition-colors duration-500 relative z-10" size={CATEGORY_ICON_SIZE} wrapperClassName={category.iconWrapperClassName} />
                                 </div>
                               </div>
 

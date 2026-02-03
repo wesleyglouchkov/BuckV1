@@ -16,6 +16,7 @@ import { FC } from "react";
 interface IconProps {
     className?: string;
     size?: number;
+    wrapperClassName?: string;
 }
 
 // Category type definition
@@ -23,6 +24,8 @@ export interface WorkoutCategory {
     id: string;
     name: string;
     icon: FC<IconProps>;
+    /** Optional wrapper className for icon positioning */
+    iconWrapperClassName?: string;
     /** Optional display count for explore page */
     count?: number;
     fallbackImage: string;
@@ -42,18 +45,21 @@ export const CATEGORIES: WorkoutCategory[] = [
         id: "strength-training",
         name: "Strength Training",
         icon: StrengthTrainingIcon,
+        iconWrapperClassName: "-mr-2 -mb-4",
         fallbackImage: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1200&auto=format&fit=crop"
     },
     {
         id: "yoga",
         name: "Yoga",
         icon: YogaIcon,
+        iconWrapperClassName: "pr-3 pb-2",
         fallbackImage: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1820&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
         id: "pilates",
         name: "Pilates",
         icon: PilatesIcon,
+        iconWrapperClassName: "pr-5 pb-1",
         fallbackImage: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200&auto=format&fit=crop"
     },
     {

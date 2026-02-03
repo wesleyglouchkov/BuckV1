@@ -4,6 +4,7 @@ import Image from 'next/image';
 interface IconProps {
   className?: string;
   size?: number;
+  wrapperClassName?: string;
 }
 
 
@@ -162,8 +163,8 @@ export const EducationIcon: React.FC<IconProps> = ({ className = "", size = 24 }
   </svg>
 );
 
-export const YogaIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <div className="pr-3 pb-2">
+export const YogaIcon: React.FC<IconProps> = ({ className = "", size = 24, wrapperClassName = "" }) => (
+  <div className={wrapperClassName}>
     <Image
       src="/svgs/categories/Yoga.svg"
       alt="Yoga"
@@ -263,8 +264,8 @@ export const EsportsIcon: React.FC<IconProps> = ({ className = "", size = 24 }) 
 );
 
 // Pilates - Person in reformer-inspired pose
-export const PilatesIcon: React.FC<IconProps> = ({ className = "", size = 20 }) => (
-  <div className="pr-5 pb-1">
+export const PilatesIcon: React.FC<IconProps> = ({ className = "", size = 24, wrapperClassName = "" }) => (
+  <div className={wrapperClassName}>
     <Image
       src="/svgs/categories/Pilates.svg"
       alt="Pilates"
@@ -276,8 +277,8 @@ export const PilatesIcon: React.FC<IconProps> = ({ className = "", size = 20 }) 
 );
 
 // Strength Training - Dumbbell
-export const StrengthTrainingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <div className="-mr-2 -mb-4">
+export const StrengthTrainingIcon: React.FC<IconProps> = ({ className = "", size = 24, wrapperClassName = "" }) => (
+  <div className={wrapperClassName}>
     <Image
       src="/svgs/categories/Strength Training.svg"
       alt="Strength Training"
