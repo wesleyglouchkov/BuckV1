@@ -175,7 +175,7 @@ export default function ExplorePage() {
               {/* Categories Section */}
               <section className="max-md:mt-14 mt-8 mb-12">
                 <h2 className="text-2xl font-bold text-foreground mb-6">Browse Categories</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
                   {isLoadingCategories ? (
                     <>
                       {Array.from({ length: 6 }).map((_, i) => (
@@ -245,7 +245,7 @@ export default function ExplorePage() {
 
                               {/* Small accent icon top right */}
                               <div className="absolute top-4 right-4 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
-                                <IconComponent className="text-primary/60" size={24} />
+                                {/* <IconComponent className="text-primary/60" size={24} /> */}
                               </div>
                             </div>
                             {/* Bottom accent line */}

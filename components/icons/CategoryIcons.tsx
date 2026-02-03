@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface IconProps {
   className?: string;
@@ -162,101 +163,35 @@ export const EducationIcon: React.FC<IconProps> = ({ className = "", size = 24 }
 );
 
 export const YogaIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <circle
-      cx="12"
-      cy="5"
-      r="2"
-      fill="currentColor"
-      opacity="0.9"
+  <div className="pr-3 pb-2">
+    <Image
+      src="/svgs/categories/Yoga.svg"
+      alt="Yoga"
+      width={size}
+      height={size}
+      className={className}
     />
-    <path
-      d="M12 9L10 14M12 9L14 14M12 9V14"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M10 14L8 20M14 14L16 20"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M6 11L10 14M18 11L14 14"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  </div>
 );
 
 export const HIITIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/HIIT.svg"
+    alt="HIIT"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <circle
-      cx="12"
-      cy="6"
-      r="2"
-      fill="currentColor"
-      opacity="0.9"
-    />
-    <path
-      d="M12 8V12M9 10L12 12L15 10M9 14L12 16M15 14L12 16M8 18L12 20L16 18"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M4 12L6 10M20 12L18 10"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  />
 );
 
 export const CardioIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/Cardio.svg"
+    alt="Cardio"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <path
-      d="M20.42 4.58C19.9181 4.07673 19.3223 3.67791 18.6658 3.40871C18.0094 3.13951 17.3053 3.00532 16.595 3.00532C15.8847 3.00532 15.1806 3.13951 14.5242 3.40871C13.8677 3.67791 13.2719 4.07673 12.77 4.58L12 5.36L11.23 4.58C10.2174 3.56737 8.84375 3.00532 7.405 3.00532C5.96625 3.00532 4.59262 3.56737 3.58 4.58C2.56737 5.59262 2.00532 6.96625 2.00532 8.405C2.00532 9.84375 2.56737 11.2174 3.58 12.23L4.36 13L12 20.64L19.64 13L20.42 12.23C20.9233 11.7281 21.3221 11.1323 21.5913 10.4758C21.8605 9.81941 21.9947 9.11529 21.9947 8.405C21.9947 7.69471 21.8605 6.99059 21.5913 6.33419C21.3221 5.67779 20.9233 5.08194 20.42 4.58Z"
-      fill="currentColor"
-      opacity="0.9"
-    />
-    <path
-      d="M8 10L10 12L12 8L14 12L16 10"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      opacity="0.9"
-    />
-  </svg>
+  />
 );
 
 export const GroupTrainingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
@@ -328,233 +263,82 @@ export const EsportsIcon: React.FC<IconProps> = ({ className = "", size = 24 }) 
 );
 
 // Pilates - Person in reformer-inspired pose
-export const PilatesIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <circle cx="19" cy="6" r="2" fill="currentColor" opacity="0.9" />
-    <path
-      d="M4 18H20"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
+export const PilatesIcon: React.FC<IconProps> = ({ className = "", size = 20 }) => (
+  <div className="pr-5 pb-1">
+    <Image
+      src="/svgs/categories/Pilates.svg"
+      alt="Pilates"
+      width={size}
+      height={size}
+      className={className}
     />
-    <path
-      d="M16 10L19 8V14L12 16L6 14"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M6 14L4 12"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  </div>
 );
 
 // Strength Training - Dumbbell
 export const StrengthTrainingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <rect x="5" y="6" width="3" height="12" rx="1" fill="currentColor" opacity="0.9" />
-    <rect x="16" y="6" width="3" height="12" rx="1" fill="currentColor" opacity="0.9" />
-    <rect x="2" y="9" width="2" height="6" rx="0.5" fill="currentColor" opacity="0.9" />
-    <rect x="20" y="9" width="2" height="6" rx="0.5" fill="currentColor" opacity="0.9" />
-    <rect x="8" y="11" width="8" height="2" rx="0.5" fill="currentColor" opacity="0.9" />
-  </svg>
+  <div className="-mr-2 -mb-4">
+    <Image
+      src="/svgs/categories/Strength Training.svg"
+      alt="Strength Training"
+      width={size}
+      height={size}
+      className={className}
+    />
+  </div>
 );
 
 // Dance - Dancing figure
 export const DanceIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/Dance.svg"
+    alt="Dance"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <circle cx="14" cy="4" r="2" fill="currentColor" opacity="0.9" />
-    <path
-      d="M14 7V11L10 14"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M14 11L18 9"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M10 14L7 20"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M10 14L15 18L17 21"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M6 8L10 6"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  </svg>
+  />
 );
 
 // Boxing - Boxing glove
 export const BoxingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/Boxing.svg"
+    alt="Boxing"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <path
-      d="M5 10C5 7.79086 6.79086 6 9 6H13C16.3137 6 19 8.68629 19 12V14C19 16.2091 17.2091 18 15 18H9C6.79086 18 5 16.2091 5 14V10Z"
-      fill="currentColor"
-      opacity="0.9"
-    />
-    <path
-      d="M9 6V4"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <path
-      d="M8 11H10M14 11H16"
-      stroke="white"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      opacity="0.9"
-    />
-    <path
-      d="M10 18V21H14V18"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  />
 );
 
 // Stretching - Person stretching
 export const StretchingIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/Stretching.svg"
+    alt="Stretching"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <circle cx="12" cy="4" r="2" fill="currentColor" opacity="0.9" />
-    <path
-      d="M12 7V12"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <path
-      d="M8 9L12 7L16 9"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M5 15L12 12L19 15"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M8 18L12 20L16 18"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  />
 );
 
 // Meditation - Person meditating in lotus position
 export const MeditationIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/Meditation.svg"
+    alt="Meditation"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <circle cx="12" cy="5" r="2" fill="currentColor" opacity="0.9" />
-    <path
-      d="M12 8V12"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <path
-      d="M6 11L9 13H15L18 11"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M8 16C8 14.8954 8.89543 14 10 14H14C15.1046 14 16 14.8954 16 16V17C16 18.1046 15.1046 19 14 19H10C8.89543 19 8 18.1046 8 17V16Z"
-      fill="currentColor"
-      opacity="0.9"
-    />
-    <circle cx="7" cy="3" r="0.8" fill="currentColor" opacity="0.5" />
-    <circle cx="17" cy="3" r="0.8" fill="currentColor" opacity="0.5" />
-    <circle cx="5" cy="6" r="0.6" fill="currentColor" opacity="0.4" />
-    <circle cx="19" cy="6" r="0.6" fill="currentColor" opacity="0.4" />
-  </svg>
+  />
 );
 
 // Other - Generic category icon (grid/more)
 export const OtherIcon: React.FC<IconProps> = ({ className = "", size = 24 }) => (
-  <svg
+  <Image
+    src="/svgs/categories/Other.svg"
+    alt="Other"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
     className={className}
-  >
-    <rect x="4" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.9" />
-    <rect x="14" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.9" />
-    <rect x="4" y="14" width="6" height="6" rx="1" fill="currentColor" opacity="0.9" />
-    <circle cx="17" cy="17" r="3" stroke="currentColor" strokeWidth="2" opacity="0.9" />
-  </svg>
+  />
 );
