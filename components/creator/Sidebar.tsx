@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+
+import BuckLogo from "../BuckLogo";
+
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Radio, Settings, User, ArrowLeftToLine, ArrowRightFromLine, Users, DollarSign, Calendar } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
@@ -110,33 +112,11 @@ export default function CreatorSidebar({ mobileOpen, setMobileOpen }: {
             onClick={toggleMobile}
           />
           <div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm transform transition-transform duration-300 ease-out animate-in slide-in-from-left flex flex-col">
-            <div className="flex items-center gap-3 px-4 h-16 border-b border-border/20 shrink-0">
-              <Link href="/explore" className="flex items-center" onClick={toggleMobile}>
-                <Image
-                  src="/buck.svg"
-                  alt="Buck Logo"
-                  width={40}
-                  height={12}
-                  className="dark:hidden"
-                  priority
-                />
-                <Image
-                  src="/buck-dark.svg"
-                  alt="Buck Logo"
-                  width={40}
-                  height={12}
-                  className="hidden dark:block"
-                  priority
-                />
-              </Link>
-              <Link
-                href="/explore"
-                className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-                onClick={toggleMobile}
-              >
-                Browse
-              </Link>
-            </div>
+            <BuckLogo
+              showBrowse
+              onClick={toggleMobile}
+              className="px-4 h-16 border-b border-border/20 shrink-0"
+            />
             <nav className="px-2 py-3 flex-1 overflow-y-auto">
               <ul className="space-y-1">
                 {creatorMenu.map(({ icon: Icon, label, href }) => {

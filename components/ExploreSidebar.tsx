@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import BuckLogo from "./BuckLogo";
+
 import { memo, useMemo } from "react";
 import {
     Radio,
@@ -333,33 +334,11 @@ export default function ExploreSidebar({
                         onClick={handleMobileClose}
                     />
                     <div className="absolute left-0 top-0 h-full w-64 bg-card border-r border-border/20 shadow-sm transform transition-transform duration-300 ease-out animate-in slide-in-from-left overflow-y-auto">
-                        <div className="flex items-center gap-3 px-4 h-16 border-b border-border/20">
-                            <Link href="/explore" className="flex items-center" onClick={handleMobileClose}>
-                                <Image
-                                    src="/buck.svg"
-                                    alt="Buck Logo"
-                                    width={40}
-                                    height={12}
-                                    className="dark:hidden"
-                                    priority
-                                />
-                                <Image
-                                    src="/buck-dark.svg"
-                                    alt="Buck Logo"
-                                    width={40}
-                                    height={12}
-                                    className="hidden dark:block"
-                                    priority
-                                />
-                            </Link>
-                            <Link
-                                href="/explore"
-                                className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-                                onClick={handleMobileClose}
-                            >
-                                Browse
-                            </Link>
-                        </div>
+                        <BuckLogo
+                            showBrowse
+                            onClick={handleMobileClose}
+                            className="px-4 h-16 border-b border-border/20 shrink-0"
+                        />
 
                         <LiveChannelsSection
                             streams={streams}

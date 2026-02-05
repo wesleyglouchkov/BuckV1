@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import {
   Menu,
   User
@@ -10,6 +8,7 @@ import {
 import { Session } from "next-auth";
 import CreatorSidebar from "./Sidebar";
 import UserMenu from "../UserMenu";
+import BuckLogo from "../BuckLogo";
 
 interface CreatorNavbarProps {
   session: Session | null;
@@ -40,32 +39,8 @@ export default function CreatorNavbar({ session, isLivePage = false }: CreatorNa
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-3">
-              <Link href="/explore" className="flex items-center">
-                <Image
-                  src="/buck.svg"
-                  alt="Buck Logo"
-                  width={40}
-                  height={12}
-                  className="dark:hidden"
-                  priority
-                />
-                <Image
-                  src="/buck-dark.svg"
-                  alt="Buck Logo"
-                  width={40}
-                  height={12}
-                  className="hidden dark:block"
-                  priority
-                />
-              </Link>
-              <Link
-                href="/explore"
-                className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                Browse
-              </Link>
-            </div>
+            <BuckLogo  />
+
           </div>
           <div className="flex items-center gap-4">
             <p className="text-sm text-muted-foreground hidden md:block">{session?.user?.email}</p>

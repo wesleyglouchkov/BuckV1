@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import BuckLogo from "./BuckLogo";
+
 import { useRouter } from "next/navigation";
 import { Menu, Search, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -124,30 +125,8 @@ export default function OpenExploreNavbar({
                         <Menu className="w-5 h-5 text-foreground" />
                     </button>
 
-                    <Link href="/explore" className="flex items-center">
-                        <Image
-                            src="/buck.svg"
-                            alt="Buck Logo"
-                            width={40}
-                            height={12}
-                            className="dark:hidden"
-                            priority
-                        />
-                        <Image
-                            src="/buck-dark.svg"
-                            alt="Buck Logo"
-                            width={40}
-                            height={12}
-                            className="hidden dark:block"
-                            priority
-                        />
-                    </Link>
-                    <Link
-                        href="/explore"
-                        className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-                    >
-                        Browse
-                    </Link>
+                    <BuckLogo />
+
                 </div>
 
                 {/* Center Search Bar */}
