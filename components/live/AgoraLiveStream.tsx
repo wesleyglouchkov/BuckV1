@@ -20,6 +20,7 @@ import { useRemoteControls } from "@/hooks/live/use-remote-controls";
 import { streamService } from "@/services/stream";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 import { StreamStatsDisplay } from "./StreamStatsDisplay";
+import { useParticipantCount } from "@/hooks/useParticipantCount";
 
 
 
@@ -284,6 +285,8 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
         };
     }, [participantMediaState, remoteUsers]);
 
+    const { participantCount } = useParticipantCount(channelName);
+
     const { kickedUsers, handleToggleRemoteMic, handleToggleRemoteCamera, handleRemoveRemoteUser } = useRemoteControls({
         isRTMReady,
         rtmInstance: rtmSingleton.instance,
@@ -348,7 +351,7 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
                         isLive={true}
                         elapsedTime={elapsedTime}
                         viewerCount={viewerCount}
-                        participantCount={participants.length}
+                        participantCount={participantCount}
                     />
                 </div>
             </div>
