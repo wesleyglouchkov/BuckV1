@@ -101,7 +101,7 @@ export function useRemoteControls({ isRTMReady, rtmInstance, getMediaState, stre
                         mute: true
                     }
                 });
-                await streamService.leaveParticipation(streamId)
+                // no need to call leaveParticipation as it already handle by user-left event
             } catch (err) {
                 console.warn("RTM: Failed to send kick command:", err);
             }
