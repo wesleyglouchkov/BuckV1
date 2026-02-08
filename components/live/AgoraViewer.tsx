@@ -20,9 +20,9 @@ import { SubscribeDialog } from "./subscribe/SubscribeDialog";
 import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 import { useTrackToggle } from "@/hooks/live/use-track-toggle";
 import { useRTMClient } from "@/hooks/live/use-rtm-client";
-
 import { useParticipants } from "@/hooks/live/use-participants";
 import { useParticipantCount } from "@/hooks/useParticipantCount";
+import { useJoinSound } from "@/hooks/use-sound-effect";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 import { StreamStatsDisplay } from "./StreamStatsDisplay";
 
@@ -91,6 +91,7 @@ function StreamLogic(props: AgoraViewerProps) {
     const participantMediaState = useParticipantMediaState(client);
     const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
     const { participantCount, isFull } = useParticipantCount(channelName);
+    const playJoinSound = useJoinSound();
 
     // ========== DERIVED VALUES ==========
     const isHost = role === "publisher";
@@ -154,9 +155,17 @@ function StreamLogic(props: AgoraViewerProps) {
             }
             if (event.code === 'INVALID_REMOTE_USER') return;
         };
+        const handleUserJoined = (user: { uid: string | number }) => {
+            playJoinSound();
+        };
+
         client.on('exception', handleException);
-        return () => { client.off('exception', handleException); };
-    }, [client]);
+        client.on('user-joined', handleUserJoined);
+        return () => {
+            client.off('exception', handleException);
+            client.off('user-joined', handleUserJoined);
+        };
+    }, [client, playJoinSound]);
 
     // Trigger tour when user enters stream
     useEffect(() => {

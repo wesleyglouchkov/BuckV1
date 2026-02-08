@@ -10,6 +10,7 @@ import { globalRTMSingleton as rtmSingleton } from "@/lib/agora/rtm-singleton";
 import { hostVideoConfig } from "@/lib/agora/video-config";
 import { useViewerCount } from "@/hooks/useViewerCount";
 import { useParticipantMediaState } from "@/hooks/use-participant-media-state";
+import { useJoinSound } from "@/hooks/use-sound-effect";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 import { StreamPreviewMode } from "./StreamPreviewMode";
@@ -70,6 +71,7 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
     const participantMediaState = useParticipantMediaState(client);
     const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
+    const playJoinSound = useJoinSound();
 
     // ========== TOUR ==========
     const { startTour } = useStreamControlsTour({ isHost: true, hasJoined: isHostJoined });
@@ -160,14 +162,20 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
             }
         };
 
+        const handleUserJoined = (user: { uid: string | number }) => {
+            playJoinSound();
+        };
+
         client.on('exception', handleException);
         client.on('user-left', handleUserLeft);
+        client.on('user-joined', handleUserJoined);
 
         return () => {
             client.off('exception', handleException);
             client.off('user-left', handleUserLeft);
+            client.off('user-joined', handleUserJoined);
         };
-    }, [client, streamId]);
+    }, [client, streamId, playJoinSound]);
 
     // RTM Presence Handler
     const handleRTMPresence = useCallback((p: { userId: string, name?: string, avatar?: string, isOnline: boolean }) => {
