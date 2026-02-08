@@ -21,7 +21,7 @@ import { useStreamControlsTour } from "@/hooks/use-onboarding-tours";
 import { useTrackToggle } from "@/hooks/live/use-track-toggle";
 import { useRTMClient } from "@/hooks/live/use-rtm-client";
 import { useParticipants } from "@/hooks/live/use-participants";
-import { useParticipantCount } from "@/hooks/useParticipantCount";
+import { useStreamInfo } from "@/hooks/useStreamInfo";
 import { useJoinSound } from "@/hooks/use-sound-effect";
 import { VideoDeviceControl, AudioDeviceControl } from "./StreamControls";
 import { StreamStatsDisplay } from "./StreamStatsDisplay";
@@ -90,7 +90,7 @@ function StreamLogic(props: AgoraViewerProps) {
     const client = useRTCClient();
     const participantMediaState = useParticipantMediaState(client);
     const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
-    const { participantCount, isFull } = useParticipantCount(channelName);
+    const { participantCount, viewerCount } = useStreamInfo(channelName);
     const playJoinSound = useJoinSound();
 
     // ========== DERIVED VALUES ==========
@@ -504,7 +504,7 @@ function StreamLogic(props: AgoraViewerProps) {
                 <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 pointer-events-none flex items-center gap-3">
                     <StreamStatsDisplay
                         isLive={true}
-                        viewerCount={remoteUsers.length + 1}
+                        viewerCount={viewerCount} // Use API viewer count
                         participantCount={participantCount}
                         className="pointer-events-auto"
                     />
