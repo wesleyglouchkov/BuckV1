@@ -208,5 +208,17 @@ export const streamService = {
             console.error("Failed to get participant count", error);
             return { success: false, participantCount: 0 };
         }
+    },
+
+    // Get Stream Info (Public) - Includes Viewers & Participants
+    getStreamInfo: async (streamId: string) => {
+        try {
+            const response = await axiosInstance.get(`/streams/${streamId}/stream-info`);
+            return response.data;
+        } catch (error: unknown) {
+            console.error("Failed to get stream info", error);
+            // Default fallback
+            return { success: false, participantCount: 0, viewerCount: 0 };
+        }
     }
 };
