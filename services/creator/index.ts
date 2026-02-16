@@ -85,7 +85,7 @@ export const creatorService = {
   // Stripe Connect - Get Account Status
   getStripeAccountStatus: async (userId: string) => {
     try {
-      const axios = await createClientAuthInstance('creator');
+      const axios = await createClientAuthInstance('CREATOR');
       const response = await axios.get(`/creator/stripe/connect/status/${userId}`);
       return response.data;
     } catch (error: any) {

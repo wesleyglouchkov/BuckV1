@@ -8,12 +8,7 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Users, MoreVertical } from "lucide-react";
 import { SharePopover } from "@/components/SharePopover";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ReportDialog } from "@/components/live/ReportDialog";
 import { ChannelInfo } from "@/components/live/ChannelInfo";
 import { RecentHighlights } from "@/components/live/RecentHighlights";
@@ -45,7 +40,6 @@ interface StreamDetails {
         avatar?: string;
         bio?: string;
         subscriptionPrice?: number | null;
-        stripe_account_id?: string | null;
         stripe_connected?: boolean | null;
         stripe_onboarding_completed?: boolean | null;
     };
@@ -90,6 +84,7 @@ export default function LiveStreamPage() {
     // ========== REFS ==========
     const isNavigatingAway = useRef(false);
     const hasPushedState = useRef(false);
+    const guestIdRef = useRef<string>(`guest-${Math.floor(Math.random() * 1000000)}`);
 
     // ========== STATE ==========
     const [streamDetails, setStreamDetails] = useState<StreamDetails | null>(null);
@@ -136,7 +131,7 @@ export default function LiveStreamPage() {
     // Fetch stream details and auto-join as viewer
     useEffect(() => {
         const joinStream = async (role: "publisher" | "subscriber" = "subscriber") => {
-            const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
+            const userId = session?.user?.id || guestIdRef.current;
 
             try {
                 const tokenResponse = await streamService.getViewerToken(
@@ -268,7 +263,7 @@ export default function LiveStreamPage() {
 
         setIsJoiningPublisher(true);
 
-        const userId = session?.user?.id || `guest-${Math.floor(Math.random() * 1000000)}`;
+        const userId = session?.user?.id || guestIdRef.current;
 
         try {
             // Join participation 

@@ -120,12 +120,12 @@ function StreamLogic(props: AgoraViewerProps) {
                 try {
                     // If switching to audience and currently publishing, unpublish first
                     if (targetRole === "audience" && client.localTracks.length > 0) {
-                        console.log("Unpublishing tracks before switching to audience...");
+                        if (process.env.NODE_ENV === 'development') console.log("Unpublishing tracks before switching to audience...");
                         await client.unpublish(client.localTracks);
                     }
 
                     await client.setClientRole(targetRole);
-                    console.log("Viewer: Client role set successfully to:", targetRole);
+                    if (process.env.NODE_ENV === 'development') console.log("Viewer: Client role set successfully to:", targetRole);
                     setIsClientRoleSet(true);
                 } catch (err) {
                     console.error("Failed to set client role:", err);

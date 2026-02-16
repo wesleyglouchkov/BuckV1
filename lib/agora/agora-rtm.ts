@@ -87,11 +87,11 @@ export class SignalingManager {
                 cloudProxy: true,
             });
 
-            console.log("RTM: Client created for user:", this.userId);
+            if (process.env.NODE_ENV === 'development') console.log("RTM: Client created for user:", this.userId);
 
             // 1. Setup status listener BEFORE login
             this.client.addEventListener("status", (event: any) => {
-                console.log("RTM Status Changed:", event);
+                if (process.env.NODE_ENV === 'development') console.log("RTM Status Changed:", event);
                 if (event.state === "DISCONNECTED") {
                     this.isJoined = false;
                     this.onConnectionChangeCallback?.(false);
@@ -104,7 +104,7 @@ export class SignalingManager {
 
             // 2. Setup message listener BEFORE subscribing
             this.client.addEventListener("message", (event: any) => {
-                console.log("RTM Message Event Received:", event);
+                if (process.env.NODE_ENV === 'development') console.log("RTM Message Event Received:", event);
 
                 // Handle different message sources
                 if (event.channelType === "MESSAGE" && event.channelName === this.channelName) {
@@ -119,7 +119,7 @@ export class SignalingManager {
                             data = message;
                         }
 
-                        console.log("RTM Parsed Message:", data);
+                        if (process.env.NODE_ENV === 'development') console.log("RTM Parsed Message:", data);
 
                         // Call the registered callback
                         if (this.onMessageCallback) {
@@ -180,7 +180,7 @@ export class SignalingManager {
 
             // 3. Login to RTM with token
             await this.client.login({ token });
-            console.log("RTM: Logged in successfully");
+            if (process.env.NODE_ENV === 'development') console.log("RTM: Logged in successfully");
 
             // 4. Subscribe to the message channel
             try {
@@ -342,7 +342,7 @@ export class SignalingManager {
         const payload = JSON.stringify(message);
 
         try {
-            console.log("RTM: Publishing message to channel:", this.channelName, message);
+            if (process.env.NODE_ENV === 'development') console.log("RTM: Publishing message to channel:", this.channelName, message);
 
             // Use publish method for Message Channel
             const result = await this.client.publish(this.channelName, payload, {

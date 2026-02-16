@@ -12,7 +12,7 @@ export default async function AdminLayout({ children}: {
 }) {
   const session = await auth();
 
-  if (!session) {
+  if (!session || session.user?.role?.toUpperCase() !== 'ADMIN') {
     redirect("/explore");
   }
 

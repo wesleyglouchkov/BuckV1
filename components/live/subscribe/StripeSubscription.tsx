@@ -29,6 +29,15 @@ export function StripeSubscription({ creatorId, onCancel, onAllowNavigation }: S
                     memberId: session.user.id
                 });
                 if (result.checkoutUrl) {
+                    // Validate that the checkout URL points to a legitimate Stripe domain
+                    try {
+                        const url = new URL(result.checkoutUrl);
+                        if (!url.hostname.endsWith('.stripe.com')) {
+                            throw new Error("Invalid checkout URL");
+                        }
+                    } catch {
+                        throw new Error("Invalid checkout URL received");
+                    }
                     onAllowNavigation?.();
                     window.location.href = result.checkoutUrl;
                 } else {

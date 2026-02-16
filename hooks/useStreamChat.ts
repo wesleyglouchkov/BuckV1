@@ -104,7 +104,7 @@ export function useStreamChat({
         if (!rtmManager) return;
 
         const handleChatMessage = (msg: SignalingMessage & { type: "CHAT_MESSAGE" }) => {
-            console.log("Real-time chat message received:", msg);
+            if (process.env.NODE_ENV === 'development') console.log("Real-time chat message received:", msg);
 
             // Filter out own messages to prevent duplication (as we add them optimistically)
             if (currentUserId && msg.payload.userId.toString() === currentUserId.toString()) {
@@ -137,8 +137,14 @@ export function useStreamChat({
 
     const sendMessage = useCallback(
         async (messageText: string) => {
+            const MAX_MESSAGE_LENGTH = 500;
             if (!messageText.trim() || !currentUserId || !rtmManager) {
                 console.warn("Cannot send message: missing requirements");
+                return;
+            }
+
+            if (messageText.trim().length > MAX_MESSAGE_LENGTH) {
+                toast.error(`Message must be ${MAX_MESSAGE_LENGTH} characters or less`);
                 return;
             }
 

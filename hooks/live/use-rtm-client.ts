@@ -100,7 +100,7 @@ export function useRTMClient({
 
                 await sm.login(rtmToken);
 
-                console.log(`RTM ${role}: Login successful`);
+                if (process.env.NODE_ENV === 'development') console.log(`RTM ${role}: Login successful`);
 
                 rtmSingleton.instance = sm;
                 rtmSingleton.isInitializing = false;

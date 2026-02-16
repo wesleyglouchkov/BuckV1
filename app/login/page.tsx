@@ -55,7 +55,6 @@ export default function LoginPage() {
         password: formData.password,
         redirect: false
       });
-      console.log('SignIn result:', result);
       if (result?.error) {
         if (result.error === "CredentialsSignin") {
           toast.error("Invalid email or password. Please try again.");
@@ -69,8 +68,11 @@ export default function LoginPage() {
         toast.success("Logged in successfully");
 
         // If callbackUrl exists, redirect there first
-        if (callbackUrl) {
-          window.location.href = callbackUrl;
+        if (callbackUrl && (callbackUrl.includes(process.env.NEXT_PUBLIC_FRONTEND_URL!) || callbackUrl.includes('/'))) {
+          const redirectUrl = callbackUrl.includes(process.env.NEXT_PUBLIC_FRONTEND_URL!)
+            ? callbackUrl
+            : `${process.env.NEXT_PUBLIC_FRONTEND_URL}${callbackUrl}`;
+          window.location.href = redirectUrl;
           return;
         }
 
@@ -80,14 +82,14 @@ export default function LoginPage() {
         // Navigate based on user role
         switch (userRole) {
           case 'admin':
-            window.location.href = "/admin/dashboard";
+            window.location.href = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/admin/dashboard`;
             break;
           case 'creator':
-            window.location.href = "/creator/dashboard";
+            window.location.href = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/creator/dashboard`;
             break;
           case 'member':
           default:
-            window.location.href = "/explore";
+            window.location.href = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/explore`;
             break;
         }
       }

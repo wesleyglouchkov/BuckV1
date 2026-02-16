@@ -34,7 +34,7 @@ export const memberService = {
   getMyFollowing: async (params: { page?: number; limit?: number; search?: string } = {}) => {
     try {
       const { page = 1, limit = 10, search = '' } = params;
-      const axios = await createClientAuthInstance('member');
+      const axios = await createClientAuthInstance('MEMBER');
       const response = await axios.get('/member/my-creators/following', {
         params: { page, limit, search }
       });

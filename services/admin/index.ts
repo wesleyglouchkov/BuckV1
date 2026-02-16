@@ -102,7 +102,6 @@ export interface CreatorProfile {
   name: string;
   username: string;
   email: string;
-  password: string;
   role: string;
   bio: string | null;
   avatar: string | null;

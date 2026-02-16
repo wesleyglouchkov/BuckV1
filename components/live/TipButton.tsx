@@ -29,6 +29,8 @@ if (!stripeKey) {
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const PRESET_AMOUNTS = [5, 10, 20, 50];
+const MAX_TIP_AMOUNT = 500; // Maximum tip amount in dollars
+const MIN_TIP_AMOUNT = 5;   // Minimum tip amount in dollars
 
 interface TipButtonProps {
     creatorId: string;
@@ -163,9 +165,13 @@ export function TipButton({
             return;
         }
 
-        const numAmount = parseFloat(amount);
-        if (isNaN(numAmount) || numAmount < 1) {
-            toast.error("Please enter a valid amount (min $1)");
+        const numAmount = Math.floor(parseFloat(amount)); // Force integer amounts
+        if (isNaN(numAmount) || numAmount < MIN_TIP_AMOUNT) {
+            toast.error(`Please enter a valid amount (min $${MIN_TIP_AMOUNT})`);
+            return;
+        }
+        if (numAmount > MAX_TIP_AMOUNT) {
+            toast.error(`Maximum tip amount is $${MAX_TIP_AMOUNT}`);
             return;
         }
 

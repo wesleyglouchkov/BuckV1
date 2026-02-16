@@ -22,7 +22,6 @@ interface ChannelInfoProps {
         subscribers?: number;
         subscriptionPrice?: number | null;
         bio?: string;
-        stripe_account_id?: string | null;
         stripe_connected?: boolean | null;
         stripe_onboarding_completed?: boolean | null;
     };
@@ -213,7 +212,6 @@ export function ChannelInfo({ creator, isSubscribed: initialIsSubscribed = false
 
                     {/* Subscribe/Unsubscribe Button - Show for all roles except the owner */}
                     {!isOwnProfile &&
-                        creator.stripe_account_id &&
                         creator.stripe_connected &&
                         creator.stripe_onboarding_completed && (
                             isSubscribedState ? (
