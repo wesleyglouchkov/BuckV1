@@ -168,8 +168,8 @@ export function ParticipantTile({ participant, isHost, pinnedUid, onToggleRemote
     const videoRefCallback = useCallback((node: HTMLDivElement | null) => {
         if (node && participant.isLocal && participant.videoTrack && isCameraOn) {
             const track = participant.videoTrack as ILocalVideoTrack;
-            track.play(node);
-        }
+            track.play(node)
+        } 
     }, [participant.isLocal, participant.videoTrack, isCameraOn]);
 
     // Cleanup video track when camera is turned off
