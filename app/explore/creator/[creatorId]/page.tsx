@@ -127,7 +127,7 @@ export default function CreatorPage({ params }: { params: Promise<{ creatorId: s
                                 subscribers: creator.subscribers,
                                 subscriptionPrice: creator.subscriptionPrice,
                                 bio: creator.bio,
-                                stripe_account_id: creator.stripe_account_id,
+
                                 stripe_connected: creator.stripe_connected,
                                 stripe_onboarding_completed: creator.stripe_onboarding_completed
                             }}
