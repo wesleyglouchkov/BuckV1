@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AgoraRTC, { ICameraVideoTrack, IMicrophoneAudioTrack } from "agora-rtc-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Mic, MicOff, Video, VideoOff, ChevronDown, Check, Volume2, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -17,9 +17,10 @@ interface VideoDeviceControlProps {
     isVideoEnabled: boolean;
     onToggle: () => void;
     currentCameraTrack: ICameraVideoTrack | null;
+    disableToggle?: boolean;
 }
 
-export function VideoDeviceControl({ isVideoEnabled, onToggle, currentCameraTrack }: VideoDeviceControlProps) {
+export function VideoDeviceControl({ isVideoEnabled, onToggle, currentCameraTrack, disableToggle = false }: VideoDeviceControlProps) {
     const [cameras, setCameras] = useState<Device[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
     const [isOpen, setIsOpen] = useState(false);
@@ -61,12 +62,52 @@ export function VideoDeviceControl({ isVideoEnabled, onToggle, currentCameraTrac
         try {
             await currentCameraTrack.setDevice(deviceId);
             setSelectedDeviceId(deviceId);
+            localStorage.setItem("buck-camera-id", deviceId);
             toast.success("Camera switched successfully");
         } catch (e) {
             console.error("Error switching camera:", e);
             toast.error("Failed to switch camera");
         }
     };
+
+    if (disableToggle) {
+        return (
+            <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="secondary"
+                        className="h-10 px-4 flex items-center gap-2 bg-black/40 hover:bg-black/60 text-white border border-white/10 backdrop-blur-md transition-all"
+                    >
+                        <Video className="w-4 h-4" />
+                        <span className="text-sm font-medium">Camera</span>
+                        <ChevronDown className="w-3 h-3 text-white/50 ml-1" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" sideOffset={10} className="w-64 bg-background/95 backdrop-blur-sm border-white/10 text-foreground p-0 shadow-2xl rounded-none overflow-hidden">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-transparent">
+                        Select Camera
+                    </div>
+                    {cameras.length === 0 ? (
+                        <div className="px-2 py-2 text-xs text-muted-foreground">No cameras found</div>
+                    ) : (
+                        cameras.map((device) => (
+                            <DropdownMenuItem
+                                key={device.deviceId}
+                                onClick={() => handleDeviceSelect(device.deviceId)}
+                                className={cn(
+                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:text-white! focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
+                                    selectedDeviceId === device.deviceId && "bg-secondary text-secondary-foreground hover:text-white!"
+                                )}
+                            >
+                                <span className="truncate">{device.label}</span>
+                                {selectedDeviceId === device.deviceId && <Check className="w-4 h-4" />}
+                            </DropdownMenuItem>
+                        ))
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        );
+    }
 
     return (
         <div className="flex items-center group relative">
@@ -75,7 +116,7 @@ export function VideoDeviceControl({ isVideoEnabled, onToggle, currentCameraTrac
                 variant={isVideoEnabled ? "secondary" : "destructive"}
                 size="icon"
                 className={cn(
-                    "w-9 h-9 rounded-r-none border-r border-white/10 shadow-lg ring-1 ring-white/10 relative z-10",
+                    "w-9 h-9 border-r border-white/10 shadow-lg ring-1 ring-white/10 relative z-10",
                     !isVideoEnabled && "ring-destructive"
                 )}
             >
@@ -88,7 +129,7 @@ export function VideoDeviceControl({ isVideoEnabled, onToggle, currentCameraTrac
                         variant={isVideoEnabled ? "secondary" : "destructive"}
                         size="icon"
                         className={cn(
-                            "w-5 h-9 rounded-l-none shadow-lg ring-1 ring-white/10 px-0",
+                            "w-5 h-9 shadow-lg ring-1 ring-white/10 px-0",
                             !isVideoEnabled && "ring-destructive"
                         )}
                     >
@@ -108,8 +149,8 @@ export function VideoDeviceControl({ isVideoEnabled, onToggle, currentCameraTrac
                                 key={device.deviceId}
                                 onClick={() => handleDeviceSelect(device.deviceId)}
                                 className={cn(
-                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:!text-white focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
-                                    selectedDeviceId === device.deviceId && "bg-secondary text-secondary-foreground hover:!text-white"
+                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:text-white! focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
+                                    selectedDeviceId === device.deviceId && "bg-secondary text-secondary-foreground hover:text-white!"
                                 )}
                             >
                                 <span className="truncate">{device.label}</span>
@@ -127,9 +168,10 @@ interface AudioDeviceControlProps {
     isAudioEnabled: boolean;
     onToggle: () => void;
     currentMicTrack: IMicrophoneAudioTrack | null;
+    disableToggle?: boolean;
 }
 
-export function AudioDeviceControl({ isAudioEnabled, onToggle, currentMicTrack }: AudioDeviceControlProps) {
+export function AudioDeviceControl({ isAudioEnabled, onToggle, currentMicTrack, disableToggle = false }: AudioDeviceControlProps) {
     const [mics, setMics] = useState<Device[]>([]);
     const [speakers, setSpeakers] = useState<Device[]>([]);
     const [selectedMicId, setSelectedMicId] = useState<string>("");
@@ -180,6 +222,7 @@ export function AudioDeviceControl({ isAudioEnabled, onToggle, currentMicTrack }
         try {
             await currentMicTrack.setDevice(deviceId);
             setSelectedMicId(deviceId);
+            localStorage.setItem("buck-mic-id", deviceId);
             toast.success("Microphone switched successfully");
         } catch (e) {
             console.error("Error switching microphone:", e);
@@ -200,31 +243,17 @@ export function AudioDeviceControl({ isAudioEnabled, onToggle, currentMicTrack }
         // doesn't have a single global "setOutputDevice" that covers all created elements automatically without tracking them.
     };
 
-    return (
-        <div className="flex items-center group relative">
-            <Button
-                onClick={onToggle}
-                variant={isAudioEnabled ? "secondary" : "destructive"}
-                size="icon"
-                className={cn(
-                    "w-9 h-9 rounded-r-none border-r border-white/10 shadow-lg ring-1 ring-white/10 relative z-10",
-                    !isAudioEnabled && "ring-destructive"
-                )}
-            >
-                {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-            </Button>
-
+    if (disableToggle) {
+        return (
             <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button
-                        variant={isAudioEnabled ? "secondary" : "destructive"}
-                        size="icon"
-                        className={cn(
-                            "w-5 h-9 rounded-l-none shadow-lg ring-1 ring-white/10 px-0",
-                            !isAudioEnabled && "ring-destructive"
-                        )}
+                        variant="secondary"
+                        className="h-10 px-4 flex items-center gap-2 bg-black/40 hover:bg-black/60 text-white border border-white/10 backdrop-blur-md transition-all"
                     >
-                        {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        <Mic className="w-4 h-4" />
+                        <span className="text-sm font-medium">Audio</span>
+                        <ChevronDown className="w-3 h-3 text-white/50 ml-1" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" sideOffset={10} className="w-64 bg-background/95 backdrop-blur-sm border-white/10 text-foreground p-0 shadow-2xl rounded-none overflow-hidden">
@@ -241,8 +270,8 @@ export function AudioDeviceControl({ isAudioEnabled, onToggle, currentMicTrack }
                                 key={device.deviceId}
                                 onClick={() => handleMicSelect(device.deviceId)}
                                 className={cn(
-                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:!text-white focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
-                                    selectedMicId === device.deviceId && "bg-secondary text-secondary-foreground hover:!text-white"
+                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:text-white! focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
+                                    selectedMicId === device.deviceId && "bg-secondary text-secondary-foreground hover:text-white!"
                                 )}
                             >
                                 <span className="truncate">{device.label}</span>
@@ -267,6 +296,85 @@ export function AudioDeviceControl({ isAudioEnabled, onToggle, currentMicTrack }
                                 className={cn(
                                     "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:!text-white focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
                                     selectedSpeakerId === device.deviceId && "bg-secondary text-secondary-foreground hover:!text-white"
+                                )}
+                            >
+                                <span className="truncate">{device.label}</span>
+                                {selectedSpeakerId === device.deviceId && <Check className="w-4 h-4" />}
+                            </DropdownMenuItem>
+                        ))
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        );
+    }
+
+    return (
+        <div className="flex items-center group relative">
+            <Button
+                onClick={onToggle}
+                variant={isAudioEnabled ? "secondary" : "destructive"}
+                size="icon"
+                className={cn(
+                    "w-9 h-9 border-r border-white/10 shadow-lg ring-1 ring-white/10 relative z-10",
+                    !isAudioEnabled && "ring-destructive"
+                )}
+            >
+                {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+            </Button>
+
+            <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant={isAudioEnabled ? "secondary" : "destructive"}
+                        size="icon"
+                        className={cn(
+                            "w-5 h-9 shadow-lg ring-1 ring-white/10 px-0",
+                            !isAudioEnabled && "ring-destructive"
+                        )}
+                    >
+                        {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" sideOffset={10} className="w-64 bg-background/95 backdrop-blur-sm border-white/10 text-foreground p-0 shadow-2xl rounded-none overflow-hidden">
+
+                    {/* Microphones */}
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-transparent">
+                        Microphone
+                    </div>
+                    {mics.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-muted-foreground">No microphones found</div>
+                    ) : (
+                        mics.map((device) => (
+                            <DropdownMenuItem
+                                key={device.deviceId}
+                                onClick={() => handleMicSelect(device.deviceId)}
+                                className={cn(
+                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:text-white! focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
+                                    selectedMicId === device.deviceId && "bg-secondary text-secondary-foreground hover:text-white!"
+                                )}
+                            >
+                                <span className="truncate">{device.label}</span>
+                                {selectedMicId === device.deviceId && <Check className="w-4 h-4" />}
+                            </DropdownMenuItem>
+                        ))
+                    )}
+
+                    <div className="h-px bg-border my-1" />
+
+                    {/* Speakers */}
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-transparent">
+                        Speakers
+                    </div>
+                    {speakers.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-muted-foreground">No speakers found</div>
+                    ) : (
+                        speakers.map((device) => (
+                            <DropdownMenuItem
+                                key={device.deviceId}
+                                onClick={() => handleSpeakerSelect(device.deviceId)}
+                                className={cn(
+                                    "flex items-center justify-between cursor-pointer hover:bg-secondary/50 hover:text-white! focus:bg-secondary/50 text-sm py-2.5 px-4 outline-none transition-colors",
+                                    selectedSpeakerId === device.deviceId && "bg-secondary text-secondary-foreground hover:text-white!"
                                 )}
                             >
                                 <span className="truncate">{device.label}</span>

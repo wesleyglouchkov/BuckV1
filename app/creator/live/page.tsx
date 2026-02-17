@@ -182,7 +182,7 @@ export default function CreatorLivePreviewPage() {
                     {/* Preview */}
                     <div className="lg:col-span-2 space-y-4 order-2 lg:order-0">
                         <div className="relative">
-                            {/* AgoraLiveStream in preview mode */}
+                            {/* AgoraLiveStream in preview mode - handles overlay internally */}
                             <AgoraLiveStream
                                 appId={appId}
                                 channelName="preview"
@@ -198,17 +198,12 @@ export default function CreatorLivePreviewPage() {
                                 setRecordingDetails={() => { }}
                                 isRecording={false}
                                 setIsRecording={() => { }}
-                            />
-
-                            {/* Go Live Button Overlay */}
-                            <StreamPreviewOverlay
-                                isLive={false}
-                                hasPermission={hasPermission}
+                                // New props for Preview Mode Overlay
                                 isGoingLive={isGoingLive}
-                                canGoLive={canGoLive}
+                                onGoLive={handleGoLive}
                                 streamTitle={streamTitle}
                                 streamType={streamType}
-                                onGoLive={handleGoLive}
+                                hasPermission={hasPermission}
                                 onGrantPermissions={handleGrantPermissions}
                             />
                         </div>

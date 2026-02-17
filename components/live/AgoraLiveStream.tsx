@@ -43,6 +43,10 @@ interface AgoraLiveStreamProps {
     setIsChatVisible?: (visible: boolean) => void;
     streamTitle?: string;
     streamType?: string;
+    onGoLive?: () => void;
+    isGoingLive?: boolean;
+    onGrantPermissions?: () => void;
+    hasPermission?: boolean | null;
     userName?: string;
     userAvatar?: string;
     isRecording: boolean;
@@ -67,8 +71,19 @@ function LiveBroadcast({ appId, channelName, token, rtmToken, uid, streamId, onS
     // ========== AGORA HOOKS ==========
     const client = useRTCClient();
     const remoteUsers = useRemoteUsers();
-    const { localCameraTrack } = useLocalCameraTrack(true, { encoderConfig: hostVideoConfig });
-    const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
+    // Memoize options to prevent track re-creation on every render
+    const savedCameraId = typeof window !== 'undefined' ? localStorage.getItem("buck-camera-id") : undefined;
+    const cameraOptions = useMemo(() => ({
+        encoderConfig: hostVideoConfig,
+        cameraId: savedCameraId || undefined
+    }), [savedCameraId]);
+    const { localCameraTrack } = useLocalCameraTrack(true, cameraOptions);
+
+    const savedMicId = typeof window !== 'undefined' ? localStorage.getItem("buck-mic-id") : undefined;
+    const micOptions = useMemo(() => ({
+        microphoneId: savedMicId || undefined
+    }), [savedMicId]);
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(true, micOptions);
     const participantMediaState = useParticipantMediaState(client);
     const { isVideoEnabled, setIsVideoEnabled, isAudioEnabled, setIsAudioEnabled } = useTrackToggle(localCameraTrack, localMicrophoneTrack);
     const playJoinSound = useJoinSound();
@@ -457,7 +472,17 @@ export default function AgoraLiveStream(props: AgoraLiveStreamProps) {
 
     // For preview, we don't need Agora at all
     if (!props.isLive) {
-        return <StreamPreviewMode onPermissionChange={props.onPermissionChange} />;
+        return <StreamPreviewMode
+            onPermissionChange={props.onPermissionChange}
+            isLive={props.isLive}
+            hasPermission={props.hasPermission || null}
+            isGoingLive={props.isGoingLive || false}
+            canGoLive={!!(props.streamTitle && props.streamType && props.hasPermission)} /* Fallback calculation logic if needed, but StreamPreviewMode uses passed props */
+            streamTitle={props.streamTitle || ""}
+            streamType={props.streamType || ""}
+            onGoLive={props.onGoLive || (() => { })}
+            onGrantPermissions={props.onGrantPermissions || (() => { })}
+        />;
     }
 
     // Wait for token before joining Agora channel
