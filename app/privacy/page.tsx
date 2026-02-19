@@ -38,7 +38,7 @@ export default function PrivacyPage() {
 
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">1. Information We Collect</h2>
-                        
+
                         <h3 className="text-lg font-semibold mb-3 text-foreground">a. Information You Provide</h3>
                         <ul className="list-disc ml-6 space-y-2 text-muted-foreground leading-7 mb-4">
                             <li>Name</li>
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
                         <p className="text-muted-foreground leading-7 mb-4">
                             Buck uses Google Ads and may use Google Analytics and other third-party advertising partners.
                         </p>
-                        
+
                         <h3 className="text-lg font-semibold mb-3 text-foreground">How Google Uses Data</h3>
                         <ul className="list-disc ml-6 space-y-2 text-muted-foreground leading-7 mb-4">
                             <li>Google uses cookies (including the DoubleClick cookie) to serve ads based on users' visits to this and other websites.</li>
@@ -155,7 +155,7 @@ export default function PrivacyPage() {
 
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">7. Your Privacy Rights</h2>
-                        
+
                         <h3 className="text-lg font-semibold mb-3 text-foreground">a. California (CCPA)</h3>
                         <p className="text-muted-foreground leading-7 mb-2">California residents have the right to:</p>
                         <ul className="list-disc ml-6 space-y-2 text-muted-foreground leading-7 mb-4">
@@ -174,8 +174,8 @@ export default function PrivacyPage() {
                         </ul>
                         <p className="text-muted-foreground leading-7">
                             Requests can be sent to{' '}
-                            <a href="mailto:support@buck.com" className="text-primary hover:underline font-medium">
-                                support@buck.com
+                            <a href="mailto:support@buckstreaming.com" className="text-primary hover:underline font-medium">
+                                support@buckstreaming.com
                             </a>.
                         </p>
                     </section>
@@ -227,8 +227,8 @@ export default function PrivacyPage() {
                         </p>
                         <p className="text-muted-foreground leading-7 mt-2">
                             📧{' '}
-                            <a href="mailto:support@buck.com" className="text-primary hover:underline font-medium">
-                                support@buck.com
+                            <a href="mailto:support@buckstreaming.com" className="text-primary hover:underline font-medium">
+                                support@buckstreaming.com
                             </a>
                         </p>
                     </section>

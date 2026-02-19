@@ -171,8 +171,8 @@ export default function TermsPage() {
                     <section className="mb-8 border-t border-border pt-8">
                         <h2 className="text-2xl font-semibold mb-4">15. Contact</h2>
                         <p className="text-muted-foreground leading-7">
-                            <a href="mailto:support@buck.com" className="text-primary hover:underline font-medium">
-                                support@buck.com
+                            <a href="mailto:support@buckstreaming.com" className="text-primary hover:underline font-medium">
+                                support@buckstreaming.com
                             </a>
                         </p>
                     </section>
