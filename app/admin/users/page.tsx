@@ -73,8 +73,9 @@ export default function UsersPage() {
     revalidateOnFocus: false,
   });
 
-  const users = data?.data || [];
-  const hasNextPage = users.length === ITEMS_PER_PAGE;
+  const users = data?.data?.items || [];
+  const pagination = data?.data?.pagination;
+  const hasNextPage = pagination ? currentPage < pagination.totalPages : false;
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as 'creator' | 'member');
@@ -245,7 +246,7 @@ export default function UsersPage() {
       {!isLoading && users.length > 0 && (
         <div className="mt-6 flex items-center justify-between border-t border-border/30 pt-4">
           <div className="text-sm text-muted-foreground">
-            Page {currentPage} • Showing {users.length} {activeTab}s
+            Page {currentPage}{pagination ? ` of ${pagination.totalPages}` : ''} • Showing {users.length} of {pagination?.total || users.length} {activeTab}s
             {searchQuery && (
               <span className="ml-2 text-primary">
                 (search: "{searchQuery}")

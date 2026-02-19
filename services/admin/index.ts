@@ -26,7 +26,15 @@ export interface User {
 
 export interface GetUsersResponse {
   success: boolean;
-  data: User[];
+  data: {
+    items: User[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
 }
 
 export interface GetUsersParams {
