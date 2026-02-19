@@ -66,19 +66,45 @@ export function StreamPreviewMode({
     useEffect(() => {
         let isMounted = true;
 
-        const startPreview = async () => {
+        const startPreview = async (useSavedDevices = true) => {
             try {
                 setPermissionError(null);
 
                 // Get stored device IDs
-                const savedCameraId = localStorage.getItem("buck-camera-id");
-                const savedMicId = localStorage.getItem("buck-mic-id");
+                const savedCameraId = useSavedDevices ? localStorage.getItem("buck-camera-id") : null;
+                const savedMicId = useSavedDevices ? localStorage.getItem("buck-mic-id") : null;
 
                 // Create Agora Tracks
-                const [videoTrack, audioTrack] = await Promise.all([
-                    AgoraRTC.createCameraVideoTrack({ cameraId: savedCameraId || undefined }),
-                    AgoraRTC.createMicrophoneAudioTrack({ microphoneId: savedMicId || undefined })
-                ]);
+                let videoTrack: ICameraVideoTrack;
+                let audioTrack: IMicrophoneAudioTrack;
+
+                try {
+                    const tracks = await Promise.all([
+                        AgoraRTC.createCameraVideoTrack({
+                            cameraId: savedCameraId || undefined,
+                            encoderConfig: "720p_1"
+                        }).catch(err => {
+                            if (useSavedDevices && savedCameraId) throw err;
+                            return AgoraRTC.createCameraVideoTrack({ encoderConfig: "720p_1" });
+                        }),
+                        AgoraRTC.createMicrophoneAudioTrack({
+                            microphoneId: savedMicId || undefined
+                        }).catch(err => {
+                            if (useSavedDevices && savedMicId) throw err;
+                            return AgoraRTC.createMicrophoneAudioTrack();
+                        })
+                    ]);
+                    videoTrack = tracks[0] as ICameraVideoTrack;
+                    audioTrack = tracks[1] as IMicrophoneAudioTrack;
+                } catch (err) {
+                    if (useSavedDevices && (savedCameraId || savedMicId)) {
+                        console.warn("Saved devices failed, retrying with defaults...");
+                        localStorage.removeItem("buck-camera-id");
+                        localStorage.removeItem("buck-mic-id");
+                        return startPreview(false);
+                    }
+                    throw err;
+                }
 
                 if (!isMounted) {
                     videoTrack.close();
@@ -117,20 +143,25 @@ export function StreamPreviewMode({
                     };
                     checkLevel();
                 }
-            } catch (err) {
-                if (err instanceof Error) {
-                    // Handle specific errors similar to before
-                    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+            } catch (err: any) {
+                if (err instanceof Error || (err && err.name)) {
+                    const errorName = err.name || (err as any).code;
+                    console.error("Media access error:", errorName, err.message);
+
+                    if (errorName === "NotAllowedError" || errorName === "PermissionDeniedError") {
                         setPermissionError("Camera and microphone access is required to go live. \nPlease allow access in your browser settings.");
-                    } else if (err.name === "NotFoundError") {
+                    } else if (errorName === "NotFoundError" || errorName === "DEVICE_NOT_FOUND") {
                         setPermissionError("No camera or microphone found. Please connect a device and try again.");
-                    } else if (err.name === "NotReadableError") {
+                    } else if (errorName === "NotReadableError" || errorName === "TRACK_IS_OCCUPIED") {
                         setPermissionError("Your camera or microphone is already in use by another application.");
                     } else {
-                        setPermissionError("Unable to access camera/microphone. Please check your device settings.");
+                        setPermissionError(`Unable to access camera/microphone (${errorName}). Please check your device settings and ensure no other app is using them.`);
                     }
                     onPermissionChange?.(false);
-                    console.warn("Media access error:", err.name, err.message);
+                } else {
+                    setPermissionError("An unexpected error occurred while accessing your camera/microphone.");
+                    console.error("Unknown media access error:", err);
+                    onPermissionChange?.(false);
                 }
             }
         };

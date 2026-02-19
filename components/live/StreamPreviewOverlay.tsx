@@ -97,7 +97,7 @@ export default function StreamPreviewOverlay({
 
                 <div className="flex flex-col gap-3 items-center">
                     {(!streamTitle.trim() || !streamType.trim()) ? (
-                        <div className="text-gray-400 text-sm font-black bg-black/20 px-4 py-2 backdrop-blur-md">
+                        <div className="text-white dark:text-gray-400 text-sm font-black bg-black/20 px-4 py-2 backdrop-blur-md">
                             To go live, fill in the title and select the stream type.
                         </div>
                     ) : (
