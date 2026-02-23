@@ -79,8 +79,11 @@ export default function TermsPage() {
                         <p className="text-muted-foreground leading-7 mb-2">
                             All payments are final and non-refundable except where required by law.
                         </p>
+                        <p className="text-muted-foreground leading-7 mb-2">
+                            Buck retains a platform fee of <span className="font-semibold text-foreground">20% on subscriptions</span> and <span className="font-semibold text-foreground">5% on tips</span>.
+                        </p>
                         <p className="text-muted-foreground leading-7">
-                            Buck may retain a platform fee. Creators are responsible for their own taxes.
+                            Creators are responsible for their own taxes.
                         </p>
                     </section>
 
