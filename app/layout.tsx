@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 import { auth } from "@/auth";
+import Script from "next/script";
 
 export default async function RootLayout({
   children,
@@ -68,6 +69,16 @@ export default async function RootLayout({
             `,
           }}
         />
+        
+        <Script
+          id="adsense-init"
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6476074966254431`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+
+
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <SessionProvider session={session}>
