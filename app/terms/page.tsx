@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 
 export default function TermsPage() {
     return (
@@ -181,6 +182,7 @@ export default function TermsPage() {
                     </section>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

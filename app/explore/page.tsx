@@ -21,6 +21,7 @@ import {
 import { CATEGORIES } from "@/lib/constants/categories";
 import { useExploreData, SidebarCategory } from "@/hooks/explore";
 import { getMenuItemsBasedOnRole } from "@/utils/menuItemsBasedOnRole";
+import { Footer } from "@/components/Footer";
 
 // Icon size for category cards
 const CATEGORY_ICON_SIZE = 140;
@@ -272,6 +273,12 @@ export default function ExplorePage() {
           )}
         </div>
       </main>
+
+      {/* The Footer is now correctly positioned inside the main element if we want it to respect the sidebar margin. 
+          However, the current structure has it outside. Let's wrap it in a div that shares the same responsive margin as the main element. */}
+      <div className={`transition-all duration-300 ease-out ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} relative z-10`}>
+        <Footer className="dark:text-white" />
+      </div>
     </div>
   );
 }
