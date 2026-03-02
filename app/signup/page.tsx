@@ -339,9 +339,9 @@ export default function SignupPage() {
               <div className="mt-1">
                 <label htmlFor="terms" className="text-sm text-muted-foreground">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Terms of Service</Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>
                 </label>
               </div>
             </div>
