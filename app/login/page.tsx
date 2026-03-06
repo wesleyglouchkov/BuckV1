@@ -102,13 +102,13 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary via-primary to-secondary relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#e0f2fe] via-[#bae6fd] to-[#7dd3fc] dark:from-[#0c4a6e] dark:via-[#075985] dark:to-[#0369a1] relative overflow-hidden">
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
           <div className="relative">
             <div className="absolute -inset-8">
-              <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-              <div className="absolute bottom-4 right-0 w-32 h-20 bg-white/15 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] rotate-12"></div>
-              <div className="absolute top-8 right-4 w-16 h-16 bg-white/10 rounded-[60%_40%_30%_70%/60%_30%_70%_40%] -rotate-12"></div>
+              <div className="absolute top-0 left-0 w-24 h-24 bg-white/30 dark:bg-white/10 rounded-full blur-xl"></div>
+              <div className="absolute bottom-4 right-0 w-32 h-20 bg-white/20 dark:bg-white/15 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] rotate-12"></div>
+              <div className="absolute top-8 right-4 w-16 h-16 bg-white/30 dark:bg-white/10 rounded-[60%_40%_30%_70%/60%_30%_70%_40%] -rotate-12"></div>
             </div>
             <div className="relative p-8 mb-8">
               <Image
@@ -116,30 +116,30 @@ export default function LoginPage() {
                 alt="Buck Logo"
                 width={120}
                 height={120}
-                className="drop-shadow-2xl"
+                className="drop-shadow-2xl animate-float transition-transform duration-300 hover:scale-90"
               />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-4 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             Welcome to Buck
           </h1>
-          <p className="text-white/80 text-lg text-center max-w-md">
+          <p className="text-gray-600 dark:text-white/80 text-lg text-center max-w-md">
             Your all-in-one platform for creators and communities. Join thousands of users building something amazing.
           </p>
           <div className="mt-12 flex items-center gap-8">
             <div className="text-center">
-              <p className="text-3xl font-bold text-white">10K+</p>
-              <p className="text-white/70 text-sm">Active Users</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">10K+</p>
+              <p className="text-gray-500 dark:text-white/70 text-sm">Active Users</p>
             </div>
-            <div className="w-px h-12 bg-white/30"></div>
+            <div className="w-px h-12 bg-gray-300 dark:bg-white/30"></div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-white">500+</p>
-              <p className="text-white/70 text-sm">Creators</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">500+</p>
+              <p className="text-gray-500 dark:text-white/70 text-sm">Creators</p>
             </div>
-            <div className="w-px h-12 bg-white/30"></div>
+            <div className="w-px h-12 bg-gray-300 dark:bg-white/30"></div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-white">50K+</p>
-              <p className="text-white/70 text-sm">Content</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">50K+</p>
+              <p className="text-gray-500 dark:text-white/70 text-sm">Content</p>
             </div>
           </div>
         </div>

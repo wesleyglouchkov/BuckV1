@@ -129,15 +129,13 @@ export default function SignupPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-primary via-primary to-secondary relative overflow-hidden">
-        {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.08%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50"></div> */}
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#e0f2fe] via-[#bae6fd] to-[#7dd3fc] dark:from-[#0c4a6e] dark:via-[#075985] dark:to-[#0369a1] relative overflow-hidden">
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
           <div className="relative">
-            {/* Random organic shapes background */}
             <div className="absolute -inset-8">
-              <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-              <div className="absolute bottom-4 right-0 w-32 h-20 bg-white/15 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] rotate-12"></div>
-              <div className="absolute top-8 right-4 w-16 h-16 bg-white/10 rounded-[60%_40%_30%_70%/60%_30%_70%_40%] -rotate-12"></div>
+              <div className="absolute top-0 left-0 w-24 h-24 bg-white/30 dark:bg-white/10 rounded-full blur-xl"></div>
+              <div className="absolute bottom-4 right-0 w-32 h-20 bg-white/20 dark:bg-white/15 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] rotate-12"></div>
+              <div className="absolute top-8 right-4 w-16 h-16 bg-white/30 dark:bg-white/10 rounded-[60%_40%_30%_70%/60%_30%_70%_40%] -rotate-12"></div>
             </div>
             <div className="relative p-8 mb-8">
               <Image
@@ -145,31 +143,31 @@ export default function SignupPage() {
                 alt="Buck Logo"
                 width={120}
                 height={120}
-                className="drop-shadow-2xl"
+                className="drop-shadow-2xl animate-float transition-transform duration-300 hover:scale-90"
               />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-4 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             Join Buck Today
           </h1>
-          <p className="text-white/80 text-lg text-center max-w-md">
+          <p className="text-gray-600 dark:text-white/80 text-lg text-center max-w-md">
             Start your journey with us. Create, share, and connect with a community of passionate individuals.
           </p>
-          <div className="mt-12 grid grid-cols-1 gap-4 text-white/90">
+          <div className="mt-12 grid grid-cols-1 gap-4 text-gray-700 dark:text-white/90">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white/30 dark:bg-white/20 flex items-center justify-center">
                 <Check className="w-5 h-5" />
               </div>
               <span>Free to get started</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white/30 dark:bg-white/20 flex items-center justify-center">
                 <Check className="w-5 h-5" />
               </div>
               <span>Join the Creator Community</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white/30 dark:bg-white/20 flex items-center justify-center">
                 <Check className="w-5 h-5" />
               </div>
               <span>Join our growing community</span>
